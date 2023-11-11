@@ -1,0 +1,9 @@
+{
+  "name" : "sanema",
+  "version-string" : "1.0.0",
+  "builtin-baseline" : "1384becefca5c1511f0e070c43f66ad6a3783c8e",
+  "dependencies" : [ {
+    "name" : "boost-lexical-cast",
+    "version>=" : "1.82.0#2"
+  } ]
+}
