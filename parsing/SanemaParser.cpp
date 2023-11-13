@@ -226,37 +226,61 @@ std::vector<sanema::Token> sanema::SanemaParser::tokenize(std::istream &text) {
   std::vector<Token> tokens;
   long line_number = 0;
   long column_number = 0;
-  while (!text.eof()) {
-    text.get(read_character);
-    if (delimiters.count(read_character) > 0) {
-      if (token.has_value()) {
-        tokens.push_back(*token);
-        token = {};
+  bool reading_string = false;
+  bool scaping_character = false;
+  while (text.get(read_character)) {
+    if (!reading_string) {
+      if (delimiters.count(read_character) > 0) {
+
+        if (token.has_value() && !token->token.empty()) {
+          tokens.push_back(*token);
+          token = {};
+        }
+        if (separators.count(read_character)) {
+          continue;
+        }
+        if (string_delimiters.contains(read_character)) {
+          reading_string = true;
+          token=Token{std::string("")+read_character,(int) line_number + 1, column_number};
+          continue;
+        }
+        if (!(std::string("") + read_character).empty()) {
+          tokens.emplace_back(std::string("") + read_character,
+                              line_number,
+                              column_number);
+        }
+
+      } else if (line_ending_character.count(read_character) > 0) {
+        if (token.has_value() && !token->token.empty()) {
+          tokens.push_back(*token);
+          token = {};
+        }
+        line_number++;
+        column_number = 0;
+      } else if (ignored_characters.count(read_character) > 0) {
+        //ignore
+      } else {
+        if (!token.has_value()) {
+          token = Token{"", (int) line_number + 1, column_number};
+        }
+        token->token += read_character;
       }
-      if (separators.count(read_character)) {
-        continue;
-      }
-      tokens.emplace_back(std::string("") + read_character,
-                          line_number,
-                          column_number);
-    } else if (line_ending_character.count(read_character) > 0) {
-      if (token.has_value()) {
-        tokens.push_back(*token);
-        token = {};
-      }
-      line_number++;
-      column_number = 0;
-    } else if (ignored_characters.count(read_character) > 0) {
-      //ignore
+      column_number++;
     } else {
-      if (!token.has_value()) {
-        token = Token{"", (int) line_number + 1, column_number};
-      }
+      column_number++;
       token->token += read_character;
+
+      if (line_ending_character.contains(read_character)) {
+        throw std::runtime_error("Missing closing \"");
+      }
+      if (string_delimiters.contains(read_character)) {
+        reading_string = false;
+      }
+
     }
-    column_number++;
 
   }
+
   return tokens;
 }
 
@@ -291,7 +315,10 @@ bool sanema::SanemaParser::is_literal(const std::string &string) {
 }
 
 
-sanema::Token::Token(std::string &&token, long lineNumber, int columnNumber)
+sanema::Token::Token(std::string &&token,
+                     long
+                     lineNumber, int
+                     columnNumber)
   : token(token), line_number(lineNumber), column_number(columnNumber) {}
 
 sanema::Literal sanema::SanemaParser::get_literal_from_string(std::string token) {
@@ -337,6 +364,15 @@ sanema::Literal sanema::SanemaParser::get_literal_from_string(std::string token)
     return LiteralFloat(float_value);
   } catch (boost::exception &ex) {
 
+  }
+  if (token.starts_with("\"") && token.ends_with("\"")) {
+    token.replace(0,
+                  1,
+                  "");
+    token.replace(token.length() - 1,
+                  1,
+                  "");
+    return LiteralString(token);
   }
   return LiteralSInt64{atoi(token.c_str())};
 }

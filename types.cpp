@@ -60,7 +60,7 @@ std::uint64_t sanema::get_type_size(sanema::CompleteType &type) {
           return 64;
         },
         [](String &a_double) -> std::uint64_t {
-          return 8;
+          return sizeof (sanema::StringReference)*8;
         },
         [](Boolean &a_double) -> std::uint64_t {
           return 8;
@@ -93,7 +93,7 @@ std::string sanema::type_to_string(sanema::CompleteType const& type) {
             case 32: return "int32";break;
             case 64: return "int64";break;
           };
-
+          return "unknown_size_int";
         },
         [](sanema::Float const &a_float)->std::string  {
           return "float";
@@ -116,6 +116,7 @@ std::string sanema::type_to_string(sanema::CompleteType const& type) {
        );
   return std::string("NO_TYPE");
 }
+
 
 
 bool sanema::Integer::operator==(const sanema::Integer &rhs) const {
@@ -165,4 +166,18 @@ bool sanema::Boolean::operator==(const sanema::Boolean &rhs) const {
 
 bool sanema::Boolean::operator!=(const sanema::Boolean &rhs) const {
   return false;
+}
+
+std::ostream &sanema::operator<<(std::ostream &stream, const sanema::StringReference &string_reference) {
+  stream<<"string(";
+  switch (string_reference.location) {
+    case StringLocation::LiteralPool:
+      stream<<"literal:";
+      break;
+    case StringLocation::LocalStack:
+      stream<<"local:";
+      break;
+  }
+  stream<<string_reference.ref<<")";
+  return stream;
 }

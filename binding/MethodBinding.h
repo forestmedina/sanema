@@ -5,7 +5,7 @@
 #ifndef NATURE_FUNCTIONBINDING_H
 #define NATURE_FUNCTIONBINDING_H
 #include <vector>
-#include "Value.h"
+#include "Value.ixx"
 namespace sanema {
   struct MethodPointer {
     virtual void call(void *, std::vector<Value> const& arguments) {
@@ -38,7 +38,7 @@ struct MethodCaller:MethodPointer{
     FUNC_PTR function_pointer;
 };
 
-  class FunctionBinding {
+  class MethodBinding {
     std::string  name;
     std::unique_ptr<MethodPointer> method_pointer;
   };

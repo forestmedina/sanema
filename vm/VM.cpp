@@ -4,12 +4,13 @@
 
 #include "VM.h"
 #include "opcodes.h"
+#include <types.h>
+void sanema::VM::run(const ByteCode &byte_code) {
 
-void VM::run(const ByteCode &byte_code) {
   IPType ip = byte_code.code_data.data();
   auto end_address = byte_code.code_data.data() + byte_code.code_data.size();
   while (ip < end_address) {
-    std::cout<<"Ip offset: "<<(ip-byte_code.code_data.data())<<"\n";
+    std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << "\n";
     execute_instruction(ip);
   }
 
@@ -34,9 +35,9 @@ void VM::run(const ByteCode &byte_code) {
       GENERATE_LOCAL_OPERATION(OP_TYPE,type,SET_LOCAL_,set_local)\
       GENERATE_PUSH(OP_TYPE,type)
 
-ExecuteResult VM::execute_instruction(IPType &ip) {
+sanema::ExecuteResult sanema::VM::execute_instruction(sanema::IPType &ip) {
   auto opcode = static_cast<OPCODE>(*ip);
-  std::cout<<"Executing opcode: "<<opcode_to_string(opcode)<<"\n";
+  std::cout << "Executing opcode: " << opcode_to_string(opcode) << "\n";
   ip++;
   switch (opcode) {
     case OPCODE::OP_POP: {
@@ -58,12 +59,25 @@ ExecuteResult VM::execute_instruction(IPType &ip) {
     }
       break;
 
-    GENERATE_TYPE_OPERATIONS(SINT64,std::int64_t)
-    GENERATE_TYPE_OPERATIONS(SINT32,std::int32_t)
-    GENERATE_TYPE_OPERATIONS(SINT16,std::int16_t)
-    GENERATE_TYPE_OPERATIONS(SINT8,std::int8_t)
-    GENERATE_TYPE_OPERATIONS(FLOAT,float)
-    GENERATE_TYPE_OPERATIONS(DOUBLE,double )
+    GENERATE_TYPE_OPERATIONS(SINT64,
+                             std::int64_t)
+    GENERATE_TYPE_OPERATIONS(SINT32,
+                             std::int32_t)
+    GENERATE_TYPE_OPERATIONS(SINT16,
+                             std::int16_t)
+    GENERATE_TYPE_OPERATIONS(SINT8,
+                             std::int8_t)
+    GENERATE_TYPE_OPERATIONS(FLOAT,
+                             float)
+    GENERATE_TYPE_OPERATIONS(DOUBLE,
+                             double)
+     GENERATE_LOCAL_OPERATION(STRING,sanema::StringReference,PUSH_LOCAL_,push_local)
+     GENERATE_LOCAL_OPERATION(STRING,sanema::StringReference,POP_TO_LOCAL_,pop_to_local)
+     GENERATE_LOCAL_OPERATION(STRING,sanema::StringReference,SET_LOCAL_,set_local)
+    case OPCODE::OP_PUSH_STRING_CONST: {
+      auto string_literal_index = read_from_bytecode<std::uint64_t>(ip);
+      push(string_literal_index);
+    }break;
     case OPCODE::OP_JUMP: {
       auto offset = read_from_bytecode<std::uint16_t>(ip);
       ip += offset;
@@ -83,8 +97,10 @@ ExecuteResult VM::execute_instruction(IPType &ip) {
   return ExecuteResult::OK;
 }
 
-VM::VM(int megabyte_size) {
+sanema::VM::VM(int megabyte_size) {
   auto megabytes_to_bytes = [](std::uint64_t size) { return (size * 1024) * 1024; };
   stack_memory.reserve(megabytes_to_bytes(megabyte_size));
   call_stack.emplace_back(stack_memory.data());
 }
+
+

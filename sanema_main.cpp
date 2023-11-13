@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
   auto result = parser.parse(tokens);
   print_block_of_code(result);
   sanema::ByteCodeCompiler compiler;
-  VM sanema_vm;
+ sanema::VM sanema_vm;
   sanema::ValidationStage validation_stage;
   try {
     compiler.process(result);

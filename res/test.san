@@ -1,5 +1,4 @@
-var my_var int32;
-var my_var2 int64;
-var my_float float;
-set my_float 1f;
-add my_float 2.1f;
+var number1 int64;
+var my_string string;
+set my_string "esto es una prueba";
+set my_string replace( my_string,"prueba","pasada");

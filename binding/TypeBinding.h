@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 #include "FieldBinding.h"
-#include "FunctionBinding.h"
+#include "MethodBinding.h"
 
 namespace sanema {
 
@@ -15,7 +15,7 @@ namespace sanema {
     std::string name;
     std::string type;
     std::vector<FieldBinding> fields;
-    std::vector<FunctionBinding> methods;
+    std::vector<MethodBinding> methods;
   };
 }
 

@@ -6,11 +6,12 @@
 #define NATURE_CONTEXTFRAME_H
 #include <vector>
 #include <assert.h>
+#include <cstdint>
 namespace sanema {
   class ContextFrame {
   public:
 
-    explicit ContextFrame(uint8_t *begin_address);
+    explicit ContextFrame(std::uint8_t *begin_address);
 
     template<class T>
      T read(std::uint64_t address){

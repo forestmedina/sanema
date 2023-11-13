@@ -9,6 +9,7 @@
 #include <vector>
 #include "opcodes.h"
 #include <iostream>
+
 using BYTECodeIPType=std::uint8_t const *;
 template <typename T>
   T read_from_bytecode(BYTECodeIPType& ip){
@@ -17,9 +18,12 @@ template <typename T>
     ip+=size;
     return value;
   };
+
+template <>
+  std::uint64_t  read_from_bytecode(BYTECodeIPType& ip);
 struct ByteCode {
   std::vector<std::uint8_t> code_data;
-
+  std::vector<std::string> string_literals;
   template<class T>
   void write(T const &t) {
     auto length = sizeof(t) / sizeof(uint8_t);
@@ -33,6 +37,21 @@ struct ByteCode {
   template<>
   void write(OPCODE const& opcode){
     code_data.emplace_back(static_cast<typename std::underlying_type<OPCODE>::type>(opcode));
+  }
+  template<>
+  void write(std::string const& string_literal){
+    string_literals.emplace_back(string_literal);
+    std::uint64_t index=string_literals.size()-1;
+    write(index);
+  }
+  size_t add_string_literal(std::string& string_literal){
+    auto iter=std::find(string_literals.begin(),string_literals.end(),string_literal);
+    if(iter==string_literals.end()){
+        string_literals.emplace_back(string_literal);
+        return  string_literals.size()-1;
+    }else{
+      return std::distance(string_literals.begin(),iter);
+    }
   }
 
   inline void print() {

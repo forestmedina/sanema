@@ -10,7 +10,7 @@
 #include <vector>
 #include <optional>
 #include <memory>
-
+#include <ostream>
 namespace sanema {
   struct Integer {
     char size = 32;
@@ -55,6 +55,18 @@ namespace sanema {
     bool operator!=(const Boolean &rhs) const;
   };
 
+  enum class StringLocation :std::uint8_t {
+      LiteralPool,
+      LocalStack
+    };
+  struct StringReference{
+
+
+    StringLocation location;
+    std::uint32_t ref;
+
+  };
+  std::ostream & operator<<(std::ostream & stream, StringReference const & string_reference) ;
   using PrimitiveType = std::variant<Integer, Float, Double, String, Boolean>();
   struct Struct;
 

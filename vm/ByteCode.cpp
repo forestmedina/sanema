@@ -3,3 +3,12 @@
 //
 
 #include "ByteCode.h"
+#include <cassert>
+template <>
+std::uint64_t  read_from_bytecode(BYTECodeIPType& ip) {
+  constexpr std::uint64_t size = sizeof(std::uint64_t);
+  std::uint64_t value = *((std::uint64_t *) ip);
+  ip += size;
+  return value;
+}
+

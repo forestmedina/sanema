@@ -129,8 +129,10 @@ generate_push_literal(ByteCode &byte_code, sanema::Literal &literal, sanema::Byt
           byte_code.write(OPCODE::OP_PUSH_DOUBLE_CONST);
           byte_code.write(a_double.value);
         },
-        [](sanema::LiteralString &string) {
-
+        [&byte_code](sanema::LiteralString &string) {
+          byte_code.write(OPCODE::OP_PUSH_STRING_CONST);
+          auto index=byte_code.add_string_literal(string.value);
+          byte_code.write(sanema::StringReference{sanema::StringLocation::LiteralPool,(std::uint32_t )index});
         }
        );
 }
@@ -320,7 +322,7 @@ generate_set(ByteCode &byte_code, sanema::FunctionCall &function_call,
           byte_code.write(OPCODE::OP_SET_LOCAL_FLOAT);
         },
         [&byte_code](sanema::String const &integer) {
-
+          byte_code.write(OPCODE::OP_SET_LOCAL_STRING);
         },
         [&byte_code](sanema::Void const &a_void) {
           throw std::runtime_error("Void can't be set we should never reach this");
@@ -396,7 +398,8 @@ void sanema::ByteCodeCompiler::process(sanema::BlockOfCode &block_of_code) {
               std::string message="function " + function_call.identifier +"( " ;
               std::string separator{""};
                for(auto& parameter:function_call.arguments){
-                 message+=separator+" "+ type_to_string(get_expression_type(parameter.expression,scope_stack.back()).value()) ;
+                 auto type=get_expression_type(parameter.expression,scope_stack.back());
+                 message+=separator+" "+( type.has_value()?type_to_string(*type):"unknow") ;
                  separator=",";
                }
                message+=") not found";

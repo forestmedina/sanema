@@ -11,7 +11,8 @@ if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
-add_executable(sanema
+
+add_library(sanema
         compiler/Backend.cpp
         compiler/Backend.h
         compiler/ByteCodeCompiler.cpp
@@ -29,13 +30,12 @@ add_executable(sanema
         vm/VM.h
         binding/FieldBinding.cpp
         binding/FieldBinding.h
-        binding/FunctionBinding.cpp
-        binding/FunctionBinding.h
+        binding/MethodBinding.cpp
+        binding/MethodBinding.h
         binding/TypeBinding.cpp
         binding/TypeBinding.h
-        binding/Value.cpp
-        binding/Value.h
-        sanema_main.cpp
+        binding/Value.ixx
+
         types.cpp
         literals.cpp
         functions.cpp
@@ -43,5 +43,29 @@ add_executable(sanema
         built-in/built_in_functions.h
         parsing/FunctionCollection.cpp
         parsing/FunctionCollection.h
-        built-in/built_in_functions.cpp)
+        built-in/built_in_functions.cpp
+        test/test.cpp
+        test/basic_tests.cpp
+        test/helpers.cpp
+        test/helpers.h
+        strings/strings.ixx
+        binding/BindingCollection.ixx
+        binding/BindingCollection.ixx
+        binding/FunctionBinding.ixx)
+
 target_include_directories(sanema PUBLIC  "./")
+add_executable(sanema_main   sanema_main.cpp)
+target_link_libraries (sanema_main PRIVATE sanema)
+
+find_package(Catch2 3 REQUIRED)
+
+# These tests need their own main
+add_executable(sanema_tests test/test.cpp
+        test/helpers.cpp
+        test/helpers.h)
+target_link_libraries(sanema_tests PRIVATE Catch2::Catch2WithMain)
+target_link_libraries (sanema_tests PRIVATE sanema)
+
+include(CTest)
+include(Catch)
+catch_discover_tests(sanema_tests)

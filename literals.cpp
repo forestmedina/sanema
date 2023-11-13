@@ -53,6 +53,7 @@ sanema::Literal sanema::get_integer_literal_from_type(sanema::Integer type, std:
       return LiteralSInt64{(std::int64_t) value};
       break;
   }
+  return LiteralSInt64{(std::int64_t) value};
 }
 
 sanema::Literal sanema::get_default_literal_for_type(sanema::CompleteType const&type) {

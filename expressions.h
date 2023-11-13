@@ -50,6 +50,7 @@ namespace sanema {
 
     std::string identifier{};
     CompleteType type_identifier{};
+    std::optional<Literal> value;
     enum class DeclareVariableState {
       TYPE,
       IDENTIFIER,
