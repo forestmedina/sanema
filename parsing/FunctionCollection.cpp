@@ -3,6 +3,7 @@
 //
 
 #include "FunctionCollection.h"
+#include <algorithm>
 std::optional<sanema::DefineFunction> sanema::find_function(sanema::FunctionCollection& collection , sanema::DefineFunction &function) {
 
 

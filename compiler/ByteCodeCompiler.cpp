@@ -79,7 +79,7 @@ std::optional<sanema::DefineFunction> get_function_definition(sanema::FunctionCa
   return found_function;
 }
 
-void generate_if(ByteCode &byte_code, sanema::FunctionCall &function_call,
+void generate_if(sanema::ByteCode &byte_code, sanema::FunctionCall &function_call,
                  sanema::ByteCodeCompiler::Scope &context_frame_aux,
                  sanema::ByteCodeCompiler::GeneratorsMap &generator_map) {
   byte_code.write(OPCODE::OP_JUMP_IF_FALSE);
@@ -98,7 +98,7 @@ T convert_number_literal(sanema::Literal literal) {
 }
 
 void
-generate_push_literal(ByteCode &byte_code, sanema::Literal &literal, sanema::ByteCodeCompiler::Scope &context_frame_aux,
+generate_push_literal(sanema::ByteCode &byte_code, sanema::Literal &literal, sanema::ByteCodeCompiler::Scope &context_frame_aux,
                       sanema::ByteCodeCompiler::GeneratorsMap &generator_map, sanema::CompleteType const &type) {
   match(literal,
         [&byte_code](sanema::LiteralSInt64 int_64) {
@@ -138,7 +138,7 @@ generate_push_literal(ByteCode &byte_code, sanema::Literal &literal, sanema::Byt
 }
 
 void
-generate_local_variable_access(ByteCode &byte_code, sanema::ByteCodeCompiler::Scope &context_frame_aux,
+generate_local_variable_access(sanema::ByteCode &byte_code, sanema::ByteCodeCompiler::Scope &context_frame_aux,
                                std::string identifier,
                                sanema::ByteCodeCompiler::GeneratorsMap &generator_map) {
 
@@ -173,7 +173,7 @@ generate_local_variable_access(ByteCode &byte_code, sanema::ByteCodeCompiler::Sc
 }
 
 void
-generate_function(ByteCode &byte_code, sanema::FunctionCall &function_call,
+generate_function(sanema::ByteCode &byte_code, sanema::FunctionCall &function_call,
                   std::optional<sanema::DefineFunction> &function_definition,
                   sanema::ByteCodeCompiler::Scope &context_frame_aux,
                   sanema::ByteCodeCompiler::GeneratorsMap &generator_map) {
@@ -188,7 +188,7 @@ generate_function(ByteCode &byte_code, sanema::FunctionCall &function_call,
 }
 
 void
-generate_add(ByteCode &byte_code, sanema::FunctionCall &function_call,
+generate_add(sanema::ByteCode &byte_code, sanema::FunctionCall &function_call,
              std::optional<sanema::DefineFunction> const&function_definition,
              sanema::ByteCodeCompiler::Scope &context_frame_aux,
              sanema::ByteCodeCompiler::GeneratorsMap &generator_map) {
@@ -272,7 +272,7 @@ generate_add(ByteCode &byte_code, sanema::FunctionCall &function_call,
 
 
 void
-generate_set(ByteCode &byte_code, sanema::FunctionCall &function_call,
+generate_set(sanema::ByteCode &byte_code, sanema::FunctionCall &function_call,
              std::optional<sanema::DefineFunction> const&function_definition,
              sanema::ByteCodeCompiler::Scope &context_frame_aux,
              sanema::ByteCodeCompiler::GeneratorsMap &generator_map) {

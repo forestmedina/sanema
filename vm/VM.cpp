@@ -5,7 +5,7 @@
 #include "VM.h"
 #include "opcodes.h"
 #include <types.h>
-void sanema::VM::run(const ByteCode &byte_code) {
+void sanema::VM::run() {
 
   IPType ip = byte_code.code_data.data();
   auto end_address = byte_code.code_data.data() + byte_code.code_data.size();
@@ -97,10 +97,26 @@ sanema::ExecuteResult sanema::VM::execute_instruction(sanema::IPType &ip) {
   return ExecuteResult::OK;
 }
 
-sanema::VM::VM(int megabyte_size) {
+sanema::VM::VM(ByteCode byte_code,int memory_size_mb) : byte_code(std::move(byte_code)){
   auto megabytes_to_bytes = [](std::uint64_t size) { return (size * 1024) * 1024; };
-  stack_memory.reserve(megabytes_to_bytes(megabyte_size));
+  stack_memory.reserve(megabytes_to_bytes(memory_size_mb));
   call_stack.emplace_back(stack_memory.data());
+}
+
+sanema::OperandType sanema::VM::get_external_function_parameter(size_t index) {
+  return external_function_parameters[index];
+}
+
+std::string sanema::VM::get_string(const sanema::StringReference &reference) {
+  switch (reference.location) {
+       case StringLocation::LiteralPool:
+         return byte_code.string_literals[reference.ref];
+         break;
+       case StringLocation::LocalStack:
+         return string_stack[reference.ref];
+         break;
+     }
+  return std::string("");
 }
 
 

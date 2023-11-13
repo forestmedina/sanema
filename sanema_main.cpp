@@ -153,9 +153,9 @@ int main(int argc, char *argv[]) {
   auto result = parser.parse(tokens);
   print_block_of_code(result);
   sanema::BindingCollection binding_collection;
-  binding_collection.add_function(sanema::replace_first);
+  binding_collection.add_function(std::string("replace_first"),sanema::replace_first);
   sanema::ByteCodeCompiler compiler;
- sanema::VM sanema_vm;
+
   sanema::ValidationStage validation_stage;
   try {
     compiler.process(result);
@@ -167,8 +167,8 @@ int main(int argc, char *argv[]) {
   std::cout << "\n\nPriting bytecode\n";
   compiler.byte_code.print();
 
-
-  sanema_vm.run(compiler.byte_code);
+  sanema::VM sanema_vm{compiler.byte_code};
+  sanema_vm.run();
 
 
 

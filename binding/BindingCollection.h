@@ -6,9 +6,10 @@
 namespace sanema{
   class BindingCollection{
   public :
-    template<typename ...ARGS>
-    void  add_function(void(*func)(ARGS...)){
-        function_pointers.emplace_back(std::make_unique<FunctionCaller>(std::forward<ARGS>()...));
+    template<typename T>
+    void  add_function(std::string const& identifier,T  t){
+        FunctionCaller function_caller{identifier,t}
+        function_pointers.emplace_back(std::make_unique<FunctionCaller>(identifier,t));
     }
   private:
     std::vector<std::unique_ptr<FunctionPointer>> function_pointers;

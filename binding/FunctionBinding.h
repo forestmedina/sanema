@@ -2,8 +2,7 @@
 // Created by fores on 11/13/2023.
 //
 
-
-#include  "Value.h"
+#include <vm/VM.h>
 #include <string>
 #include <iostream>
 #include <any>
@@ -19,7 +18,10 @@ namespace sanema {
   struct FunctionPointer {
 
 
-    virtual void call(std::vector<Value> arguments) {
+    virtual void call() {
+
+    };
+    virtual void register_function_definition(FunctionCollection &collection) {
 
     };
 
@@ -28,27 +30,37 @@ namespace sanema {
 
 
   template<typename FTYPE, typename ...ARGS, std::size_t... Ns>
-  void callFunctionImpl(std::vector<Value> arguments, FTYPE function_pointer, std::index_sequence<Ns...>) {
-    (function_pointer)((std::get<ARGS>(arguments[Ns]))...);
+  void call_function_impl(VM vm,FTYPE function_pointer, std::index_sequence<Ns...>) {
+    (function_pointer)(get_function_parameter_from_vm<ARGS>(vm,Ns)...);
   }
 
-  template<typename ...ARGS>
-  struct FunctionCaller : FunctionPointer {
-    using FUNC_PTR = void (*)(ARGS...);
+  template<typename FTYPE, typename RET_TYPE,typename ...ARGS, std::size_t... Ns>
+  void register_function_definition_impl(std::string const&identifier ,FunctionCollection &collection,FTYPE function_pointer, std::index_sequence<Ns...>) {
+    DefineFunction function;
+    function.identifier=identifier;
+    function.type= type_from_cpptype<RET_TYPE>();
+    function.parameter.emplace_back(FunctionParameter{"",FunctionParameter::Modifier::VALUE, type_from_cpptype<ARGS>()...});
+  }
 
-    FunctionCaller(void(*func)(ARGS...)) {
+  template<typename RET_TYPE, typename ...ARGS>
+  struct FunctionCaller : FunctionPointer {
+    using FUNC_PTR = RET_TYPE (*)(ARGS...);
+
+    FunctionCaller(std::string const&identifier, RET_TYPE(*func)(ARGS...)):identifier(identifier) {
       function_pointer = func;
     }
 
-    virtual void call(std::vector<Value> arguments) {
-      // (((TCLASS*)object)->*function_pointer)(AR);
-      callFunctionImpl<FUNC_PTR, ARGS...>(arguments,
-                                          function_pointer,
+     void call() override {
+      call_function_impl<FUNC_PTR, ARGS...>(function_pointer,
                                           std::index_sequence_for<ARGS...>{});
     };
+    void register_function_definition(FunctionCollection &collection) override{
+      register_function_definition_impl<FUNC_PTR ,RET_TYPE,ARGS...>(identifier,collection,std::index_sequence_for<ARGS...>{});
+    }
 
     virtual ~FunctionCaller() = default;
 
     FUNC_PTR function_pointer;
+    std::string identifier;
   };
 }

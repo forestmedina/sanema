@@ -103,18 +103,27 @@ namespace sanema {
     explicit  operator bool() const { return bool_v; }
   };
 
+
   class VM {
   public:
-    VM(int megabyte_size = 300);
 
-    void run(ByteCode const &byte_code);
+    VM(ByteCode byte_code,int memory_size_mb = 300);
+
+    void run();
 
     template <class T>
     std::optional<T> get_value_stack(){
       if(operand_stack.empty()) return {};
       return pop<T>();
     }
+
+   OperandType get_external_function_parameter(size_t index);
+
+   std::string get_string(StringReference const& reference);
+
   private:
+    ByteCode byte_code;
+    std::vector<OperandType> external_function_parameters;
     std::vector<OperandType> operand_stack;
     std::vector<sanema::ContextFrame> call_stack;
     std::vector<std::string> string_stack;
@@ -259,6 +268,16 @@ namespace sanema {
       push(result);
     }
   };
+   template <typename T>
+   T get_function_parameter_from_vm(VM& vm,size_t index){
+     return (T) vm.get_external_function_parameter(index);
+   }
+   template <>
+   std::string get_function_parameter_from_vm(VM& vm,size_t index){
+     StringReference reference= (StringReference) vm.get_external_function_parameter(index);
+     return vm.get_string(reference);
+   }
+
 
 }
 #endif //UPDATE_SKELETON_PY_VM_H

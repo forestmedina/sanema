@@ -5,6 +5,7 @@
 #ifndef NATURE_FUNCTIONBINDING_H
 #define NATURE_FUNCTIONBINDING_H
 #include <vector>
+#include <memory>
 #include "Value.h"
 namespace sanema {
   struct MethodPointer {

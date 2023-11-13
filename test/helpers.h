@@ -18,8 +18,8 @@ std::optional<T> run_and_get_stack_value(std::string code) {
   auto tokens = parser.tokenize(stringstream);
   auto block_of_code = parser.parse(tokens);
   compiler.process(block_of_code);
-  sanema::VM vm;
-  vm.run(compiler.byte_code);
+  sanema::VM vm(compiler.byte_code);
+  vm.run();
   return vm.get_value_stack<T>();
 };
 #endif //SANEMA_HELPERS_H

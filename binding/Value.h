@@ -8,7 +8,7 @@
 #include <variant>
 #include <string>
 #include <iostream>
-
+#include <cstdint>
 namespace sanema {
 
  using Value=std::variant<

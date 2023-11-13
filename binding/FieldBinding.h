@@ -8,7 +8,7 @@
 #include <string>
 #include "Value.h"
 #include <util/lambda_visitor.hpp>
-
+#include <memory>
 namespace sanema {
 
 
