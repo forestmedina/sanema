@@ -6,7 +6,7 @@
 #define NATURE_FIELDBINDING_H
 
 #include <string>
-#include "Value.ixx"
+#include "Value.h"
 #include <util/lambda_visitor.hpp>
 
 namespace sanema {

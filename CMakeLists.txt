@@ -34,8 +34,8 @@ add_library(sanema
         binding/MethodBinding.h
         binding/TypeBinding.cpp
         binding/TypeBinding.h
-        binding/Value.ixx
-
+        binding/Value.h
+        binding/Value.cpp
         types.cpp
         literals.cpp
         functions.cpp
@@ -48,10 +48,11 @@ add_library(sanema
         test/basic_tests.cpp
         test/helpers.cpp
         test/helpers.h
-        strings/strings.ixx
-        binding/BindingCollection.ixx
-        binding/BindingCollection.ixx
-        binding/FunctionBinding.ixx)
+        strings/strings.h
+        binding/BindingCollection.h
+        binding/FunctionBinding.h
+        binding/Value.cpp
+        strings/strings.cpp)
 
 target_include_directories(sanema PUBLIC  "./")
 add_executable(sanema_main   sanema_main.cpp)

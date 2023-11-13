@@ -11,7 +11,8 @@
 #include <compiler/ByteCodeCompiler.h>
 #include <vm/VM.h>
 #include <parsing/ValidationStage.h>
-
+#include "binding/BindingCollection.h"
+#include "strings/strings.h"
 void print_type(sanema::CompleteType &type) {
   match(type,
         [](sanema::Integer &integer) {
@@ -151,6 +152,8 @@ int main(int argc, char *argv[]) {
   std::cout << "\n\nParsing*********\n";
   auto result = parser.parse(tokens);
   print_block_of_code(result);
+  sanema::BindingCollection binding_collection;
+  binding_collection.add_function(sanema::replace_first);
   sanema::ByteCodeCompiler compiler;
  sanema::VM sanema_vm;
   sanema::ValidationStage validation_stage;
