@@ -16,6 +16,7 @@
 #include "binding/BindingCollection.h"
 #include "built-in/print.h"
 #include "parsing/SanemaParser.hpp"
+#include "SanemaScriptSystem.h"
 
 void print_type(sanema::CompleteType &type) {
   match(type,
@@ -144,41 +145,9 @@ void print_block_of_code(sanema::BlockOfCode block_of_code){
 int main(int argc, char *argv[]) {
   sanema::SanemaParser parser;
   std::ifstream f{"res/test.san", std::ios::in};
-//  std::stringstream buffer;
-//  buffer << f.rdbuf();
-//  std::string source = buffer.str();
-//  std::cout<<"parsing file:\n"<<source<<"\n"
-  "###################################################\n";
-  auto tokens = parser.tokenize(f);
-  for (auto &token: tokens) {
-    std::cout << token.token << " |  ";
-  }
-  std::cout << "\n\nParsing*********\n";
-  auto result = parser.parse(tokens);
-  print_block_of_code(result);
-  sanema::BindingCollection binding_collection;
-
-
-
-  sanema::ByteCodeCompiler compiler;
-
-  sanema::ValidationStage validation_stage;
-  sanema::FunctionCollection  built_in_functions;
-  sanema::add_built_in_functions(built_in_functions,binding_collection);
-  binding_collection.register_bindings(built_in_functions);
-
-  try {
-    compiler.process(result,built_in_functions);
-  }catch (std::runtime_error& error){
-    std::cout<<error.what();
-    exit(0);
-  }
-
-  std::cout << "\n\nPriting bytecode\n";
-  compiler.byte_code.print();
-
-  sanema::VM sanema_vm{};
-  sanema_vm.run(compiler.byte_code,binding_collection);
+  sanema::SanemaScriptSystem scriptSystem;
+  auto id=scriptSystem.add_script(f);
+  scriptSystem.run_script(id);
 
 
 

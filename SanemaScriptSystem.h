@@ -16,9 +16,13 @@ namespace sanema {
     ScriptID add_script(std::istream & stream);
 
     void run_script(ScriptID id);
-  private:
-    std::unique_ptr<SanemaScriptSystemImpl> impl;
 
+    SanemaScriptSystem();
+
+    virtual ~SanemaScriptSystem();
+
+  private:
+    std::unique_ptr<SanemaScriptSystemImpl> impl{};
 
   };
 }

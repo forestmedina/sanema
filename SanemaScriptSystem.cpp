@@ -18,3 +18,11 @@ void sanema::SanemaScriptSystem::run_script(sanema::ScriptID id) {
       impl->run_script(id);
 }
 
+sanema::SanemaScriptSystem::~SanemaScriptSystem() {
+
+}
+
+sanema::SanemaScriptSystem::SanemaScriptSystem() {
+  impl=std::make_unique<SanemaScriptSystemImpl>();
+}
+
