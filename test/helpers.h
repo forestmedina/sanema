@@ -20,10 +20,10 @@ std::optional<T> run_and_get_stack_value(std::string code) {
   auto tokens = parser.tokenize(stringstream);
   auto block_of_code = parser.parse(tokens);
   sanema::FunctionCollection  built_in_functions;
-  sanema::add_built_in_functions(built_in_functions);
+
   sanema::BindingCollection binding_collection;
   compiler.process(block_of_code,built_in_functions);
-
+  sanema::add_built_in_functions(built_in_functions,binding_collection);
   sanema::VM vm{};
   vm.run(compiler.byte_code,binding_collection);
   return vm.get_value_stack<T>();

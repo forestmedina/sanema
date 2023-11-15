@@ -49,7 +49,6 @@ void sanema::ValidationStage::process(sanema::BlockOfCode &block_of_code) {
 
   scope_stack.emplace_back();
   auto& main_scope=scope_stack.back();
-  add_built_in_functions(main_scope.function_definitions);
   for (auto &instruction: block_of_code.instructions) {
     match(instruction.instruction_sum,
           [&](FunctionCall &function_call) {

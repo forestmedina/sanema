@@ -7,8 +7,9 @@
 #include <unordered_map>
 #include <expressions.h>
 #include <parsing/FunctionCollection.h>
+#include <binding/BindingCollection.h>
 namespace sanema {
-  void add_built_in_functions(FunctionCollection &functions);
+  void add_built_in_functions(FunctionCollection &functions,BindingCollection& binding_collection);
 
 
 }

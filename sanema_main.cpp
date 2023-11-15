@@ -2,20 +2,20 @@
 // Created by fores on 9/18/2023.
 //
 
-#include <fstream>
-#include <sstream>
-#include "parsing/SanemaParser.hpp"
-#include <util/lambda_visitor.hpp>
-#include <iostream>
 #include <format>
-#include <compiler/ByteCodeCompiler.h>
-#include <vm/VM.h>
-#include <parsing/ValidationStage.h>
-#include "binding/BindingCollection.h"
-#include <built-in/strings/strings.h>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 #include <built-in/built_in_functions.h>
+#include <built-in/strings/strings.h>
+#include <compiler/ByteCodeCompiler.h>
+#include <parsing/ValidationStage.h>
+#include <util/lambda_visitor.hpp>
+#include <vm/VM.h>
 
+#include "binding/BindingCollection.h"
 #include "built-in/print.h"
+#include "parsing/SanemaParser.hpp"
 
 void print_type(sanema::CompleteType &type) {
   match(type,
@@ -157,15 +157,14 @@ int main(int argc, char *argv[]) {
   auto result = parser.parse(tokens);
   print_block_of_code(result);
   sanema::BindingCollection binding_collection;
-  binding_collection.add_function_binding("replace_first", sanema::replace_first);
-  binding_collection.add_function_binding("print",(void(*)(std::string))sanema::print);
-  binding_collection.add_function_binding("print", (void(*)(std::int32_t))sanema::print);
+
+
 
   sanema::ByteCodeCompiler compiler;
 
   sanema::ValidationStage validation_stage;
   sanema::FunctionCollection  built_in_functions;
-  sanema::add_built_in_functions(built_in_functions);
+  sanema::add_built_in_functions(built_in_functions,binding_collection);
   binding_collection.register_bindings(built_in_functions);
 
   try {

@@ -3,6 +3,8 @@
 //
 #include "built_in_functions.h"
 
+#include "strings/strings.h"
+#include <built-in/print.h>
 
 void add_built_in_arithmetic_functions(sanema::FunctionCollection &functions) {
   std::vector<std::string> const function_names = {"add", "multiply", "divide", "subtract"};
@@ -38,7 +40,16 @@ void add_built_in_arithmetic_functions(sanema::FunctionCollection &functions) {
 
 
 }
+void add_built_in_string_functions(sanema::FunctionCollection &functions,sanema::BindingCollection& binding_collection){
+  binding_collection.add_function_binding("replace_first",sanema::replace_first);
+  binding_collection.add_function_binding("replace_all",sanema::replace_all);
+  binding_collection.add_function_binding("concat",sanema::concat);
+  binding_collection.add_function_binding("print",(void(*)(std::string))sanema::print);
+  binding_collection.add_function_binding("print", (void(*)(std::int32_t))sanema::print);
 
-void sanema::add_built_in_functions(sanema::FunctionCollection &functions) {
+}
+void sanema::add_built_in_functions(sanema::FunctionCollection &functions,BindingCollection& binding_collection) {
   add_built_in_arithmetic_functions(functions);
+  add_built_in_string_functions(functions,binding_collection);
+  binding_collection.register_bindings(functions);
 }

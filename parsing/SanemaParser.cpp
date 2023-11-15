@@ -12,7 +12,7 @@
 #include <istream>
 #include <stack>
 #include <boost/lexical_cast.hpp>
-
+#include <boost/algorithm/string.hpp>
 enum class ParserState {
   DefininVariable,
   DefiningFunction,
@@ -372,6 +372,10 @@ sanema::Literal sanema::SanemaParser::get_literal_from_string(std::string token)
     token.replace(token.length() - 1,
                   1,
                   "");
+    boost::algorithm::replace_all(token,"\\n","\n");
+    boost::algorithm::replace_all(token,"\\t","\t");
+    boost::algorithm::replace_all(token,"\\r","\r");
+    boost::algorithm::replace_all(token,"\\b","\b");
     return LiteralString(token);
   }
   return LiteralSInt64{atoi(token.c_str())};

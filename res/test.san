@@ -3,5 +3,7 @@ var my_number int32;
 set my_number 6;
 set my_string "esto es una prueba";
 set my_string replace_first( my_string  "prueba" "pasada");
-print(my_string)
-print(my_number)
+print(my_string);
+set my_string concat ( my_string  " monumental\n");
+print(my_string);
+print(my_number);
