@@ -181,3 +181,59 @@ std::ostream &sanema::operator<<(std::ostream &stream, const sanema::StringRefer
   stream<<string_reference.ref<<")";
   return stream;
 }
+template<>
+ sanema::CompleteType  sanema::type_from_cpptype<std::string>(){
+  return String{};
+}
+template<>
+sanema::CompleteType sanema::type_from_cpptype<std::int8_t>() {
+  return Integer{8};
+}
+
+template<>
+sanema::CompleteType sanema::type_from_cpptype<std::int16_t>() {
+  return Integer{16};
+}
+
+template<>
+sanema::CompleteType sanema::type_from_cpptype<std::int32_t>() {
+  return Integer{32};
+}
+template<>
+  sanema::CompleteType sanema::type_from_cpptype<std::int64_t>() {
+  return Integer{64};
+}
+ template<>
+ sanema::CompleteType sanema::type_from_cpptype<std::uint8_t>() {
+    return Integer{8};
+  }
+
+  template<>
+  sanema::CompleteType sanema::type_from_cpptype<std::uint16_t>() {
+    return Integer{16};
+  }
+
+  template<>
+  sanema::CompleteType sanema::type_from_cpptype<std::uint32_t>() {
+    return Integer{32};
+  }
+template<>
+  sanema::CompleteType sanema::type_from_cpptype<std::uint64_t>() {
+  return Integer{64};
+}
+
+  template<>
+  sanema::CompleteType sanema::type_from_cpptype<double>() {
+    return Double{};
+  }
+
+  template<>
+  sanema::CompleteType sanema::type_from_cpptype<float>() {
+    return Float{};
+  }
+
+  template<>
+  sanema::CompleteType sanema::type_from_cpptype<bool>() {
+    return Boolean{};
+  }
+

@@ -40,7 +40,7 @@ std::optional<sanema::DefineFunction> get_function_definition(sanema::FunctionCa
     if(!type.has_value()) return {};
     function_definition.parameter.emplace_back(sanema::FunctionParameter{"",{},type.value()});
   }
-  auto found_function=find_function(context_frame.back().function_definitions,function_definition);
+  auto found_function=context_frame.back().function_definitions.find_function(function_definition);
   return found_function;
 }
 
@@ -77,13 +77,9 @@ void sanema::ValidationStage::process(sanema::BlockOfCode &block_of_code) {
           [&scope_stack](DefineFunction &define_function) {
             auto define_function_copy = define_function;
             define_function_copy.body = BlockOfCode{};
-            auto funcion_entry = find_function(scope_stack.back().function_definitions,
-                                               define_function_copy);
+            auto funcion_entry = scope_stack.back().function_definitions.find_function(define_function_copy);
             if (!funcion_entry) {
-              if (scope_stack.back().function_definitions.count(define_function_copy.identifier) == 0) {
-                scope_stack.back().function_definitions[define_function_copy.identifier] = {};
-              }
-              scope_stack.back().function_definitions[define_function_copy.identifier].overloads.emplace_back(define_function_copy);
+                scope_stack.back().function_definitions.add_function(define_function_copy);
             } else {
               throw (std::runtime_error("function already defined"));
             }

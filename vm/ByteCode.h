@@ -36,14 +36,16 @@ namespace sanema{
       (*pointer_t) = t;
     };
    template<>
-    void write_to_byte_code(std::vector<std::uint8_t>& code_data, OPCODE const &opcode) {
-      code_data.emplace_back(static_cast<typename std::underlying_type<OPCODE>::type>(opcode));
-    }
+    void write_to_byte_code(std::vector<std::uint8_t>& code_data, OPCODE const &opcode);
 
   struct ByteCode {
     std::vector<std::uint8_t> code_data;
     std::vector<std::string> string_literals;
-
+    ByteCode()=default;
+    ByteCode (ByteCode const& other)=delete;
+    ByteCode& operator=(ByteCode const& other)=delete;
+    ByteCode (ByteCode && other)=default;
+    ByteCode & operator=(ByteCode && other)=default;
     template<class T>
     void write(T const &t) {
       write_to_byte_code(code_data,t);

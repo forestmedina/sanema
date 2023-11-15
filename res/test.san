@@ -1,4 +1,7 @@
-var number1 int64;
 var my_string string;
+var my_number int32;
+set my_number 6;
 set my_string "esto es una prueba";
-set my_string replace( my_string,"prueba","pasada");
+set my_string replace_first( my_string  "prueba" "pasada");
+print(my_string)
+print(my_number)

@@ -5,10 +5,11 @@
 #ifndef NATURE_BACKEND_H
 #define NATURE_BACKEND_H
 #include "../expressions.h"
+#include <parsing/FunctionCollection.h>
 namespace sanema {
   class Backend {
   public:
-    virtual void process(BlockOfCode &block_of_code)=0;
+    virtual void process(BlockOfCode &block_of_code,FunctionCollection& built_in_functions)=0;
   };
 
 }

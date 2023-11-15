@@ -103,33 +103,36 @@ namespace sanema {
     explicit  operator bool() const { return bool_v; }
   };
 
-
+ class BindingCollection;
   class VM {
   public:
 
-    VM(ByteCode byte_code,int memory_size_mb = 300);
+    explicit VM(int memory_size_mb = 300);
 
-    void run();
+    void run(ByteCode const& byte_code,BindingCollection & collection);
 
     template <class T>
     std::optional<T> get_value_stack(){
       if(operand_stack.empty()) return {};
       return pop<T>();
     }
+    void prepare_function_parameters(std::uint32_t n);
 
-   OperandType get_external_function_parameter(size_t index);
+   std::pair<sanema::FunctionParameterType,sanema::OperandType> get_external_function_parameter(size_t index);
 
-   std::string get_string(StringReference const& reference);
-
-  private:
-    ByteCode byte_code;
-    std::vector<OperandType> external_function_parameters;
-    std::vector<OperandType> operand_stack;
+   std::string const& get_string(StringReference const& reference);
+   ByteCode const* running_byte_code;
+    void push_function_return(OperandType value);
+    void push_string(std::string const& string_value);
     std::vector<sanema::ContextFrame> call_stack;
+  private:
+    std::vector<std::pair<FunctionParameterType,OperandType>> external_function_parameters;
+    std::vector<OperandType> operand_stack;
+
     std::vector<std::string> string_stack;
     std::vector<std::uint8_t> stack_memory;
 
-    ExecuteResult execute_instruction(IPType &ip);
+    ExecuteResult execute_instruction(IPType &ip,BindingCollection& binding_collection);
 
     template<class type>
     inline void push_local(IPType &ip) {
@@ -151,11 +154,13 @@ namespace sanema {
 
     template<class type>
     inline void set_local(IPType &ip) {
-      auto address = read_from_bytecode<std::uint64_t>(ip);
       sanema::ContextFrame &context_frame = call_stack.back();
+      pop<std::uint64_t>();
       auto value = pop<type>();
-      std::cout << "Setting local value=" << value << " address=" << address << "\n";
-      context_frame.write<type>(address,
+      pop<std::uint64_t>();
+      auto address2 = pop<std::uint64_t>();
+      std::cout << "Setting local value=" << value << " address=" << address2 << "\n";
+      context_frame.write<type>(address2,
                                 value);
     }
 
@@ -270,13 +275,42 @@ namespace sanema {
   };
    template <typename T>
    T get_function_parameter_from_vm(VM& vm,size_t index){
-     return (T) vm.get_external_function_parameter(index);
+     auto value= vm.get_external_function_parameter(index);
+     T final_value;
+     switch (value.first) {
+       case FunctionParameterType::Value:
+         final_value=static_cast<T>(value.second);
+       break;
+       case FunctionParameterType::VariableReferece:
+         auto address=static_cast<std::uint64_t>(value.second);
+       final_value=vm.call_stack.back().read<T>(address);
+       break;
+     }
+     return final_value;
    }
    template <>
-   std::string get_function_parameter_from_vm(VM& vm,size_t index){
-     StringReference reference= (StringReference) vm.get_external_function_parameter(index);
-     return vm.get_string(reference);
-   }
+   std::string get_function_parameter_from_vm<std::string>(VM& vm,size_t index);
+
+   template <>
+   std::string const& get_function_parameter_from_vm<std::string const&>(VM& vm,size_t index);
+   template <>
+   std::string & get_function_parameter_from_vm<std::string &>(VM& vm,size_t index);
+
+  template <typename T>
+  void push_function_return_to_vm(VM& vm,T type){
+     vm.push_function_return(type);
+  }
+  template <>
+  void push_function_return_to_vm<std::string>(VM& vm,std::string vaule);
+
+  template <>
+  void push_function_return_to_vm<std::string const&>(VM& vm,std::string const& vaule);
+  template <>
+  void push_function_return_to_vm<std::string &>(VM& vm,std::string & vaule);
+
+  inline void VM::push_function_return(OperandType value) {
+    push(value);
+  }
 
 
 }

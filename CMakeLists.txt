@@ -48,11 +48,25 @@ add_library(sanema
         test/basic_tests.cpp
         test/helpers.cpp
         test/helpers.h
-        strings/strings.h
+        built-in/strings/strings.h
         binding/BindingCollection.h
         binding/FunctionBinding.h
         binding/Value.cpp
-        strings/strings.cpp)
+        built-in/strings/strings.cpp
+        SanemaScriptSystem.cpp
+        SanemaScriptSystem.h
+        SanemaScriptSystem.h
+        ScriptID.cpp
+        ScriptID.h
+        ScriptEntry.cpp
+        ScriptEntry.h
+        SanemaScriptSystemImpl.cpp
+        SanemaScriptSystemImpl.h
+        SanemaScriptSystemImpl.h
+        binding/BindingCollection.cpp
+        binding/BindingCollection.cpp
+        built-in/print.cpp
+        built-in/print.h)
 
 target_include_directories(sanema PUBLIC  "./")
 add_executable(sanema_main   sanema_main.cpp)

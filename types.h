@@ -59,8 +59,12 @@ namespace sanema {
   };
 
   enum class StringLocation : std::uint8_t {
-    LiteralPool,
-    LocalStack
+    LiteralPool=1,
+    LocalStack=2
+  };
+  enum class FunctionParameterType : std::uint8_t {
+    VariableReferece=1,
+    Value=2
   };
   struct StringReference {
 
@@ -104,48 +108,6 @@ namespace sanema {
 
   std::optional<sanema::CompleteType> parse_type(std::string const &string);
 
-  template<typename CPPTYPE, typename SANTYPE>
-  SANTYPE type_from_cpptype();
-
-  template<>
-  String type_from_cpptype<std::string, String>() {
-    return String{};
-  }
-
-  template<>
-  Integer type_from_cpptype<std::uint8_t, Integer>() {
-    return Integer{8};
-  }
-
-  template<>
-  Integer type_from_cpptype<std::uint16_t, Integer>() {
-    return Integer{16};
-  }
-
-  template<>
-  Integer type_from_cpptype<std::uint32_t, Integer>() {
-    return Integer{32};
-  }
-
-  template<>
-  Double type_from_cpptype<double, Double>() {
-    return Double{};
-  }
-
-  template<>
-  Float type_from_cpptype<float, Float>() {
-    return Float{};
-  }
-
-  template<>
-  Boolean type_from_cpptype<bool, Boolean>() {
-    return Boolean{};
-  }
-
-  template<>
-  Integer type_from_cpptype<std::uint64_t, Integer>() {
-    return Integer{64};
-  }
 
 
   std::string type_to_string(CompleteType const &type);
@@ -156,5 +118,44 @@ namespace sanema {
     std::string identifier;
     std::optional<CompleteType> type{};
   };
+
+    template<typename CPPTYPE>
+  CompleteType type_from_cpptype(){
+    return Void{};
+  };
+
+  template<>
+  CompleteType type_from_cpptype<std::string>();
+
+  template<>
+ CompleteType type_from_cpptype<std::int8_t>();
+
+  template<>
+  CompleteType type_from_cpptype<std::int16_t>();
+
+  template<>
+  CompleteType type_from_cpptype<std::int32_t>();
+  template<>
+  CompleteType type_from_cpptype<std::int64_t>();
+  template<>
+  CompleteType type_from_cpptype<std::uint8_t>();
+
+  template<>
+  CompleteType type_from_cpptype<std::uint16_t>();
+
+  template<>
+  CompleteType type_from_cpptype<std::uint32_t>();
+
+  template<>
+  CompleteType type_from_cpptype<double>();
+
+  template<>
+  CompleteType type_from_cpptype<float>();
+
+  template<>
+  CompleteType type_from_cpptype<bool>();
+
+  template<>
+  CompleteType type_from_cpptype<std::uint64_t>();
 }
 #endif //NATURE_TYPES_H

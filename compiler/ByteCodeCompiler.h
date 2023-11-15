@@ -24,16 +24,21 @@ namespace sanema {
       std::unordered_map<std::string,VariableEntry > local_variables;
       FunctionCollection function_collection;
       std::unordered_map<std::string, DefineStruct> types{};
-      std::uint64_t context_address;
+      std::uint64_t context_address{0};
     };
+    struct FuctionCallSustitution {
+      std::uint64_t byte_code_address;
+      FunctionID function_id;
+    };
+    std::vector<FuctionCallSustitution> function_call_sustitutions{};
     ByteCode byte_code;
     struct GeneratorsMap;
-    using GeneratorFunction = void(ByteCode &byte_code, FunctionCall &function_call,std::optional<sanema::DefineFunction> const& function_definition, Scope &, GeneratorsMap &);
+    using GeneratorFunction = void(ByteCode &byte_code, std::optional<sanema::DefineFunction> const& function_definition);
     struct GeneratorsMap {
       std::unordered_map<std::string, GeneratorFunction *> map;
     };
 
-    void process(BlockOfCode &block_of_code) override;
+    void process(BlockOfCode &block_of_code,FunctionCollection &built_in_functions) override;
 
     GeneratorsMap function_bytecode_generators;
 

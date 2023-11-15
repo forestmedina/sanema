@@ -9,18 +9,31 @@
 #include <expressions.h>
 
 namespace sanema {
+  using FunctionID =std::uint64_t;
   struct FunctionOverloads {
     FunctionOverloads();
 
-    std::vector<DefineFunction> overloads{};
+    std::vector<FunctionID> overloads{};
   };
 
-  using FunctionCollection = std::unordered_map<std::string, FunctionOverloads>;
 
-  std::optional<sanema::DefineFunction>
-  find_function(sanema::FunctionCollection &collection, sanema::DefineFunction &function);
+  struct FunctionCollection {
 
-  void add_function(sanema::FunctionCollection &collection, sanema::DefineFunction &function);
+
+    std::optional<sanema::DefineFunction> find_function(sanema::DefineFunction &function);
+
+    void add_function( sanema::DefineFunction &function);
+  private:
+    std::unordered_map<std::string, FunctionOverloads> functions_per_name_and_type;
+    std::unordered_map<FunctionID, DefineFunction> function_collection;
+    std::uint64_t next_id();
+    std::optional<sanema::DefineFunction> get_function_by_id(FunctionID id);
+    std::uint64_t current_function_id{0};
+
+
+  };
+
+
 }
 
 #endif //SANEMA_FUNCTIONCOLLECTION_H

@@ -30,7 +30,6 @@ bool sanema::FunctionParameter::operator!=(const sanema::FunctionParameter &rhs)
 }
 
 bool sanema::FunctionParameter::is_compatible(sanema::FunctionParameter &other) {
-  if(!type.has_value()||!type.has_value()) return false;
-  return modifier == other.modifier &&
-      is_second_type_compatible(type.value(), other.type.value());
+  if(!type.has_value()||!other.type.has_value()) return false;
+  return is_second_type_compatible(type.value(), other.type.value());
 }

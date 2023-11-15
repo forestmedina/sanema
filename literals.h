@@ -13,8 +13,7 @@ namespace sanema{
   struct LiteralBoolean{bool value;};
   struct LiteralString{std::string value;};
   using Literal=std::variant<LiteralSInt64,LiteralSInt32,LiteralSInt16,LiteralSInt8,LiteralFloat,LiteralDouble,LiteralBoolean,LiteralString>;
-  Literal conver_literal_to_type(Literal const&literal,CompleteType& type);
-  Literal get_integer_literal_from_type(sanema::Integer type,std::uint64_t  value);
+  sanema::CompleteType get_literal_type(Literal& literal);
   Literal get_default_literal_for_type(sanema::CompleteType const& type);
 }
 #endif //NATURE_LITERALS_H

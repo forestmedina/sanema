@@ -12,7 +12,11 @@
 #include <vm/VM.h>
 #include <parsing/ValidationStage.h>
 #include "binding/BindingCollection.h"
-#include "strings/strings.h"
+#include <built-in/strings/strings.h>
+#include <built-in/built_in_functions.h>
+
+#include "built-in/print.h"
+
 void print_type(sanema::CompleteType &type) {
   match(type,
         [](sanema::Integer &integer) {
@@ -153,12 +157,19 @@ int main(int argc, char *argv[]) {
   auto result = parser.parse(tokens);
   print_block_of_code(result);
   sanema::BindingCollection binding_collection;
-  binding_collection.add_function(std::string("replace_first"),sanema::replace_first);
+  binding_collection.add_function_binding("replace_first", sanema::replace_first);
+  binding_collection.add_function_binding("print",(void(*)(std::string))sanema::print);
+  binding_collection.add_function_binding("print", (void(*)(std::int32_t))sanema::print);
+
   sanema::ByteCodeCompiler compiler;
 
   sanema::ValidationStage validation_stage;
+  sanema::FunctionCollection  built_in_functions;
+  sanema::add_built_in_functions(built_in_functions);
+  binding_collection.register_bindings(built_in_functions);
+
   try {
-    compiler.process(result);
+    compiler.process(result,built_in_functions);
   }catch (std::runtime_error& error){
     std::cout<<error.what();
     exit(0);
@@ -167,8 +178,8 @@ int main(int argc, char *argv[]) {
   std::cout << "\n\nPriting bytecode\n";
   compiler.byte_code.print();
 
-  sanema::VM sanema_vm{compiler.byte_code};
-  sanema_vm.run();
+  sanema::VM sanema_vm{};
+  sanema_vm.run(compiler.byte_code,binding_collection);
 
 
 
