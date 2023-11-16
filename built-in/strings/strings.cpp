@@ -16,3 +16,15 @@ std::string sanema::replace_all(const std::string &input, const std::string &sea
 std::string sanema::concat(std::string const &a, std::string const &b) {
    return a+b;
 }
+
+bool sanema::ends_with(const std::string &a, const std::string &b) {
+  return boost::algorithm::ends_with(a,b);
+}
+
+bool sanema::starts_with(const std::string &a, const std::string &b) {
+  return boost::algorithm::starts_with(a,b);
+}
+
+bool sanema::equal(const std::string &a, const std::string &b) {
+  return a==b;
+}

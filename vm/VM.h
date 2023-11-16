@@ -66,6 +66,7 @@ namespace sanema {
     explicit OperandType(float value) : float_v(value) {}
 
     explicit OperandType(double value) : double_v(value) {}
+    explicit OperandType(bool value) : bool_v(value) {}
     explicit OperandType(StringReference value) : string_reference(value) {}
 
     // Conversion operator for uint8_t
@@ -317,7 +318,7 @@ namespace sanema {
 
   template <typename T>
   void push_function_return_to_vm(VM& vm,T type){
-     vm.push_function_return(type);
+     vm.push_function_return(OperandType(type));
   }
   template <>
   void push_function_return_to_vm<std::string>(VM& vm,std::string vaule);

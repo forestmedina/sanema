@@ -44,6 +44,8 @@ void add_built_in_string_functions(sanema::FunctionCollection &functions,sanema:
   binding_collection.add_function_binding("replace_first",sanema::replace_first);
   binding_collection.add_function_binding("replace_all",sanema::replace_all);
   binding_collection.add_function_binding("concat",sanema::concat);
+  binding_collection.add_function_binding("ends_with",sanema::ends_with);
+  binding_collection.add_function_binding("stars_with",sanema::starts_with);
   binding_collection.add_function_binding("print",(void(*)(std::string))sanema::print);
   binding_collection.add_function_binding("print", (void(*)(std::int32_t))sanema::print);
 
