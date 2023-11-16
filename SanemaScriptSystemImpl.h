@@ -23,6 +23,18 @@ namespace sanema {
     ScriptID add_script(std::istream &stream);
 
     void run_script(ScriptID id);
+    void get_return_value(std::int8_t& value);
+    void get_return_value(std::int16_t& value);
+    void get_return_value(std::int32_t& value);
+    void get_return_value(std::int64_t& value);
+    void get_return_value(std::uint8_t& value);
+    void get_return_value(std::uint16_t& value);
+    void get_return_value(std::uint32_t& value);
+    void get_return_value(std::uint64_t& value);
+    void get_return_value(std::string& value);
+    void get_return_value(float& value);
+    void get_return_value(double& value);
+    void get_return_value(bool& value);
 
   private:
     SanemaParser parser;
@@ -36,6 +48,8 @@ namespace sanema {
 
     size_t next_id();
     ScriptEntry & get_script(ScriptID id);
+
+
 
     size_t current_id = 0;
   };

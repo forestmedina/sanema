@@ -48,6 +48,7 @@ sanema::ExecuteResult sanema::VM::execute_instruction(sanema::IPType &ip,Binding
     case OPCODE::OP_RESERVE_STACK_SPACE : {
       auto size = read_from_bytecode<std::uint64_t>(ip);
       sanema::ContextFrame &context_frame = call_stack.back();
+      std::cout<<"reserving space ="<<size;
       context_frame.reserve(size);
     }
       break;

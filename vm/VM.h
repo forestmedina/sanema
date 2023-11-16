@@ -135,11 +135,15 @@ namespace sanema {
     ExecuteResult execute_instruction(IPType &ip,BindingCollection& binding_collection);
 
     template<class type>
+    type read_local(std::uint64_t address){
+      sanema::ContextFrame &context_frame = call_stack.back();
+      return context_frame.read<type>(address);
+    }
+    template<class type>
     inline void push_local(IPType &ip) {
       auto address = read_from_bytecode<std::uint64_t>(ip);
-      sanema::ContextFrame &context_frame = call_stack.back();
-      auto value = context_frame.read<type>(address);
-      std::cout << "Setting local address=" << address << " value=" << value << "\n";
+
+      auto value = read_local<type>(address);
       push(value);
     }
 
@@ -195,8 +199,9 @@ namespace sanema {
     template<typename type>
     inline void add() {
       //TODO implement type conversion
-      auto value2 = pop<type>();
-      auto value1 = pop<type>();
+
+      auto value2 = pop_function_parameter_value<type>();
+      auto value1 = pop_function_parameter_value<type>();
       auto result = value1 + value2;
       std::cout << "adding " << value1 << " + " << value2 << " = " << result << "\n";
       push(result);
@@ -205,8 +210,8 @@ namespace sanema {
     template<typename type>
     inline void subtract() {
       //TODO implement type conversion
-      auto value2 = pop<type>();
-      auto value1 = pop<type>();
+      auto value2 = pop_function_parameter_value<type>();
+      auto value1 = pop_function_parameter_value<type>();
       auto result = value1 - value2;
       push(result);
     }
@@ -214,8 +219,8 @@ namespace sanema {
     template<typename type>
     inline void divide() {
       //TODO implement type conversion
-      auto value2 = pop<type>();
-      auto value1 = pop<type>();
+      auto value2 = pop_function_parameter_value<type>();
+      auto value1 = pop_function_parameter_value<type>();
       auto result = value1 / value2;
       push(result);
     }
@@ -223,7 +228,7 @@ namespace sanema {
     template<typename type>
     inline void negate() {
       //TODO implement type conversion
-      auto value = pop<type>();
+      auto value = pop_function_parameter_value<type>();
       auto result = -value;
       push(result);
     }
@@ -231,8 +236,8 @@ namespace sanema {
     template<typename type>
     inline void greater() {
       //TODO implement type conversion
-      auto value2 = pop<type>();
-      auto value1 = pop<type>();
+      auto value2 = pop_function_parameter_value<type>();
+      auto value1 = pop_function_parameter_value<type>();
       bool result = value1 > value2;
       push(result);
     }
@@ -240,8 +245,8 @@ namespace sanema {
     template<typename type>
     inline void less() {
       //TODO implement type conversion
-      auto value2 = pop<type>();
-      auto value1 = pop<type>();
+      auto value2 = pop_function_parameter_value<type>();
+      auto value1 = pop_function_parameter_value<type>();
       bool result = value1 < value2;
       push(result);
     }
@@ -249,8 +254,8 @@ namespace sanema {
     template<typename type>
     inline void equal() {
       //TODO implement type conversion
-      auto value2 = pop<type>();
-      auto value1 = pop<type>();
+      auto value2 = pop_function_parameter_value<type>();
+      auto value1 = pop_function_parameter_value<type>();
       bool result = value1 == value2;
       push(result);
     }
@@ -258,17 +263,31 @@ namespace sanema {
     template<typename type>
     inline void greater_equal() {
       //TODO implement type conversion
-      auto value2 = pop<type>();
-      auto value1 = pop<type>();
+      auto value2 = pop_function_parameter_value<type>();
+      auto value1 = pop_function_parameter_value<type>();
       bool result = value1 >= value2;
       push(result);
     }
 
+    template<class T>
+    inline  T pop_function_parameter_value(){
+       sanema::FunctionParameterType access_type{pop<std::uint8_t>()};
+      switch (access_type) {
+        case FunctionParameterType::Value:
+          return pop<T>();
+          break;
+        case FunctionParameterType::VariableReferece:
+          return read_local<T>(pop<std::uint64_t>());
+          break;
+      }
+      throw std::runtime_error("We reached the end of pop_function_parameter_value without returning something");
+      return T{};
+    }
     template<typename type>
     inline void less_equal() {
       //TODO implement type conversion
-      auto value2 = pop<type>();
-      auto value1 = pop<type>();
+      auto value2 = pop_function_parameter_value<type>();
+      auto value1 = pop_function_parameter_value<type>();
       bool result = value1 <= value2;
       push(result);
     }

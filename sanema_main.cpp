@@ -145,6 +145,9 @@ void print_block_of_code(sanema::BlockOfCode block_of_code){
 int main(int argc, char *argv[]) {
   sanema::SanemaParser parser;
   std::ifstream f{"res/test.san", std::ios::in};
+  if(f.is_open()){
+    std::cerr<<"file not found \n";
+  }
   sanema::SanemaScriptSystem scriptSystem;
   auto id=scriptSystem.add_script(f);
   scriptSystem.run_script(id);

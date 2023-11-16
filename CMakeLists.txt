@@ -77,7 +77,8 @@ find_package(Catch2 3 REQUIRED)
 # These tests need their own main
 add_executable(sanema_tests test/test.cpp
         test/helpers.cpp
-        test/helpers.h)
+        test/helpers.h
+        test/string_manitpulation.cpp)
 target_link_libraries(sanema_tests PRIVATE Catch2::Catch2WithMain)
 target_link_libraries (sanema_tests PRIVATE sanema)
 

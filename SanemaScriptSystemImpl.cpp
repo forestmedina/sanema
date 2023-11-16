@@ -41,3 +41,58 @@ sanema::SanemaScriptSystemImpl::SanemaScriptSystemImpl(): binding_collection{} {
   binding_collection.register_bindings(general_functions);
 
 }
+
+void sanema::SanemaScriptSystemImpl::get_return_value(std::int8_t &value) {
+  value=vm.get_value_stack<typeof(value)>().value_or(value);
+}
+
+void sanema::SanemaScriptSystemImpl::get_return_value(std::int16_t &value) {
+  value=vm.get_value_stack<typeof(value)>().value_or(value);
+}
+
+void sanema::SanemaScriptSystemImpl::get_return_value(std::int32_t &value) {
+  value=vm.get_value_stack<typeof(value)>().value_or(value);
+}
+
+void sanema::SanemaScriptSystemImpl::get_return_value(std::int64_t &value) {
+  value=vm.get_value_stack<typeof(value)>().value_or(value);
+}
+
+
+void sanema::SanemaScriptSystemImpl::get_return_value(std::uint8_t &value) {
+  value=vm.get_value_stack<typeof(value)>().value_or(value);
+}
+
+void sanema::SanemaScriptSystemImpl::get_return_value(std::uint16_t &value) {
+  value=vm.get_value_stack<typeof(value)>().value_or(value);
+}
+
+void sanema::SanemaScriptSystemImpl::get_return_value(std::uint32_t &value) {
+  value=vm.get_value_stack<typeof(value)>().value_or(value);
+}
+
+void sanema::SanemaScriptSystemImpl::get_return_value(std::uint64_t &value) {
+  value=vm.get_value_stack<typeof(value)>().value_or(value);
+}
+
+void sanema::SanemaScriptSystemImpl::get_return_value(std::string &value) {
+  auto reference=vm.get_value_stack<StringReference>();
+  if(reference.has_value()){
+    value=vm.get_string(reference.value());
+  }else{
+    value="";
+  }
+
+}
+
+void sanema::SanemaScriptSystemImpl::get_return_value(float &value) {
+  value=vm.get_value_stack<typeof(value)>().value_or(value);
+}
+
+void sanema::SanemaScriptSystemImpl::get_return_value(double &value) {
+  value=vm.get_value_stack<typeof(value)>().value_or(value);
+}
+
+void sanema::SanemaScriptSystemImpl::get_return_value(bool &value) {
+  value=vm.get_value_stack<typeof(value)>().value_or(value);
+}

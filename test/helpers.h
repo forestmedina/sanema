@@ -11,21 +11,15 @@
 #include <vm/VM.h>
 #include <sstream>
 #include <built-in/built_in_functions.h>
+#include <SanemaScriptSystem.h>
 
 template<class T>
 std::optional<T> run_and_get_stack_value(std::string code) {
-  sanema::SanemaParser parser;
-  sanema::ByteCodeCompiler compiler;
-  std::stringstream stringstream(code);
-  auto tokens = parser.tokenize(stringstream);
-  auto block_of_code = parser.parse(tokens);
-  sanema::FunctionCollection  built_in_functions;
-
-  sanema::BindingCollection binding_collection;
-  compiler.process(block_of_code,built_in_functions);
-  sanema::add_built_in_functions(built_in_functions,binding_collection);
-  sanema::VM vm{};
-  vm.run(compiler.byte_code,binding_collection);
-  return vm.get_value_stack<T>();
+  sanema::SanemaScriptSystem sanema_script_system;
+  auto script_id=sanema_script_system.add_script(code);
+  sanema_script_system.run_script(script_id);
+  T value{};
+  sanema_script_system.get_return_value(value);
+  return value;
 };
 #endif //SANEMA_HELPERS_H

@@ -17,8 +17,10 @@ namespace sanema {
      T read(std::uint64_t address){
 
       auto final_address=begin_address+address;
+      auto size_of_value=sizeof(T);
+      auto end_read_address=final_address+size_of_value;
       //TODO we could make this a runtime check instead of only a assert
-      assert(final_address+sizeof(T)<end_address);
+      assert(end_read_address<=end_address);
        return *((T*)final_address);
      }
      template<class T>

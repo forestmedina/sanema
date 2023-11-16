@@ -4,7 +4,7 @@
 
 #ifndef SANEMA_SCRIPTID_H
 #define SANEMA_SCRIPTID_H
-
+#include <types.h>
 namespace sanema {
   struct ScriptID {
     size_t id;

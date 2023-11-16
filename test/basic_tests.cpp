@@ -46,8 +46,10 @@ set number2 15;
 add number1 number2;
 )--");
   auto result=run_and_get_stack_value<std::uint64_t >(code);
-  auto success=result.has_value() && result.value()==25;
-  REQUIRE(success);
+//
+  REQUIRE(result.has_value());
+
+  REQUIRE(result.value()==25);
 
 }
 TEST_CASE("adding two floats ",

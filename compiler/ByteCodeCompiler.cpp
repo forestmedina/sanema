@@ -26,7 +26,7 @@ std::optional<sanema::CompleteType>
 get_expression_type(sanema::Expression&expression, sanema::ByteCodeCompiler::Scope&scope) {
   return match(expression,
                [&](sanema::FunctionCall&function_call_nested) -> std::optional<sanema::CompleteType> {
-                 auto function_definition_nested = get_function_definition(function_call_nested,
+                   auto function_definition_nested = get_function_definition(function_call_nested,
                                                                            scope);
                  if (function_definition_nested.has_value()) {
                    return function_definition_nested.value().type;
@@ -39,7 +39,7 @@ get_expression_type(sanema::Expression&expression, sanema::ByteCodeCompiler::Sco
                  return get_variable_type(variable,
                                           scope);
                },
-               [&](sanema::Literal&literal) -> std::optional<sanema::CompleteType> {
+               [&](sanema::Literal &literal) -> std::optional<sanema::CompleteType> {
                  return sanema::get_literal_type(literal);
                }
   );
@@ -244,6 +244,7 @@ generate_function_call(
 }
 
 void
+
 generate_add(sanema::ByteCode&byte_code, std::optional<sanema::DefineFunction> const&function_definition) {
   OPCODE opcode = match(function_definition.value().type,
                         [](sanema::Integer const&integer) {
