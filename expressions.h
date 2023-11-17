@@ -65,7 +65,7 @@ namespace sanema {
     std::string identifier;
     CompleteType type;
     BlockOfCode body;
-    std::vector<FunctionParameter> parameter;
+    std::vector<FunctionParameter> parameters;
    std::uint64_t address{0};
      std::uint64_t id;
    std::optional<std::uint64_t> external_id{};

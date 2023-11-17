@@ -38,7 +38,7 @@ std::optional<sanema::DefineFunction> get_function_definition(sanema::FunctionCa
           }
          );
     if(!type.has_value()) return {};
-    function_definition.parameter.emplace_back(sanema::FunctionParameter{"",{},type.value()});
+    function_definition.parameters.emplace_back(sanema::FunctionParameter{"", {}, type.value()});
   }
   auto found_function=context_frame.back().function_definitions.find_function(function_definition);
   return found_function;

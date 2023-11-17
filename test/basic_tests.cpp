@@ -40,12 +40,12 @@ TEST_CASE("adding two integers with different types",
 
 std::string code(R"--(
 var number1 int64;
-var number2 int8;
+var number2 int16;
 set number1 10;
 set number2 15;
 add number1 number2;
 )--");
-  auto result=run_and_get_stack_value<std::uint64_t >(code);
+  auto result=run_and_get_stack_value<std::int64_t >(code);
 //
   REQUIRE(result.has_value());
 

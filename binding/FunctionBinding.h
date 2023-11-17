@@ -46,7 +46,7 @@ template <class T>
   void emplace_parameter(DefineFunction& function) {
     auto modifier=std::is_reference_v<T>? (std::is_const_v<T>?FunctionParameter::Modifier::CONST:FunctionParameter::Modifier::CONST ):FunctionParameter::Modifier::VALUE;
     FunctionParameter parameter{"",modifier,type_from_cpptype<std::remove_cvref_t<T>>()};
-    function.parameter.emplace_back(parameter);
+    function.parameters.emplace_back(parameter);
   }
   template<typename FTYPE, typename RET_TYPE,typename ...ARGS, std::size_t... Ns>
   void register_function_definition_impl(std::string const& identifier,std::uint64_t id,FunctionCollection &collection,FTYPE function_pointer, std::index_sequence<Ns...>) {

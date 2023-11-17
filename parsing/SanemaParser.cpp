@@ -132,21 +132,21 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
                     define_function.state = DefineFunction::FUNCTION_BODY;
                     stack_context();
                   } else {
-                    define_function.parameter.emplace_back();
-                    define_function.parameter.back().modifier = parse_modifier(token.token);
+                    define_function.parameters.emplace_back();
+                    define_function.parameters.back().modifier = parse_modifier(token.token);
                     define_function.state = DefineFunction::PARAMETER_IDENTIFIER;
                   }
 
                 }
                   break;
                 case DefineFunction::PARAMETER_IDENTIFIER: {
-                  define_function.parameter.back().identifier = token.token;
+                  define_function.parameters.back().identifier = token.token;
                   define_function.state = DefineFunction::PARAMETER_TYPE;
                 }
                   break;
                 case DefineFunction::PARAMETER_TYPE: {
                   std::cout << "Function parameter type: " << token.token << "\n";
-                  define_function.parameter.back().type = parse_type(token.token);
+                  define_function.parameters.back().type = parse_type(token.token);
                   define_function.state = DefineFunction::PARAMETER_MODIFIER;
                 }
                   break;

@@ -117,7 +117,7 @@ void print_block_of_code(sanema::BlockOfCode block_of_code){
           },
           [](sanema::DefineFunction &expression) {
             std::cout << "Declaring Function: " << expression.identifier << " with type: "<<serialize_type(expression.type) <<" and  parameters \n";
-            for (auto &parameter: expression.parameter) {
+            for (auto &parameter: expression.parameters) {
               std::cout << "modifier:"<< sanema::serialize_modifier(parameter.modifier)<<" identifier: "<< parameter.identifier << " type: ";
               if(parameter.type.has_value()) {
                 print_type(parameter.type.value());
@@ -145,12 +145,16 @@ void print_block_of_code(sanema::BlockOfCode block_of_code){
 int main(int argc, char *argv[]) {
   sanema::SanemaParser parser;
   std::ifstream f{"res/test.san", std::ios::in};
-  if(f.is_open()){
+  if(!f.is_open()){
     std::cerr<<"file not found \n";
   }
-  sanema::SanemaScriptSystem scriptSystem;
-  auto id=scriptSystem.add_script(f);
-  scriptSystem.run_script(id);
+  try {
+    sanema::SanemaScriptSystem scriptSystem;
+    auto id = scriptSystem.add_script(f);
+    scriptSystem.run_script(id);
+  }catch (std::runtime_error &e){
+    std::cout<<e.what()<<"\n";
+  }
 
 
 
