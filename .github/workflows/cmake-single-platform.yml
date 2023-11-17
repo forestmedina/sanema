@@ -31,6 +31,8 @@ jobs:
         cd vcpkg
         ./bootstrap-vcpkg.sh
         ./vcpkg integrate install
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
 
   
         
