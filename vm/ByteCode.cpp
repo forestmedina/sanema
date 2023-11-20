@@ -14,7 +14,14 @@ std::uint64_t sanema::read_from_bytecode(sanema::BYTECodeIPType &ip) {
 }
 
 template<>
-void sanema::write_to_byte_code(std::vector<std::uint8_t> &code_data, OPCODE const &opcode) {
+std::uint64_t sanema::write_to_byte_code(std::vector<std::uint8_t> &code_data, OPCODE const &opcode) {
+  auto address=code_data.size();
   code_data.emplace_back(static_cast<typename std::underlying_type<OPCODE>::type>(opcode));
+  return address;
+}
+
+
+std::uint64_t sanema::ByteCode::get_current_address() {
+  return code_data.size();
 }
 

@@ -68,7 +68,6 @@ namespace sanema {
   };
   struct StringReference {
 
-
     StringLocation location;
     std::uint32_t ref;
 
@@ -112,7 +111,7 @@ namespace sanema {
 
   std::string type_to_string(CompleteType const &type);
 
-  uint64_t get_type_size(CompleteType &type);
+  uint64_t get_type_size(CompleteType const&type);
 
   struct Field {
     std::string identifier;

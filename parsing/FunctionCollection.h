@@ -22,12 +22,13 @@ namespace sanema {
 
     std::optional<sanema::DefineFunction> find_function(sanema::DefineFunction &function);
 
-    void add_function( sanema::DefineFunction &function);
+    sanema::FunctionID add_function(sanema::DefineFunction&function);
+    sanema::DefineFunction*  get_function_by_id(FunctionID id);
   private:
     std::unordered_map<std::string, FunctionOverloads> functions_per_name_and_type;
     std::unordered_map<FunctionID, DefineFunction> function_collection;
     std::uint64_t next_id();
-    std::optional<sanema::DefineFunction> get_function_by_id(FunctionID id);
+
     std::uint64_t current_function_id{0};
 
 

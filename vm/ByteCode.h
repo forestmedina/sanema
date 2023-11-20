@@ -26,17 +26,27 @@ namespace sanema{
   std::uint64_t read_from_bytecode(BYTECodeIPType &ip);
 
   template<class T>
-    void write_to_byte_code(std::vector<std::uint8_t>& code_data,T const &t) {
-      auto length = sizeof(t) / sizeof(uint8_t);
-      for (int i = 0; i < length; i++) {
-        code_data.emplace_back();
-      }
-      std::uint8_t *pointer_uint8 = &code_data[code_data.size() - length];
+    std::uint64_t write_to_byte_code(std::vector<std::uint8_t>& code_data,std::uint64_t address,T const &t) {
+      std::uint8_t *pointer_uint8 = &code_data[address];
       T *pointer_t = (T *) pointer_uint8;
       (*pointer_t) = t;
+      return address;
     };
+  template<class T>
+   std::uint64_t write_to_byte_code(std::vector<std::uint8_t>& code_data,T const &t) {
+    auto length = sizeof(t) / sizeof(uint8_t);
+    auto address=code_data.size()-1;
+    for (int i = 0; i < length; i++) {
+      code_data.emplace_back();
+    }
+    std::uint8_t *pointer_uint8 = &code_data[code_data.size() - length];
+
+    T *pointer_t = (T *) pointer_uint8;
+    (*pointer_t) = t;
+    return address;
+  };
    template<>
-    void write_to_byte_code(std::vector<std::uint8_t>& code_data, OPCODE const &opcode);
+    std::uint64_t write_to_byte_code(std::vector<std::uint8_t>& code_data, OPCODE const &opcode);
 
   struct ByteCode {
     std::vector<std::uint8_t> code_data;
@@ -47,10 +57,10 @@ namespace sanema{
     ByteCode (ByteCode && other)=default;
     ByteCode & operator=(ByteCode && other)=default;
     template<class T>
-    void write(T const &t) {
-      write_to_byte_code(code_data,t);
+    std::uint64_t write(T const &t) {
+      return write_to_byte_code(code_data,t);
     };
-
+    std::uint64_t get_current_address();
 
 
     size_t add_string_literal(std::string &string_literal) {

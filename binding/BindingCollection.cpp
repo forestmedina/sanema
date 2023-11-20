@@ -9,7 +9,7 @@ sanema::FunctionPointer& sanema::BindingCollection::get_function_by_id(std::uint
 
 void sanema::BindingCollection::register_bindings(sanema::FunctionCollection &collection) {
   int id=0;
-    for(auto& function:function_pointers){
+    for(auto const& function:function_pointers){
       function->register_function_definition(collection,id);
       id++;
     }

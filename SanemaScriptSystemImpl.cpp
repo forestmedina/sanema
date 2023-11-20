@@ -36,7 +36,6 @@ sanema::ScriptEntry &sanema::SanemaScriptSystemImpl::get_script(ScriptID id) {
 }
 
 sanema::SanemaScriptSystemImpl::SanemaScriptSystemImpl(): binding_collection{} {
-  binding_collection.add_function_binding("replace_first",sanema::replace_first);
   add_built_in_functions(general_functions,binding_collection);
   binding_collection.register_bindings(general_functions);
 

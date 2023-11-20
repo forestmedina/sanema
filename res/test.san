@@ -1,10 +1,6 @@
-var my_string string;
-var my_number int32;
-set my_number 6;
-set my_string "esto es una prueba";
-set my_string replace_first( my_string  "prueba" "pasada");
-print(my_string);
-set  add(1 2) 3;
-my_string concat ( my_string  " monumental\n");
-print(my_string);
-print(my_number);
+var a string;
+var b string;
+set a "hola, ";
+set b "mundo";
+set a concat (a b);
+ends_with(a "cundo");

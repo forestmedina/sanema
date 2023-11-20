@@ -47,7 +47,7 @@ var b string;
 set a "hola, ";
 set b "mundo";
 set a concat (a b);
-ends_with(a "cundo")
+ends_with(a "cundo");
 )--");
  auto result2=run_and_get_stack_value<bool>(code2);
 //

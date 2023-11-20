@@ -16,7 +16,7 @@ namespace sanema {
   class ByteCodeCompiler : public Backend {
   public:
     struct VariableEntry {
-      DeclareVariable declaration;
+      std::variant<DeclareVariable,FunctionParameter> declaration;
       std::uint64_t address;
     };
 
@@ -24,13 +24,17 @@ namespace sanema {
       std::unordered_map<std::string,VariableEntry > local_variables;
       FunctionCollection function_collection;
       std::unordered_map<std::string, DefineStruct> types{};
-      std::uint64_t context_address{0};
+      std::uint64_t scope_address{0};
+      void reserve_space_for_type(CompleteType const& type);
     };
     struct FuctionCallSustitution {
-      std::uint64_t byte_code_address;
+      std::uint64_t caller_address;// The address where the functionn is called
+      std::uint64_t function_code_addres;// Address poiting to the function body
       FunctionID function_id;
     };
     std::vector<FuctionCallSustitution> function_call_sustitutions{};
+    std::vector<FunctionID> pendind_to_generate_functions;
+
     ByteCode byte_code;
     struct GeneratorsMap;
     using GeneratorFunction = void(ByteCode &byte_code, std::optional<sanema::DefineFunction> const& function_definition);

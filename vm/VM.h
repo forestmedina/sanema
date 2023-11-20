@@ -10,6 +10,7 @@
 #include <boost/numeric/conversion/cast.hpp>
 #include <optional>
 #include <types.h>
+#include <functions.h>
 namespace sanema {
   using IPType = std::uint8_t const *;
   enum class ExecuteResult {
@@ -119,7 +120,7 @@ namespace sanema {
     }
     void prepare_function_parameters(std::uint32_t n);
 
-   std::pair<sanema::FunctionParameterType,sanema::OperandType> get_external_function_parameter(size_t index);
+    [[nodiscard]] sanema::OperandType get_external_function_parameter(size_t index) const;
 
    std::string const& get_string(StringReference const& reference);
    ByteCode const* running_byte_code;
@@ -127,13 +128,12 @@ namespace sanema {
     void push_string(std::string const& string_value);
     std::vector<sanema::ContextFrame> call_stack;
   private:
-    std::vector<std::pair<FunctionParameterType,OperandType>> external_function_parameters;
+    std::vector<OperandType> external_function_parameters;
     std::vector<OperandType> operand_stack;
 
     std::vector<std::string> string_stack;
     std::vector<std::uint8_t> stack_memory;
 
-    ExecuteResult execute_instruction(IPType &ip,BindingCollection& binding_collection);
 
     template<class type>
     type read_local(std::uint64_t address){
@@ -294,39 +294,40 @@ namespace sanema {
     }
   };
    template <typename T>
-   T get_function_parameter_from_vm(VM& vm,size_t index){
+   T get_function_parameter_from_vm(VM& vm,size_t index, sanema::FunctionParameter::Modifier modifier){
      auto value= vm.get_external_function_parameter(index);
      T final_value;
-     switch (value.first) {
-       case FunctionParameterType::Value:
-         final_value=static_cast<T>(value.second);
+     switch (modifier) {
+       case sanema::FunctionParameter::Modifier::VALUE:
+         final_value=static_cast<T>(value);
        break;
-       case FunctionParameterType::VariableReferece:
-         auto address=static_cast<std::uint64_t>(value.second);
+       case  sanema::FunctionParameter::Modifier::MUTABLE:
+       case  sanema::FunctionParameter::Modifier::CONST:
+         auto address=static_cast<std::uint64_t>(value);
        final_value=vm.call_stack.back().read<T>(address);
        break;
      }
      return final_value;
    }
    template <>
-   std::string get_function_parameter_from_vm<std::string>(VM& vm,size_t index);
+   std::string get_function_parameter_from_vm<std::string>(VM& vm,size_t index,sanema::FunctionParameter::Modifier modifier);
 
    template <>
-   std::string const& get_function_parameter_from_vm<std::string const&>(VM& vm,size_t index);
+   std::string const& get_function_parameter_from_vm<std::string const&>(VM& vm,size_t index,sanema::FunctionParameter::Modifier modifier);
    template <>
-   std::string & get_function_parameter_from_vm<std::string &>(VM& vm,size_t index);
+   std::string & get_function_parameter_from_vm<std::string &>(VM& vm,size_t index,sanema::FunctionParameter::Modifier modifier);
 
   template <typename T>
-  void push_function_return_to_vm(VM& vm,T type){
-     vm.push_function_return(OperandType(type));
+  void push_function_return_to_vm(VM& vm,T value){
+     vm.push_function_return(OperandType(value));
   }
   template <>
-  void push_function_return_to_vm<std::string>(VM& vm,std::string vaule);
+  void push_function_return_to_vm<std::string>(VM& vm,std::string value);
 
   template <>
-  void push_function_return_to_vm<std::string const&>(VM& vm,std::string const& vaule);
+  void push_function_return_to_vm<std::string const&>(VM& vm,std::string const& value);
   template <>
-  void push_function_return_to_vm<std::string &>(VM& vm,std::string & vaule);
+  void push_function_return_to_vm<std::string &>(VM& vm,std::string & value);
 
   inline void VM::push_function_return(OperandType value) {
     push(value);

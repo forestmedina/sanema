@@ -48,27 +48,27 @@ std::optional<sanema::CompleteType> sanema::parse_type(const std::string &string
   return {};
 }
 
-std::uint64_t sanema::get_type_size(sanema::CompleteType &type) {
+std::uint64_t sanema::get_type_size(sanema::CompleteType const &type) {
   return match(type,
-        [](Integer &integer) -> std::uint64_t {
+        [](Integer const&integer) -> std::uint64_t {
           return integer.size;
         },
-        [](Float &a_float) -> std::uint64_t {
+        [](Float const&a_float) -> std::uint64_t {
           return 32;
         },
-        [](Double &a_double) -> std::uint64_t {
+        [](Double const&a_double) -> std::uint64_t {
           return 64;
         },
-        [](String &a_double) -> std::uint64_t {
+        [](String const&a_double) -> std::uint64_t {
           return sizeof (sanema::StringReference)*8;
         },
-        [](Boolean &a_double) -> std::uint64_t {
+        [](Boolean const&a_double) -> std::uint64_t {
           return 8;
         },
-        [](Void &a_double) -> std::uint64_t {
+        [](Void const&a_double) -> std::uint64_t {
           return 0;
         },
-        [](Struct &a_double) -> std::uint64_t {
+        [](Struct const&a_double) -> std::uint64_t {
           //TODO calculate struct size
           return 8;
         }

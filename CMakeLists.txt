@@ -66,7 +66,12 @@ add_library(sanema
         binding/BindingCollection.cpp
         binding/BindingCollection.cpp
         built-in/print.cpp
-        built-in/print.h)
+        built-in/print.h
+        built-in/generators.h
+        built-in/generators.h
+        built-in/generators.cpp
+        built-in/generators.cpp
+        test/multiply_tests.cpp)
 
 target_include_directories(sanema PUBLIC  "./")
 add_executable(sanema_main   sanema_main.cpp)
@@ -78,7 +83,9 @@ find_package(Catch2 3 REQUIRED)
 add_executable(sanema_tests test/test.cpp
         test/helpers.cpp
         test/helpers.h
-        test/string_manitpulation.cpp)
+        test/string_manitpulation.cpp
+        test/multiply_tests.cpp
+        test/divide_tests.cpp)
 target_link_libraries(sanema_tests PRIVATE Catch2::Catch2WithMain)
 target_link_libraries (sanema_tests PRIVATE sanema)
 

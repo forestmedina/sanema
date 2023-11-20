@@ -32,7 +32,7 @@ void add_built_in_arithmetic_functions(sanema::FunctionCollection &functions) {
           type, {},
           {
             sanema::FunctionParameter{"a", sanema::FunctionParameter::Modifier::MUTABLE, type},
-            sanema::FunctionParameter{"b", sanema::FunctionParameter::Modifier::CONST, type}
+            sanema::FunctionParameter{"b", sanema::FunctionParameter::Modifier::VALUE, type}
           },
         };
     functions.add_function(function_set);

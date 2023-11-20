@@ -12,11 +12,12 @@ namespace sanema
   struct   FunctionParameter
   {
     std::string identifier{};
-    enum class Modifier{
+    enum class  Modifier{
       VALUE,
       MUTABLE,
       CONST
-    }modifier;
+    };
+    Modifier modifier;
     std::optional<CompleteType>  type{};
     bool is_compatible(FunctionParameter& other);
     bool operator==(const FunctionParameter &rhs) const;
