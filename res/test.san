@@ -1,6 +1,5 @@
 var a string;
 var b string;
-set a "hola, ";
+set a "hola";
 set b "mundo";
-set a concat (a b);
-ends_with(a "cundo");
+ends_with b concat("u" "ndo");

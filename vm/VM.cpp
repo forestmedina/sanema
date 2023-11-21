@@ -128,7 +128,6 @@ sanema::VM::VM(int memory_size_mb):running_byte_code(nullptr) {
 void sanema::VM::prepare_function_parameters(std::uint32_t n) {
   external_function_parameters.clear();
   for (int i = 0; i < n; i++) {
-    pop<uint8_t>();
 
     external_function_parameters.emplace_back(pop<OperandType>());
   }

@@ -105,36 +105,38 @@ void generate_push_temp_variable(sanema::ByteCode &byte_code,
   match(literal,
         [&byte_code, &address](sanema::LiteralSInt64 int_64) {
           byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
-          byte_code.write(int_64.value);
-          byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
           byte_code.write(address);
+          byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
+          byte_code.write(int_64.value);
           byte_code.write(OPCODE::OP_SET_LOCAL_SINT64);
           byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
           byte_code.write(address);
         },
         [&byte_code, &address](sanema::LiteralSInt32 int_32) {
-          byte_code.write(OPCODE::OP_PUSH_SINT32_CONST);
-          byte_code.write(int_32.value);
           byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
           byte_code.write(address);
+          byte_code.write(OPCODE::OP_PUSH_SINT32_CONST);
+          byte_code.write(int_32.value);
           byte_code.write(OPCODE::OP_SET_LOCAL_SINT32);
           byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
           byte_code.write(address);
         },
         [&byte_code, &address](sanema::LiteralSInt16 int_16) {
-          byte_code.write(OPCODE::OP_PUSH_SINT16_CONST);
-          byte_code.write(int_16.value);
           byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
           byte_code.write(address);
+          byte_code.write(OPCODE::OP_PUSH_SINT16_CONST);
+          byte_code.write(int_16.value);
+
           byte_code.write(OPCODE::OP_SET_LOCAL_SINT16);
           byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
           byte_code.write(address);
         },
         [&byte_code, &address](sanema::LiteralSInt8 int_8) {
-          byte_code.write(OPCODE::OP_PUSH_SINT8_CONST);
-          byte_code.write(int_8.value);
           byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
           byte_code.write(address);
+          byte_code.write(OPCODE::OP_PUSH_SINT8_CONST);
+          byte_code.write(int_8.value);
+
           byte_code.write(OPCODE::OP_SET_LOCAL_SINT8);
           byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
           byte_code.write(address);
@@ -147,41 +149,38 @@ void generate_push_temp_variable(sanema::ByteCode &byte_code,
 
         },
         [&byte_code, &address](sanema::LiteralFloat a_float) {
-          byte_code.write(OPCODE::OP_PUSH_FLOAT_CONST);
-          byte_code.write(a_float.value);
           byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
           byte_code.write(address);
+          byte_code.write(OPCODE::OP_PUSH_FLOAT_CONST);
+          byte_code.write(a_float.value);
+
           byte_code.write(OPCODE::OP_SET_LOCAL_FLOAT);
           byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
           byte_code.write(address);
         },
         [&byte_code, &address](sanema::LiteralDouble a_double) {
-          byte_code.write(OPCODE::OP_PUSH_DOUBLE_CONST);
-          byte_code.write(a_double.value);
           byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
           byte_code.write(address);
+          byte_code.write(OPCODE::OP_PUSH_DOUBLE_CONST);
+          byte_code.write(a_double.value);
           byte_code.write(OPCODE::OP_SET_LOCAL_DOUBLE);
           byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
           byte_code.write(address);
         },
-        [&byte_code, &address,type](sanema::LiteralString &string) {
+        [&byte_code, &address, type](sanema::LiteralString &string) {
 
           byte_code.write(OPCODE::OP_RESERVE_STACK_SPACE);
           byte_code.write(sanema::get_type_size(type));
-
+          //** this address will be used by the set
           byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
           byte_code.write(address);
-          byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
-          byte_code.write(static_cast<std::uint64_t>(sanema::FunctionParameterType::VariableReferece));
 
           byte_code.write(OPCODE::OP_PUSH_STRING_CONST);
           auto index = byte_code.add_string_literal(string.value);
           byte_code.write(sanema::StringReference{sanema::StringLocation::LiteralPool, (std::uint32_t) index});
 
-          byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
-           byte_code.write(static_cast<std::uint64_t>(sanema::FunctionParameterType::Value));
-
           byte_code.write(OPCODE::OP_SET_LOCAL_STRING);
+          //** this address will be used by the function to know where the parameter is
           byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
           byte_code.write(address);
         }
@@ -277,133 +276,6 @@ generate_local_variable_access(sanema::ByteCode &byte_code, sanema::ByteCodeComp
   }
 }
 
-std::optional<sanema::DefineFunction>
-generate_function_call(
-  sanema::ByteCode &byte_code,
-  sanema::FunctionCall &function_call,
-  sanema::ByteCodeCompiler::Scope &context_frame_aux,
-  sanema::ByteCodeCompiler::GeneratorsMap &generator_map,
-  std::vector<sanema::ByteCodeCompiler::FuctionCallSustitution> &function_call_sustitutions
-) {
-
-  sanema::DefineFunction function_definition;
-  function_definition.identifier = function_call.identifier;
-  auto final_function_definition = get_function_definition(function_call,
-                                                           context_frame_aux);
-  if (!final_function_definition.has_value())
-    throw std::runtime_error("can't generate function " + function_call.identifier);
-  for (int i = 0; i < final_function_definition.value().parameters.size(); i++) {
-    auto &argument = function_call.arguments[i];
-    auto &parameter = final_function_definition.value().parameters[i];
-    sanema::CompleteType type = match(argument.expression,
-                                      [&](sanema::Literal literal) -> sanema::CompleteType {
-                                        auto literal_type = sanema::get_literal_type(literal);
-                                        if (parameter.modifier == sanema::FunctionParameter::Modifier::MUTABLE) {
-                                          throw std::runtime_error("can't bind literal to a mutable reference");
-                                        }
-                                        if(parameter.modifier==sanema::FunctionParameter::Modifier::CONST) {
-                                          generate_push_temp_variable(byte_code,
-                                                                      literal,
-                                                                      context_frame_aux,
-                                                                      generator_map,
-                                                                      literal_type);
-                                          byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
-                                          byte_code.write(static_cast<std::uint64_t>(sanema::FunctionParameterType::VariableReferece));
-                                          return literal_type;
-                                        }else{
-                                          generate_push_const_literal(byte_code,
-                                                                      literal,
-                                                                      context_frame_aux,
-                                                                      generator_map,
-                                                                      literal_type);
-                                          byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
-                                          byte_code.write(static_cast<std::uint64_t>(sanema::FunctionParameterType::Value));
-                                          return literal_type;
-                                        }
-                                      },
-                                      [&](sanema::FunctionCall function_call_nested) -> sanema::CompleteType {
-                                        auto definition = generate_function_call(byte_code,
-                                                                                 function_call_nested,
-                                                                                 context_frame_aux,
-                                                                                 generator_map,
-                                                                                 function_call_sustitutions);
-                                        if (!definition) {
-                                          //We should not reach this
-                                          throw std::runtime_error(std::format(
-                                            "function {} not found, but that is unexpected",
-                                            function_call_nested.identifier));
-                                        }
-                                        if (parameter.modifier == sanema::FunctionParameter::Modifier::MUTABLE) {
-                                          throw std::runtime_error("can't bind temporary value  to a mutable reference");
-                                        }
-                                        byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
-                                        byte_code.write(static_cast<std::uint64_t>(sanema::FunctionParameterType::Value));
-                                        return definition->type;
-                                      },
-                                      [&](sanema::VariableEvaluation variable_evaluation) -> sanema::CompleteType {
-                                        auto variable_type = get_variable_type(variable_evaluation,
-                                                                               context_frame_aux);
-                                        if (!variable_type.has_value()) {
-                                          throw std::runtime_error(std::format("variable  {} not found ",
-                                                                               variable_evaluation.identifier));
-                                        }
-                                        bool should_copy = false;
-                                        switch (parameter.modifier) {
-                                          case sanema::FunctionParameter::Modifier::MUTABLE:
-                                            should_copy = false;
-                                            break;
-                                          case sanema::FunctionParameter::Modifier::CONST:
-                                            should_copy = false;
-                                            break;
-                                          case sanema::FunctionParameter::Modifier::VALUE:
-                                            should_copy = true;
-                                            break;
-                                        }
-                                        generate_local_variable_access(byte_code,
-                                                                       context_frame_aux,
-                                                                       variable_evaluation.identifier,
-                                                                       should_copy);
-                                        byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
-                                        if (should_copy) {
-                                          byte_code.write(static_cast<std::uint64_t>(sanema::FunctionParameterType::Value));
-                                        } else {
-                                          byte_code.write(static_cast<std::uint64_t>(sanema::FunctionParameterType::VariableReferece));
-                                        }
-                                        return variable_type.value();
-                                      });
-    //TODO i am not sure if we need to  specify the correct Modifier, need to check later
-    function_definition.parameters.emplace_back("",
-                                                sanema::FunctionParameter::Modifier::VALUE,
-                                                type);
-  }
-  if (!final_function_definition.has_value()) {
-    std::string message = std::format("function {}  (",
-                                      function_call.identifier);
-    std::string separator = "";
-    for (auto &parameters: function_definition.parameters) {
-      message += std::format("{} {}",
-                             separator,
-                             sanema::type_to_string(parameters.type.value()));
-      separator = ",";
-    }
-    message += ") not found";
-    throw std::runtime_error(message);
-  }
-  if (generator_map.map.count(function_call.identifier) > 0) {
-    generator_map.map.at(function_call.identifier)(byte_code,
-                                                   final_function_definition);
-  } else if (final_function_definition->external_id) {
-    byte_code.write(OPCODE::OP_CALL_EXTERNAL_FUNCTION);
-    byte_code.write(final_function_definition->external_id.value());
-  } else {
-    byte_code.write(OPCODE::OP_CALL);
-    auto address = byte_code.write(static_cast<std::uint64_t>(final_function_definition->id));
-    function_call_sustitutions.emplace_back(address,
-                                            final_function_definition->id);
-  }
-  return final_function_definition;
-}
-
 
 void
 generate_set(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition) {
@@ -444,6 +316,119 @@ generate_set(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> 
         }
        );
 }
+
+std::optional<sanema::DefineFunction>
+generate_function_call(
+  sanema::ByteCode &byte_code,
+  sanema::FunctionCall &function_call,
+  sanema::ByteCodeCompiler::Scope &context_frame_aux,
+  sanema::ByteCodeCompiler::GeneratorsMap &generator_map,
+  std::vector<sanema::ByteCodeCompiler::FuctionCallSustitution> &function_call_sustitutions
+) {
+
+  sanema::DefineFunction function_definition;
+  function_definition.identifier = function_call.identifier;
+  auto final_function_definition = get_function_definition(function_call,
+                                                           context_frame_aux);
+  if (!final_function_definition.has_value())
+    throw std::runtime_error("can't generate function " + function_call.identifier);
+  for (int i = 0; i < final_function_definition.value().parameters.size(); i++) {
+    auto &argument = function_call.arguments[i];
+    auto &parameter = final_function_definition.value().parameters[i];
+    match(argument.expression,
+          [&](sanema::Literal literal) -> void {
+            auto literal_type = sanema::get_literal_type(literal);
+            if (parameter.modifier == sanema::FunctionParameter::Modifier::MUTABLE) {
+              throw std::runtime_error("can't bind literal to a mutable reference");
+            }
+            if (parameter.modifier == sanema::FunctionParameter::Modifier::CONST) {
+              generate_push_temp_variable(byte_code,
+                                          literal,
+                                          context_frame_aux,
+                                          generator_map,
+                                          literal_type);
+
+            } else {
+              generate_push_const_literal(byte_code,
+                                          literal,
+                                          context_frame_aux,
+                                          generator_map,
+                                          literal_type);
+            }
+          },
+          [&](sanema::FunctionCall function_call_nested) -> void {
+            if (parameter.modifier == sanema::FunctionParameter::Modifier::MUTABLE) {
+              throw std::runtime_error("can't bind temporary value  to a mutable reference");
+            }
+            bool is_reference = parameter.modifier == sanema::FunctionParameter::Modifier::CONST;
+            auto address=context_frame_aux.scope_address;
+            if (is_reference) {
+
+              context_frame_aux.reserve_space_for_type(parameter.type.value());
+              byte_code.write(OPCODE::OP_RESERVE_STACK_SPACE);
+              byte_code.write(sanema::get_type_size(parameter.type.value()));
+              byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
+              byte_code.write(address);
+            }
+            auto definition = generate_function_call(byte_code,
+                                                     function_call_nested,
+                                                     context_frame_aux,
+                                                     generator_map,
+                                                     function_call_sustitutions);
+             if (is_reference) {
+               generate_set(byte_code,sanema::DefineFunction{"",parameter.type.value()});
+               byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
+               byte_code.write(address);
+            }
+            if (!definition) {
+              //We should not reach this
+              throw std::runtime_error(std::format(
+                "function {} not found, but that is unexpected",
+                function_call_nested.identifier));
+            }
+          },
+          [&](sanema::VariableEvaluation variable_evaluation) -> void{
+            auto variable_type = get_variable_type(variable_evaluation,
+                                                   context_frame_aux);
+            if (!variable_type.has_value()) {
+              throw std::runtime_error(std::format("variable  {} not found ",
+                                                   variable_evaluation.identifier));
+            }
+            bool should_copy = false;
+            switch (parameter.modifier) {
+              case sanema::FunctionParameter::Modifier::MUTABLE:
+                should_copy = false;
+                break;
+              case sanema::FunctionParameter::Modifier::CONST:
+                should_copy = false;
+                break;
+              case sanema::FunctionParameter::Modifier::VALUE:
+                should_copy = true;
+                break;
+            }
+            generate_local_variable_access(byte_code,
+                                           context_frame_aux,
+                                           variable_evaluation.identifier,
+                                           should_copy);
+          });
+  }
+
+  if (generator_map.map.count(function_call.identifier) > 0) {
+    generator_map.map.at(function_call.identifier)(byte_code,
+                                                   final_function_definition);
+  } else if (final_function_definition->external_id) {
+    byte_code.write(OPCODE::OP_CALL_EXTERNAL_FUNCTION);
+    byte_code.write(final_function_definition->external_id.value());
+  } else {
+    byte_code.write(OPCODE::OP_CALL);
+    auto address = byte_code.write(static_cast<std::uint64_t>(final_function_definition->id));
+    function_call_sustitutions.emplace_back(address,
+                                            final_function_definition->id);
+  }
+  return final_function_definition;
+}
+
+
 
 void sanema::ByteCodeCompiler::Scope::reserve_space_for_type(CompleteType const &type) {
   auto size = get_type_size(type);

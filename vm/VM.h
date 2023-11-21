@@ -160,9 +160,7 @@ namespace sanema {
     template<class type>
     inline void set_local(IPType &ip) {
       sanema::ContextFrame &context_frame = call_stack.back();
-      pop<std::uint64_t>();
       auto value = pop<type>();
-      pop<std::uint64_t>();
       auto address2 = pop<std::uint64_t>();
       std::cout << "Setting local value=" << value << " address=" << address2 << "\n";
       context_frame.write<type>(address2,
@@ -271,13 +269,13 @@ namespace sanema {
     }
 
     template<class T>
-    inline  T pop_function_parameter_value(){
-       sanema::FunctionParameterType access_type{pop<std::uint8_t>()};
-      switch (access_type) {
-        case FunctionParameterType::Value:
+    inline  T pop_function_parameter_value(FunctionParameter::Modifier modifier=FunctionParameter::Modifier::VALUE){
+      switch (modifier) {
+        case FunctionParameter::Modifier::VALUE:
           return pop<T>();
           break;
-        case FunctionParameterType::VariableReferece:
+        case FunctionParameter::Modifier::MUTABLE:
+        case FunctionParameter::Modifier::CONST:
           return read_local<T>(pop<std::uint64_t>());
           break;
       }
