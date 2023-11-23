@@ -1,5 +1,16 @@
-var a string;
-var b string;
-set a "hola";
-set b "mundo";
-ends_with b concat("u" "ndo");
+function add_five int64
+    var input int64
+    {
+        return add ( input 5);
+    };
+function increase void
+    mut input int64
+    {
+        set input add (input 1);
+    }
+
+var my_int int64;
+set my_int 10;
+increase my_int;
+print my_int;
+

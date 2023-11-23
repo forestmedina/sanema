@@ -145,6 +145,7 @@ namespace sanema {
       auto address = read_from_bytecode<std::uint64_t>(ip);
 
       auto value = read_local<type>(address);
+//      std::cout<<"Pushing address: "<<address<<" value:"<<value<<"\n";
       push(value);
     }
 
@@ -162,7 +163,7 @@ namespace sanema {
       sanema::ContextFrame &context_frame = call_stack.back();
       auto value = pop<type>();
       auto address2 = pop<std::uint64_t>();
-      std::cout << "Setting local value=" << value << " address=" << address2 << "\n";
+//      std::cout << "Setting local value=" << value << " address=" << address2 << "\n";
       context_frame.write<type>(address2,
                                 value);
     }
@@ -177,13 +178,17 @@ namespace sanema {
     template<class type>
     void push_const(IPType &ip) {
       auto value = read_from_bytecode<type>(ip);
-      std::cout << "constant value " << value << "\n";
+//      std::cout << "constant value " << value << "\n";
       push(value);
     }
 
     template<class type>
     void push(type t) {
       operand_stack.emplace_back(t);
+    }
+
+    inline void swap_last_two() {
+      std::swap(operand_stack[operand_stack.size()-1],operand_stack[operand_stack.size()-2]);
     }
 
     template<typename type>

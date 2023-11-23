@@ -48,10 +48,27 @@ void add_built_in_string_functions(sanema::FunctionCollection &functions,sanema:
   binding_collection.add_function_binding("stars_with",sanema::starts_with);
   binding_collection.add_function_binding("print",(void(*)(std::string))sanema::print);
   binding_collection.add_function_binding("print", (void(*)(std::int32_t))sanema::print);
+  binding_collection.add_function_binding("print", (void(*)(std::int64_t))sanema::print);
 
+}
+void add_built_in_return(sanema::FunctionCollection &functions,sanema::BindingCollection& binding_collection){
+  std::vector<sanema::CompleteType> types{sanema::Integer(8), sanema::Integer(16), sanema::Integer(32),
+                                          sanema::Integer(64), sanema::Float{}, sanema::Double{},sanema::Boolean{},sanema::String{}};
+    for (auto &type: types) {
+      sanema::DefineFunction function_operation{
+          "return",
+          type, {},
+          {
+            sanema::FunctionParameter{"a", sanema::FunctionParameter::Modifier::VALUE, type}
+          },
+        };
+       functions.add_function(function_operation);
+
+    }
 }
 void sanema::add_built_in_functions(sanema::FunctionCollection &functions,BindingCollection& binding_collection) {
   add_built_in_arithmetic_functions(functions);
   add_built_in_string_functions(functions,binding_collection);
+  add_built_in_return(functions,binding_collection);
   binding_collection.register_bindings(functions);
 }

@@ -10,3 +10,6 @@ void sanema::print(std::string string_value) {
 void sanema::print(std::int32_t int32) {
   std::cout<<int32;
 }
+void sanema::print(std::int64_t int64) {
+  std::cout<<int64;
+}

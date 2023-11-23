@@ -17,6 +17,10 @@ sanema::ScriptID sanema::SanemaScriptSystemImpl::add_script(std::istream &stream
   auto block_of_code=parser.parse(tokens);
   compiler.process(block_of_code,general_functions);
   auto id=ScriptID{next_id()};
+  std::cout<<"BYTECODE BEGIN*******************************\n\n";
+  compiler.byte_code.print();
+    std::cout<<"\n\nBYTECODE END*******************************\n\n";
+
   script_collection[id.id]=ScriptEntry{id,std::move(compiler.byte_code)};
   return id;
 }

@@ -271,7 +271,7 @@ generate_local_variable_access(sanema::ByteCode &byte_code, sanema::ByteCodeComp
     byte_code.write(opcode);
     byte_code.write(local_variable_entry.address);
   } else {
-    byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
+    byte_code.write(OPCODE::OP_PUSH_ADDRESS);
     byte_code.write(local_variable_entry.address);
   }
 }
@@ -315,6 +315,11 @@ generate_set(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> 
           //          byte_code.write(OPCODE::OP_SET_LOCAL_BOOL);
         }
        );
+}
+
+void
+generate_return(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition) {
+  byte_code.write(OPCODE::OP_RETURN);
 }
 
 std::optional<sanema::DefineFunction>
@@ -361,7 +366,7 @@ generate_function_call(
               throw std::runtime_error("can't bind temporary value  to a mutable reference");
             }
             bool is_reference = parameter.modifier == sanema::FunctionParameter::Modifier::CONST;
-            auto address=context_frame_aux.scope_address;
+            auto address = context_frame_aux.scope_address;
             if (is_reference) {
 
               context_frame_aux.reserve_space_for_type(parameter.type.value());
@@ -375,10 +380,11 @@ generate_function_call(
                                                      context_frame_aux,
                                                      generator_map,
                                                      function_call_sustitutions);
-             if (is_reference) {
-               generate_set(byte_code,sanema::DefineFunction{"",parameter.type.value()});
-               byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
-               byte_code.write(address);
+            if (is_reference) {
+              generate_set(byte_code,
+                           sanema::DefineFunction{"", parameter.type.value()});
+              byte_code.write(OPCODE::OP_PUSH_SINT64_CONST);
+              byte_code.write(address);
             }
             if (!definition) {
               //We should not reach this
@@ -387,7 +393,7 @@ generate_function_call(
                 function_call_nested.identifier));
             }
           },
-          [&](sanema::VariableEvaluation variable_evaluation) -> void{
+          [&](sanema::VariableEvaluation variable_evaluation) -> void {
             auto variable_type = get_variable_type(variable_evaluation,
                                                    context_frame_aux);
             if (!variable_type.has_value()) {
@@ -421,13 +427,15 @@ generate_function_call(
     byte_code.write(final_function_definition->external_id.value());
   } else {
     byte_code.write(OPCODE::OP_CALL);
-    auto address = byte_code.write(static_cast<std::uint64_t>(final_function_definition->id));
+    auto address = byte_code.get_current_address();
+    std::cout << "function call writing: " << address << "\n";
+    byte_code.write(static_cast<std::uint64_t>(final_function_definition->id));
     function_call_sustitutions.emplace_back(address,
+                                            0,
                                             final_function_definition->id);
   }
   return final_function_definition;
 }
-
 
 
 void sanema::ByteCodeCompiler::Scope::reserve_space_for_type(CompleteType const &type) {
@@ -443,6 +451,7 @@ void sanema::ByteCodeCompiler::process(sanema::BlockOfCode &block_of_code, Funct
   function_bytecode_generators.map["multiply"] = generate_multiply;
   function_bytecode_generators.map["divide"] = generate_divide;
   function_bytecode_generators.map["set"] = generate_set;
+  function_bytecode_generators.map["return"] = generate_return;
   scope_stack.back().function_collection = built_in_functions;
   std::optional<BlockOfCode> next_block = block_of_code;
   while (next_block) {
@@ -512,29 +521,55 @@ void sanema::ByteCodeCompiler::process(sanema::BlockOfCode &block_of_code, Funct
       }
 
       // ReSharper disable once CppDFANullDereference
-      block_of_code = function->body;
+      next_block = function->body;
       auto scope_copy = scope;
-      for (auto &parameter: function->parameters) {
-        auto address = scope.scope_address;
-        scope_copy.reserve_space_for_type(parameter.type.value());
-        scope_copy.local_variables.emplace(parameter.identifier,
-                                           VariableEntry{parameter, address});
-      }
+
       std::uint64_t function_address = byte_code.get_current_address();
+      std::cout << "Determining function address : " << function_address << "\n";
       std::ranges::for_each(function_call_sustitutions,
                             [&pending_function, function_address](FuctionCallSustitution &sustitution) {
                               if (sustitution.function_id == pending_function) {
                                 sustitution.function_code_addres = function_address;
+                                std::cout << "Setting address : " << function_address << "\n";
                               }
                             });
+      scope_copy.scope_address = 0;
+      for (auto &parameter: function->parameters) {
+        auto address = scope_copy.scope_address;
+        switch (parameter.modifier) {
+          case FunctionParameter::Modifier::CONST:
+          case FunctionParameter::Modifier::MUTABLE:
+            scope_copy.reserve_space_for_type(Integer(64));
+            break;
+          case FunctionParameter::Modifier::VALUE:
+            scope_copy.reserve_space_for_type(parameter.type.value());
+        }
 
+        scope_copy.local_variables.clear();
+        scope_copy.local_variables.emplace(parameter.identifier,
+                                           VariableEntry{parameter, address});
+        byte_code.write(OPCODE::OP_RESERVE_STACK_SPACE);
+        byte_code.write(get_type_size(parameter.type.value()));
+      }
+      for (size_t i = function->parameters.size(); i > 0; i--) {
+        byte_code.write(OPCODE::OP_PREPARE_PARAMETER);
+        auto &parameter = function->parameters[i - 1];
+        auto variable = scope_copy.local_variables.at(function->parameters[i - 1].identifier);
+        byte_code.write(variable.address);
+        DefineFunction set_parameter_function;
+        set_parameter_function.type = function->parameters[i - 1].type.value();
 
+        generate_set(byte_code,
+                     set_parameter_function);
+      }
       scope_stack.emplace_back(scope_copy);
       pendind_to_generate_functions.pop_back();
 
     }
   }
   for (auto &sustition: function_call_sustitutions) {
+    std::cout << "function call sustitution: " << sustition.caller_address << "->" << sustition.function_code_addres
+              << "\n";
     write_to_byte_code(byte_code.code_data,
                        sustition.caller_address,
                        sustition.function_code_addres);

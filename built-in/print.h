@@ -10,6 +10,7 @@
 namespace sanema {
   void print(std::string string_value);
   void print(std::int32_t  int32);
+  void print(std::int64_t  int64);
 
 
 }

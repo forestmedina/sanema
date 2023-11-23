@@ -34,6 +34,10 @@ namespace sanema {
      inline void reserve(std::uint64_t size){
          end_address+=size;
      }
+    std::uint8_t const * ip;
+    uint8_t *get_begin_address() const;
+
+    uint8_t *get_end_address() const;
 
   private:
     //begin and end are  addresses to a  point the stack. Begin address should specified in the constructor
