@@ -36,7 +36,7 @@ void print_type(sanema::CompleteType &type) {
         [](sanema::Boolean &a_boolean) {
           std::cout << "boolean";
         },
-        [](sanema::Struct &a_struct) {
+        [](sanema::UserDefined &a_struct) {
           std::cout << "struct";
         },
         [](sanema::Void &a_struct) {
@@ -62,7 +62,7 @@ std::string serialize_type(sanema::CompleteType &type) {
         [](sanema::Boolean &a_boolean) {
           return "boolean";
         },
-        [](sanema::Struct &a_struct) {
+        [](sanema::UserDefined &a_struct) {
           return"struct";
         },
         [](sanema::Void &a_struct) {

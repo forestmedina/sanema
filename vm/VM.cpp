@@ -23,7 +23,7 @@ GENERATE_OPERATION(OP_TYPE,type,GREATER_EQUAL_,greater_equal)\
 GENERATE_OPERATION(OP_TYPE,type,LESS_EQUAL_,less_equal)\
 GENERATE_OPERATION(OP_TYPE,type,EQUAL_,equal)      \
 GENERATE_LOCAL_OPERATION(OP_TYPE,type,PUSH_LOCAL_,push_local)\
-GENERATE_LOCAL_OPERATION(OP_TYPE,type,POP_TO_LOCAL_,pop_to_local)\
+GENERATE_LOCAL_OPERATION(OP_TYPE,type,SET_EXTERNAL_,pop_to_local)\
 GENERATE_LOCAL_OPERATION(OP_TYPE,type,SET_LOCAL_,set_local)\
 GENERATE_PUSH(OP_TYPE,type)
 
@@ -34,9 +34,9 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
   auto end_address = byte_code.code_data.data() + byte_code.code_data.size();
   bool should_continue = true;
   while (should_continue) {
-//    std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << "\n";
+    std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << " ; ";
     auto opcode = static_cast<OPCODE>(*ip);
-//    std::cout << "Executing opcode: " << opcode_to_string(opcode) << "\n";
+    std::cout << "Executing opcode: " << opcode_to_string(opcode) << "\n";
     ip++;
     switch (opcode) {
       case OPCODE::OP_POP: {
@@ -77,7 +77,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
                                push_local)
       GENERATE_LOCAL_OPERATION(STRING,
                                sanema::StringReference,
-                               POP_TO_LOCAL_,
+                               SET_EXTERNAL_,
                                pop_to_local)
       GENERATE_LOCAL_OPERATION(STRING,
                                sanema::StringReference,
@@ -131,12 +131,22 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
         }
         break;
       }
-      case OPCODE::OP_PUSH_ADDRESS: {
+      case OPCODE::OP_PUSH_LOCAL_ADDRESS_AS_GLOBAL: {
         auto local_address = read_from_bytecode<std::uint64_t>(ip);
-        auto global_address = ( call_stack.back().get_begin_address()-stack_memory.data()) + local_address;
+        auto global_address = (call_stack.back().get_begin_address() - stack_memory.data()) + local_address;
         push(global_address);
       }
-      break;
+        break;
+      case OPCODE::OP_POP_GLOBAL_ADDRESS_AS_LOCAL: {
+        sanema::ContextFrame &context_frame = call_stack.back();
+        auto global_address = pop<address_t >();
+        auto variable_address = pop<address_t>();
+//      std::cout << "Setting local value=" << value << " address=" << address2 << "\n";
+        address_t new_local_address{global_address.address-(int64_t)(context_frame.get_begin_address()-stack_memory.data())};
+        context_frame.write<address_t>(variable_address,
+                                  new_local_address);
+      }
+        break;
     }
   }
 }
@@ -194,7 +204,7 @@ std::string sanema::get_function_parameter_from_vm<std::string>(VM &vm, size_t i
       break;
     case FunctionParameter::Modifier::MUTABLE:
     case FunctionParameter::Modifier::CONST:
-      auto address = static_cast<std::uint64_t>(value);
+      auto address = static_cast<address_t>(value);
       reference = vm.call_stack.back().read<StringReference>(address);
       break;
   }
@@ -212,7 +222,7 @@ std::string const &sanema::get_function_parameter_from_vm<std::string const &>(V
       break;
     case FunctionParameter::Modifier::CONST:
     case FunctionParameter::Modifier::MUTABLE:
-      auto address = static_cast<std::uint64_t>(value);
+      auto address = static_cast<address_t>(value);
       reference = vm.call_stack.back().read<StringReference>(address);
       break;
   }

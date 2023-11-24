@@ -41,8 +41,8 @@ add_library(sanema
         functions.cpp
         expressions.cpp
         built-in/built_in_functions.h
-        parsing/FunctionCollection.cpp
-        parsing/FunctionCollection.h
+        common/FunctionCollection.cpp
+        common/FunctionCollection.h
         built-in/built_in_functions.cpp
         test/test.cpp
         test/basic_tests.cpp
@@ -71,7 +71,12 @@ add_library(sanema
         built-in/generators.h
         built-in/generators.cpp
         built-in/generators.cpp
-        test/multiply_tests.cpp)
+        test/multiply_tests.cpp
+        vm/OperandType.cpp
+        vm/OperandType.h
+        common/TypeCollection.cpp
+        common/TypeCollection.h
+        common/TypeCollection.h)
 
 target_include_directories(sanema PUBLIC  "./")
 add_executable(sanema_main   sanema_main.cpp)
@@ -86,7 +91,8 @@ add_executable(sanema_tests test/test.cpp
         test/string_manitpulation.cpp
         test/multiply_tests.cpp
         test/divide_tests.cpp
-        test/parameter_passing.cpp)
+        test/parameter_passing.cpp
+        test/sanema_function_calling.cpp)
 target_link_libraries(sanema_tests PRIVATE Catch2::Catch2WithMain)
 target_link_libraries (sanema_tests PRIVATE sanema)
 

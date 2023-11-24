@@ -5,7 +5,7 @@
 #define SANEMA_BINDING_COLLECTION
 
 #include "FunctionBinding.h"
-#include "parsing/FunctionCollection.h"
+#include "common/FunctionCollection.h"
 #include <memory>
 
 namespace sanema {

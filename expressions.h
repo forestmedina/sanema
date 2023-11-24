@@ -14,7 +14,7 @@ namespace sanema {
   struct DefineStruct {
     DefineStruct();
 
-    std::optional<Struct> user_type{};
+    std::optional<UserDefined> user_type{};
     enum DefineStructState {
       IDENTIFIER,
       FIELD_TYPE,

@@ -11,10 +11,18 @@
 
 namespace sanema {
 
+
+
+  template <typename T>
   class TypeBinding {
     std::string name;
-    std::string type;
     std::vector<FieldBinding> fields;
+    void construct(void * address){
+      T* t_pointer=new (address) T ();
+    }
+    std::uint64_t size(){
+      return sizeof (T);
+    }
     std::vector<MethodBinding> methods;
   };
 }

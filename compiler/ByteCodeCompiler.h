@@ -8,7 +8,9 @@
 #include "Backend.h"
 #include "../vm/ByteCode.h"
 #include <unordered_map>
-#include <parsing/FunctionCollection.h>
+#include "common/FunctionCollection.h"
+#include "common/TypeCollection.h"
+#include <vm/OperandType.h>
 
 namespace sanema {
 
@@ -16,17 +18,19 @@ namespace sanema {
   class ByteCodeCompiler : public Backend {
   public:
     struct VariableEntry {
-      std::variant<DeclareVariable,FunctionParameter> declaration;
-      std::uint64_t address;
+      std::variant<DeclareVariable, FunctionParameter> declaration;
+      address_t address;
     };
 
     struct Scope {
-      std::unordered_map<std::string,VariableEntry > local_variables;
+      std::unordered_map<std::string, VariableEntry> local_variables;
       FunctionCollection function_collection;
-      std::unordered_map<std::string, DefineStruct> types{};
-      std::uint64_t scope_address{0};
-      void reserve_space_for_type(CompleteType const& type);
+     TypeCollection types{};
+      address_t scope_address{0};
+
+      void reserve_space_for_type(CompleteType const &type);
     };
+
     struct FuctionCallSustitution {
       std::uint64_t caller_address;// The address where the functionn is called
       std::uint64_t function_code_addres;// Address poiting to the function body
@@ -37,12 +41,13 @@ namespace sanema {
 
     ByteCode byte_code;
     struct GeneratorsMap;
-    using GeneratorFunction = void(ByteCode &byte_code, std::optional<sanema::DefineFunction> const& function_definition);
+    using GeneratorFunction = void(ByteCode &byte_code,
+                                   std::optional<sanema::DefineFunction> const &function_definition);
     struct GeneratorsMap {
       std::unordered_map<std::string, GeneratorFunction *> map;
     };
 
-    void process(BlockOfCode &block_of_code,FunctionCollection &built_in_functions) override;
+    void process(BlockOfCode &block_of_code, FunctionCollection &built_in_functions) override;
 
     GeneratorsMap function_bytecode_generators;
 

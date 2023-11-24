@@ -76,32 +76,42 @@ namespace sanema {
   std::ostream &operator<<(std::ostream &stream, StringReference const &string_reference);
 
   using PrimitiveType = std::variant<Integer, Float, Double, String, Boolean>();
-  struct Struct;
+  struct UserDefined;
 
-  struct TypeId {
-    TypeId(const std::string &identifier);
+  struct TypeIdentifier {
+    TypeIdentifier(const std::string &identifier);
 
     std::string identifier{};
 
-    bool operator==(const TypeId &rhs) const;
+    bool operator==(TypeIdentifier const&rhs) const;
 
-    bool operator!=(const TypeId &rhs) const;
+    bool operator!=( TypeIdentifier const &rhs) const;
   };
 
   struct Field;
 
-  struct Struct {
-    Struct(const TypeId &typeId);
+  struct UserDefined {
+    UserDefined(TypeIdentifier typeId);
 
-    TypeId type_id;
+    TypeIdentifier type_id;
     std::vector<Field> fields;
+    Field* get_field(std::string_view  identifier);
+    bool operator==(const UserDefined &rhs) const;
 
-    bool operator==(const Struct &rhs) const;
-
-    bool operator!=(const Struct &rhs) const;
+    bool operator!=(const UserDefined &rhs) const;
   };
 
-  using CompleteType = std::variant<Integer, Float, Double, String, Boolean, Struct, Void>;
+
+
+  using CompleteType = std::variant<Integer, Float, Double, String, Boolean, UserDefined, Void>;
+
+  enum class TypeCategory {
+    PRIMITIVE,
+    EXTERNAL,
+    USER_DEFINED
+  };
+  TypeCategory get_type_category(CompleteType const& type);
+  bool is_user_defined(CompleteType const& type);
 
   bool is_second_type_compatible(CompleteType &type_1, CompleteType type_2);
 
@@ -116,6 +126,7 @@ namespace sanema {
   struct Field {
     std::string identifier;
     std::optional<CompleteType> type{};
+    std::uint64_t offset;
   };
 
     template<typename CPPTYPE>

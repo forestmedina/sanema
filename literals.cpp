@@ -42,8 +42,8 @@ sanema::Literal sanema::get_default_literal_for_type(sanema::CompleteType const 
                [](sanema::Boolean const &integer) -> Literal {
                  return LiteralBoolean(false);
                },
-               [](sanema::Struct const &integer) -> Literal {
-                 throw std::runtime_error("Struct  can't be set we should never reach this");
+               [](sanema::UserDefined const &integer) -> Literal {
+                 throw std::runtime_error("UserDefined  can't be set we should never reach this");
                }
               );
 }

@@ -87,7 +87,7 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
             [&](DefineStruct &define_struct) {
               switch (define_struct.state) {
                 case DefineStruct::IDENTIFIER:
-                  define_struct.user_type = Struct(TypeId(token.token));
+                  define_struct.user_type = UserDefined(TypeIdentifier(token.token));
                   define_struct.state = DefineStruct::FIELD_IDENTIFIER;
                   break;
                 case DefineStruct::FIELD_TYPE:

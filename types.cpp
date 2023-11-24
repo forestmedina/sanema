@@ -3,27 +3,38 @@
 
 #include "types.h"
 #include <util/lambda_visitor.hpp>
-sanema::TypeId::TypeId(const std::string &identifier)
+
+sanema::TypeIdentifier::TypeIdentifier(const std::string &identifier)
   : identifier(identifier) {}
 
-bool sanema::TypeId::operator==(const sanema::TypeId &rhs) const {
+bool sanema::TypeIdentifier::operator==(const sanema::TypeIdentifier &rhs) const {
   return identifier == rhs.identifier;
 }
 
-bool sanema::TypeId::operator!=(const sanema::TypeId &rhs) const {
+bool sanema::TypeIdentifier::operator!=(const sanema::TypeIdentifier &rhs) const {
   return !(rhs == *this);
 }
 
 
-sanema::Struct::Struct(const sanema::TypeId &typeId)
-  : type_id(typeId) {}
+sanema::UserDefined::UserDefined(sanema::TypeIdentifier typeId)
+  : type_id(std::move(typeId)) {}
 
-bool sanema::Struct::operator==(const sanema::Struct &rhs) const {
+bool sanema::UserDefined::operator==(const sanema::UserDefined &rhs) const {
   return type_id == rhs.type_id;
 }
 
-bool sanema::Struct::operator!=(const sanema::Struct &rhs) const {
+bool sanema::UserDefined::operator!=(const sanema::UserDefined &rhs) const {
   return !(rhs == *this);
+}
+
+sanema::Field *sanema::UserDefined::get_field(std::string_view identifier) {
+  auto iter=std::find_if(fields.begin(),fields.end(),[&](Field& field)->bool{
+    return identifier==field.identifier;
+  });
+  if(iter!=fields.end()){
+    return &(*iter);
+  }
+  return nullptr;
 }
 
 std::optional<sanema::CompleteType> sanema::parse_type(const std::string &string) {
@@ -45,78 +56,88 @@ std::optional<sanema::CompleteType> sanema::parse_type(const std::string &string
   if (type_map.count(string) > 0) {
     return type_map.at(string);
   }
-  return {};
+  return UserDefined{string};
 }
 
 std::uint64_t sanema::get_type_size(sanema::CompleteType const &type) {
   return match(type,
-        [](Integer const&integer) -> std::uint64_t {
-          return integer.size;
-        },
-        [](Float const&a_float) -> std::uint64_t {
-          return 32;
-        },
-        [](Double const&a_double) -> std::uint64_t {
-          return 64;
-        },
-        [](String const&a_double) -> std::uint64_t {
-          return sizeof (sanema::StringReference)*8;
-        },
-        [](Boolean const&a_double) -> std::uint64_t {
-          return 8;
-        },
-        [](Void const&a_double) -> std::uint64_t {
-          return 0;
-        },
-        [](Struct const&a_double) -> std::uint64_t {
-          //TODO calculate struct size
-          return 8;
-        }
-        );
+               [](Integer const &integer) -> std::uint64_t {
+                 return integer.size;
+               },
+               [](Float const &a_float) -> std::uint64_t {
+                 return 32;
+               },
+               [](Double const &a_double) -> std::uint64_t {
+                 return 64;
+               },
+               [](String const &a_double) -> std::uint64_t {
+                 return sizeof(sanema::StringReference) * 8;
+               },
+               [](Boolean const &a_double) -> std::uint64_t {
+                 return 8;
+               },
+               [](Void const &a_double) -> std::uint64_t {
+                 return 0;
+               },
+               [](UserDefined const &user_defined) -> std::uint64_t {
+                std::uint64_t total_size=0;
+                 for(auto& field:user_defined.fields){
+                   total_size+=get_type_size(field.type.value());
+                 }
+                 return total_size;
+               }
+              );
 }
 
 bool sanema::is_second_type_compatible(sanema::CompleteType &type_1, sanema::CompleteType type_2) {
-  if(std::holds_alternative<Integer>(type_1)&&std::holds_alternative<Integer>(type_2)){
-    Integer integer1=std::get<Integer>(type_1);
-    Integer integer2=std::get<Integer>(type_2);
-    return integer2.size>=integer1.size;
+  if (std::holds_alternative<Integer>(type_1) && std::holds_alternative<Integer>(type_2)) {
+    Integer integer1 = std::get<Integer>(type_1);
+    Integer integer2 = std::get<Integer>(type_2);
+    return integer2.size >= integer1.size;
   }
-  return type_1==type_2;
+  return type_1 == type_2;
 }
 
-std::string sanema::type_to_string(sanema::CompleteType const& type) {
+std::string sanema::type_to_string(sanema::CompleteType const &type) {
   return match(type,
-        [](sanema::Integer const &integer) ->std::string {
-          switch (integer.size) {
-            case 8: return "int8";break;
-            case 16: return "int16";break;
-            case 32: return "int32";break;
-            case 64: return "int64";break;
-          };
-          return "unknown_size_int";
-        },
-        [](sanema::Float const &a_float)->std::string  {
-          return "float";
-        },
-        [](sanema::String const &integer) ->std::string {
-         return "string";
-        },
-        [](sanema::Void const &a_void) ->std::string {
-          return "void";
-        },
-        [](sanema::Double const &a_double)->std::string  {
-         return "double";
-        },
-        [](sanema::Boolean const &a_boolean) ->std::string {
-          return "boolean";
-        },
-        [](sanema::Struct const &a_struct)->std::string  {
-         return  a_struct.type_id.identifier;
-        }
-       );
+               [](sanema::Integer const &integer) -> std::string {
+                 switch (integer.size) {
+                   case 8:
+                     return "int8";
+                     break;
+                   case 16:
+                     return "int16";
+                     break;
+                   case 32:
+                     return "int32";
+                     break;
+                   case 64:
+                     return "int64";
+                     break;
+                 };
+                 return "unknown_size_int";
+               },
+               [](sanema::Float const &a_float) -> std::string {
+                 return "float";
+               },
+               [](sanema::String const &integer) -> std::string {
+                 return "string";
+               },
+               [](sanema::Void const &a_void) -> std::string {
+                 return "void";
+               },
+               [](sanema::Double const &a_double) -> std::string {
+                 return "double";
+               },
+               [](sanema::Boolean const &a_boolean) -> std::string {
+                 return "boolean";
+               },
+               [](sanema::UserDefined const &a_struct) -> std::string {
+                 return a_struct.type_id.identifier;
+               }
+              );
   return std::string("NO_TYPE");
 }
-
 
 
 bool sanema::Integer::operator==(const sanema::Integer &rhs) const {
@@ -169,22 +190,39 @@ bool sanema::Boolean::operator!=(const sanema::Boolean &rhs) const {
 }
 
 std::ostream &sanema::operator<<(std::ostream &stream, const sanema::StringReference &string_reference) {
-  stream<<"string(";
+  stream << "string(";
   switch (string_reference.location) {
     case StringLocation::LiteralPool:
-      stream<<"literal:";
+      stream << "literal:";
       break;
     case StringLocation::LocalStack:
-      stream<<"local:";
+      stream << "local:";
       break;
   }
-  stream<<string_reference.ref<<")";
+  stream << string_reference.ref << ")";
   return stream;
 }
+
+bool sanema::is_user_defined(const sanema::CompleteType &type) {
+  return get_type_category(type) == TypeCategory::USER_DEFINED;
+}
+
+sanema::TypeCategory sanema::get_type_category(CompleteType const &type) {
+  return match(type,
+        [](UserDefined const &type) -> sanema::TypeCategory {
+          return TypeCategory::USER_DEFINED;
+        },
+        [](auto const &type) -> sanema::TypeCategory{
+          return TypeCategory::PRIMITIVE ;
+        }
+       );
+}
+
 template<>
- sanema::CompleteType  sanema::type_from_cpptype<std::string>(){
+sanema::CompleteType sanema::type_from_cpptype<std::string>() {
   return String{};
 }
+
 template<>
 sanema::CompleteType sanema::type_from_cpptype<std::int8_t>() {
   return Integer{8};
@@ -199,41 +237,44 @@ template<>
 sanema::CompleteType sanema::type_from_cpptype<std::int32_t>() {
   return Integer{32};
 }
-template<>
-  sanema::CompleteType sanema::type_from_cpptype<std::int64_t>() {
-  return Integer{64};
-}
- template<>
- sanema::CompleteType sanema::type_from_cpptype<std::uint8_t>() {
-    return Integer{8};
-  }
 
-  template<>
-  sanema::CompleteType sanema::type_from_cpptype<std::uint16_t>() {
-    return Integer{16};
-  }
-
-  template<>
-  sanema::CompleteType sanema::type_from_cpptype<std::uint32_t>() {
-    return Integer{32};
-  }
 template<>
-  sanema::CompleteType sanema::type_from_cpptype<std::uint64_t>() {
+sanema::CompleteType sanema::type_from_cpptype<std::int64_t>() {
   return Integer{64};
 }
 
-  template<>
-  sanema::CompleteType sanema::type_from_cpptype<double>() {
-    return Double{};
-  }
+template<>
+sanema::CompleteType sanema::type_from_cpptype<std::uint8_t>() {
+  return Integer{8};
+}
 
-  template<>
-  sanema::CompleteType sanema::type_from_cpptype<float>() {
-    return Float{};
-  }
+template<>
+sanema::CompleteType sanema::type_from_cpptype<std::uint16_t>() {
+  return Integer{16};
+}
 
-  template<>
-  sanema::CompleteType sanema::type_from_cpptype<bool>() {
-    return Boolean{};
-  }
+template<>
+sanema::CompleteType sanema::type_from_cpptype<std::uint32_t>() {
+  return Integer{32};
+}
+
+template<>
+sanema::CompleteType sanema::type_from_cpptype<std::uint64_t>() {
+  return Integer{64};
+}
+
+template<>
+sanema::CompleteType sanema::type_from_cpptype<double>() {
+  return Double{};
+}
+
+template<>
+sanema::CompleteType sanema::type_from_cpptype<float>() {
+  return Float{};
+}
+
+template<>
+sanema::CompleteType sanema::type_from_cpptype<bool>() {
+  return Boolean{};
+}
 
