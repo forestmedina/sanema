@@ -274,7 +274,6 @@ namespace sanema {
   }
   template<typename RETURN_TYPE, typename ...ARGS>
   RETURN_TYPE call_function(ByteCode const &byte_code, BindingCollection &collection,std::string identifier,ARGS... args){
-    byte_code.
   }
 
   template<>
