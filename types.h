@@ -95,7 +95,8 @@ namespace sanema {
 
     TypeIdentifier type_id;
     std::vector<Field> fields;
-    Field* get_field(std::string_view  identifier);
+    std::optional<std::uint64_t>  external_id;
+    Field* get_field(std::string const& identifier);
     bool operator==(const UserDefined &rhs) const;
 
     bool operator!=(const UserDefined &rhs) const;

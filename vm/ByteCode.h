@@ -13,6 +13,7 @@
 #include <string>
 #include <types.h>
 #include <vm/OperandType.h>
+
 namespace sanema {
   using BYTECodeIPType = std::uint8_t const *;
 
@@ -56,6 +57,7 @@ namespace sanema {
     std::vector<std::uint8_t> code_data;
     std::vector<std::string> string_literals;
 
+
     ByteCode() = default;
 
     ByteCode(ByteCode const &other) = delete;
@@ -92,9 +94,9 @@ namespace sanema {
       BYTECodeIPType ip = code_data.data();
       std::cout << "byte code size =" << code_data.size() << "\n";
       while (ip < code_data.data() + code_data.size()) {
-        auto offset=std::uint64_t (ip-code_data.data());
+        auto offset = std::uint64_t(ip - code_data.data());
         auto opcode = read_from_bytecode<OPCODE>(ip);
-        std::cout <<offset<<" : "<< opcode_to_string(opcode);
+        std::cout << offset << " : " << opcode_to_string(opcode);
         switch (opcode) {
           case OPCODE::OP_POP: {
           }
@@ -145,7 +147,7 @@ namespace sanema {
             break;
           case OPCODE::OP_NIL:
             break;
-         
+
           case OPCODE::OP_EQUAL_SINT64:
             break;
           case OPCODE::OP_GREATER_SINT64:
@@ -156,8 +158,7 @@ namespace sanema {
             break;
           case OPCODE::OP_LESS_EQUAL_SINT64:
             break;
-          case OPCODE::OP_PUSH_SINT64_CONST:
-            {
+          case OPCODE::OP_PUSH_SINT64_CONST: {
             auto value = read_from_bytecode<int64_t>(ip);
             std::cout << " " << value;
           }
@@ -177,8 +178,7 @@ namespace sanema {
           case OPCODE::OP_PUSH_LOCAL_SINT64: {
           }
             break;
-          case OPCODE::OP_SET_EXTERNAL_SINT64:
-            {
+          case OPCODE::OP_SET_EXTERNAL_SINT64: {
             auto value = read_from_bytecode<int64_t>(ip);
             std::cout << " " << value;
           }
@@ -193,8 +193,7 @@ namespace sanema {
             break;
           case OPCODE::OP_LESS_EQUAL_SINT32:
             break;
-          case OPCODE::OP_PUSH_SINT32_CONST:
-            {
+          case OPCODE::OP_PUSH_SINT32_CONST: {
             auto value = read_from_bytecode<int32_t>(ip);
             std::cout << " " << value;
           }
@@ -211,13 +210,11 @@ namespace sanema {
             break;
           case OPCODE::OP_SET_LOCAL_SINT32:
             break;
-          case OPCODE::OP_PUSH_LOCAL_SINT32:
-            {
+          case OPCODE::OP_PUSH_LOCAL_SINT32: {
           }
             break;
-          case OPCODE::OP_SET_EXTERNAL_SINT32:
-            {
-            auto value = read_from_bytecode<int64_t >(ip);
+          case OPCODE::OP_SET_EXTERNAL_SINT32: {
+            auto value = read_from_bytecode<int64_t>(ip);
             std::cout << " " << value;
           }
             break;
@@ -231,8 +228,7 @@ namespace sanema {
             break;
           case OPCODE::OP_LESS_EQUAL_SINT16:
             break;
-          case OPCODE::OP_PUSH_SINT16_CONST:
-            {
+          case OPCODE::OP_PUSH_SINT16_CONST: {
             auto value = read_from_bytecode<int16_t>(ip);
             std::cout << " " << value;
           }
@@ -249,12 +245,10 @@ namespace sanema {
             break;
           case OPCODE::OP_SET_LOCAL_SINT16:
             break;
-          case OPCODE::OP_PUSH_LOCAL_SINT16:
-            {
+          case OPCODE::OP_PUSH_LOCAL_SINT16: {
           }
             break;
-          case OPCODE::OP_SET_EXTERNAL_SINT16:
-            {
+          case OPCODE::OP_SET_EXTERNAL_SINT16: {
             auto value = read_from_bytecode<int64_t>(ip);
             std::cout << " " << value;
           }
@@ -269,10 +263,9 @@ namespace sanema {
             break;
           case OPCODE::OP_LESS_EQUAL_SINT8:
             break;
-          case OPCODE::OP_PUSH_SINT8_CONST:
-            {
+          case OPCODE::OP_PUSH_SINT8_CONST: {
             auto value = read_from_bytecode<int8_t>(ip);
-            std::cout << " " << (int)value;
+            std::cout << " " << (int) value;
           }
             break;
           case OPCODE::OP_ADD_SINT8:
@@ -287,13 +280,11 @@ namespace sanema {
             break;
           case OPCODE::OP_SET_LOCAL_SINT8:
             break;
-          case OPCODE::OP_PUSH_LOCAL_SINT8:
-            {
+          case OPCODE::OP_PUSH_LOCAL_SINT8: {
 
           }
             break;
-          case OPCODE::OP_SET_EXTERNAL_SINT8:
-            {
+          case OPCODE::OP_SET_EXTERNAL_SINT8: {
             auto value = read_from_bytecode<int64_t>(ip);
             std::cout << " " << value;
           }
@@ -308,8 +299,7 @@ namespace sanema {
             break;
           case OPCODE::OP_LESS_EQUAL_FLOAT:
             break;
-          case OPCODE::OP_PUSH_FLOAT_CONST:
-            {
+          case OPCODE::OP_PUSH_FLOAT_CONST: {
             auto value = read_from_bytecode<float>(ip);
             std::cout << " " << value;
           }
@@ -324,8 +314,7 @@ namespace sanema {
             break;
           case OPCODE::OP_NEGATE_FLOAT:
             break;
-          case OPCODE::OP_PUSH_LOCAL_FLOAT:
-            {
+          case OPCODE::OP_PUSH_LOCAL_FLOAT: {
 
           }
             break;
@@ -343,8 +332,7 @@ namespace sanema {
             break;
           case OPCODE::OP_LESS_EQUAL_DOUBLE:
             break;
-          case OPCODE::OP_PUSH_DOUBLE_CONST:
-            {
+          case OPCODE::OP_PUSH_DOUBLE_CONST: {
             auto value = read_from_bytecode<double>(ip);
             std::cout << " " << value;
           }
@@ -359,12 +347,10 @@ namespace sanema {
             break;
           case OPCODE::OP_NEGATE_DOUBLE:
             break;
-          case OPCODE::OP_PUSH_LOCAL_DOUBLE:
-            {
+          case OPCODE::OP_PUSH_LOCAL_DOUBLE: {
           }
             break;
-          case OPCODE::OP_SET_EXTERNAL_DOUBLE:
-            {
+          case OPCODE::OP_SET_EXTERNAL_DOUBLE: {
             auto value = read_from_bytecode<int64_t>(ip);
             std::cout << " " << value;
           }
@@ -373,12 +359,10 @@ namespace sanema {
             break;
           case OPCODE::OP_SET_LOCAL_STRING:
             break;
-          case OPCODE::OP_PUSH_LOCAL_STRING:
-           {
+          case OPCODE::OP_PUSH_LOCAL_STRING: {
           }
             break;
-          case OPCODE::OP_SET_EXTERNAL_STRING:
-            {
+          case OPCODE::OP_SET_EXTERNAL_STRING: {
             auto value = read_from_bytecode<int64_t>(ip);
             std::cout << " " << value;
           }
@@ -404,15 +388,17 @@ namespace sanema {
           case OPCODE::OP_PUSH_LOCAL_ADDRESS_AS_GLOBAL:
             read_from_bytecode<sanema::address_t>(ip);
             break;
+          case OPCODE::OP_PUSH_EXTERNAL_FIELD_ADDRESS:
+            break;
           case OPCODE::OP_POP_GLOBAL_ADDRESS_AS_LOCAL:
             break;
         }
-      std::cout << "    |\n";
+        std::cout << "    |\n";
+      }
     }
-  }
 
 
-};
+  };
 
 }
 #endif //NATURE_BYTECODE_H

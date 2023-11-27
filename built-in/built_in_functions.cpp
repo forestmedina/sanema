@@ -49,6 +49,7 @@ void add_built_in_string_functions(sanema::FunctionCollection &functions,sanema:
   binding_collection.add_function_binding("print",(void(*)(std::string))sanema::print);
   binding_collection.add_function_binding("print", (void(*)(std::int32_t))sanema::print);
   binding_collection.add_function_binding("print", (void(*)(std::int64_t))sanema::print);
+  binding_collection.add_function_binding("print", (void(*)(float))sanema::print);
 
 }
 void add_built_in_return(sanema::FunctionCollection &functions,sanema::BindingCollection& binding_collection){
@@ -70,5 +71,5 @@ void sanema::add_built_in_functions(sanema::FunctionCollection &functions,Bindin
   add_built_in_arithmetic_functions(functions);
   add_built_in_string_functions(functions,binding_collection);
   add_built_in_return(functions,binding_collection);
-  binding_collection.register_bindings(functions);
+
 }

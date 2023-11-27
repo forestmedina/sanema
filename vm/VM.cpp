@@ -111,7 +111,8 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
         break;
       case OPCODE::OP_PREPARE_PARAMETER: {
         auto address = read_from_bytecode<std::uint64_t>(ip);
-        push<std::uint64_t>(address);
+        std::uint8_t* global_address = call_stack.back().get_begin_address()+address  ;
+        push<address_t>(address_t{global_address});
         swap_last_two();
 
       }
@@ -133,8 +134,16 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
       case OPCODE::OP_PUSH_LOCAL_ADDRESS_AS_GLOBAL: {
         auto local_address = read_from_bytecode<std::uint64_t>(ip);
-        auto global_address = (call_stack.back().get_begin_address() - stack_memory.data()) + local_address;
-        push(global_address);
+        auto global_address = call_stack.back().get_begin_address()  + local_address;
+        push(address_t{global_address});
+      }
+        break; case OPCODE::OP_PUSH_EXTERNAL_FIELD_ADDRESS: {
+        auto field_id= pop<std::uint64_t>();
+        auto type_id= pop<std::uint64_t>();
+        auto object_address= pop<address_t>();
+        auto& type= binding_collection.get_type_by_id(type_id);
+        auto field_pointer=type.get_field_address((void*)object_address.address,field_id);
+        push(address_t{(std::uint8_t *)field_pointer});
       }
         break;
       case OPCODE::OP_POP_GLOBAL_ADDRESS_AS_LOCAL: {
@@ -143,8 +152,8 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
         auto variable_address = pop<address_t>();
 //      std::cout << "Setting local value=" << value << " address=" << address2 << "\n";
         address_t new_local_address{global_address.address-(int64_t)(context_frame.get_begin_address()-stack_memory.data())};
-        context_frame.write<address_t>(variable_address,
-                                  new_local_address);
+//        context_frame.write<address_t>(variable_address,
+//                                  new_local_address);
       }
         break;
     }
@@ -223,7 +232,7 @@ std::string const &sanema::get_function_parameter_from_vm<std::string const &>(V
     case FunctionParameter::Modifier::CONST:
     case FunctionParameter::Modifier::MUTABLE:
       auto address = static_cast<address_t>(value);
-      reference = vm.call_stack.back().read<StringReference>(address);
+      reference = *((StringReference*)address.address);
       break;
   }
   return vm.get_string(reference);

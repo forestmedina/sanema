@@ -36,6 +36,9 @@ namespace sanema {
     void get_return_value(double& value);
     void get_return_value(bool& value);
 
+    BindingCollection  &get_binding_collection() ;
+
+
   private:
     SanemaParser parser;
     ByteCodeCompiler compiler;
@@ -43,6 +46,8 @@ namespace sanema {
 
     BindingCollection binding_collection;
     FunctionCollection general_functions;
+    TypeCollection external_types;
+
 
     std::unordered_map<size_t, ScriptEntry> script_collection;
 

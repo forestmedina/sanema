@@ -2,6 +2,12 @@ struct A
     a int64,
     b int64;
 
-var a A;
-set a.a 10;
-print a.a;
+function add_five_to_x void
+    mut vector vec3 {
+        set vector.x add (vector.x 5) ;
+    };
+var vec vec3;
+set vec.x 10f;
+set vec.y 12.0;
+set vec.z 13.0;
+print vec.x;

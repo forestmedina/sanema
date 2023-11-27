@@ -74,3 +74,7 @@ void sanema::SanemaScriptSystem::get_return_value(bool &value) {
   impl->get_return_value(value);
 }
 
+sanema::BindingCollection &sanema::SanemaScriptSystem::get_binding_collection() {
+  return impl->get_binding_collection();
+}
+

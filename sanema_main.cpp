@@ -142,7 +142,14 @@ void print_block_of_code(sanema::BlockOfCode block_of_code){
 
   }
 }
+struct vec3{
+  float x;
+  float y;
+  float z;
+};
+
 int main(int argc, char *argv[]) {
+
   sanema::SanemaParser parser;
   std::ifstream f{"res/test.san", std::ios::in};
   if(!f.is_open()){
@@ -150,6 +157,10 @@ int main(int argc, char *argv[]) {
   }
   try {
     sanema::SanemaScriptSystem scriptSystem;
+    scriptSystem.add_type<vec3>("vec3")
+      ->with_field("x",&vec3::x)
+      ->with_field("y",&vec3::y)
+      ->with_field("z",&vec3::z);
     auto id = scriptSystem.add_script(f);
     scriptSystem.run_script(id);
   }catch (std::runtime_error &e){

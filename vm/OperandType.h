@@ -12,9 +12,9 @@
 namespace sanema {
 
   struct address_t {
-    explicit address_t(int64_t address);
+    explicit address_t(uint8_t*  address);
 
-    std::int64_t address;
+    uint8_t* address{0};
   };
 
   union OperandType {

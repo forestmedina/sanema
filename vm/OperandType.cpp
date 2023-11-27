@@ -4,4 +4,4 @@
 
 #include "OperandType.h"
 
-sanema::address_t::address_t(int64_t address) : address(address) {}
+sanema::address_t::address_t(uint8_t* address) : address(address) {}

@@ -27,7 +27,7 @@ bool sanema::UserDefined::operator!=(const sanema::UserDefined &rhs) const {
   return !(rhs == *this);
 }
 
-sanema::Field *sanema::UserDefined::get_field(std::string_view identifier) {
+sanema::Field *sanema::UserDefined::get_field(std::string const& identifier) {
   auto iter=std::find_if(fields.begin(),fields.end(),[&](Field& field)->bool{
     return identifier==field.identifier;
   });

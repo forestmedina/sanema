@@ -83,7 +83,7 @@ namespace sanema {
     template<class type>
     type read_local(address_t address) {
       sanema::ContextFrame &context_frame = call_stack.back();
-      return context_frame.read<type>(address);
+      return *((type*)address.address);
     }
 
 
@@ -101,8 +101,6 @@ namespace sanema {
       auto address = read_from_bytecode<address_t>(ip);
       sanema::ContextFrame &context_frame = call_stack.back();
       auto value = pop<type>();
-      context_frame.write<type>(address,
-                                value);
     }
 
     template<class type>
@@ -111,8 +109,9 @@ namespace sanema {
       auto value = pop<type>();
       auto address2 = pop<address_t>();
 //      std::cout << "Setting local value=" << value << " address=" << address2 << "\n";
-      context_frame.write<type>(address2,
-                                value);
+//      context_frame.write<type>(address2,
+//                                value);
+      *((type*)address2.address)=value;
     }
 
 
@@ -251,7 +250,7 @@ namespace sanema {
       case sanema::FunctionParameter::Modifier::MUTABLE:
       case sanema::FunctionParameter::Modifier::CONST:
         auto address = static_cast<address_t>(value);
-        final_value = vm.call_stack.back().read<T>(address);
+        final_value = *((T*)address.address);
         break;
     }
     return final_value;
@@ -272,6 +271,10 @@ namespace sanema {
   template<typename T>
   void push_function_return_to_vm(VM &vm, T value) {
     vm.push_function_return(OperandType(value));
+  }
+  template<typename RETURN_TYPE, typename ...ARGS>
+  RETURN_TYPE call_function(ByteCode const &byte_code, BindingCollection &collection,std::string identifier,ARGS... args){
+    byte_code.
   }
 
   template<>

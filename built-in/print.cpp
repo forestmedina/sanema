@@ -13,3 +13,6 @@ void sanema::print(std::int32_t int32) {
 void sanema::print(std::int64_t int64) {
   std::cout<<int64;
 }
+void sanema::print(float a_float) {
+  std::cout<<a_float;
+}

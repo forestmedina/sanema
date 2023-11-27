@@ -47,7 +47,7 @@ namespace sanema {
       std::unordered_map<std::string, GeneratorFunction *> map;
     };
 
-    void process(BlockOfCode &block_of_code, FunctionCollection &built_in_functions) override;
+    void process(BlockOfCode &block_of_code, FunctionCollection &built_in_functions,TypeCollection& external_types) override;
 
     GeneratorsMap function_bytecode_generators;
 
