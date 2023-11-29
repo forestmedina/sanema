@@ -119,7 +119,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
         break;
       case OPCODE::OP_JUMP_IF_FALSE: {
         auto offset = read_from_bytecode<std::uint64_t>(ip);
-        std::cout<<"offset: "<<offset<<"\n";
+//        std::cout<<"offset: "<<offset<<"\n";
         auto value = pop<bool>();
         if (!value) {
           ip += offset;

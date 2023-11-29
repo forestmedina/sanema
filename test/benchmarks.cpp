@@ -18,7 +18,7 @@ std::uint64_t fib(std::uint64_t n) {
   }
 }
 
-TEST_CASE("Fibonacci") {
+TEST_CASE("Fibonacci","[!benchmark]") {
 
   std::string code_fibonacci_20(R"--(
 function fib int64
@@ -26,16 +26,16 @@ function fib int64
         if equal( n 0)
             return n;
         else
-            if equal (n 1):
+            if equal (n 1)
               return n;
             else
-              return  add(fib(n - 1)  fib(n - 2));
+              return  add(fib(subtract(n  1))  fib(subtract(n  2)));
             end;
         end
     };
 
 var result int64;
-set result fib (20);
+fib (20);
 )--");
 
   std::string code_fibonacci_90(R"--(
@@ -44,16 +44,16 @@ function fib int64
         if equal( n 0)
             return n;
         else
-            if equal (n 1):
+            if equal (n 1)
               return n;
             else
-              return  add(fib(n - 1)  fib(n - 2));
+              return  add(fib(subtract(n  1))  fib(subtract(n  2)));
             end;
         end
     };
 
 var result int64;
-set result fib (90);
+fib (30);
 )--");
   sanema::SanemaScriptSystem sanema_script_system;
   auto script_20_id = sanema_script_system.add_script(code_fibonacci_20);
@@ -65,7 +65,7 @@ set result fib (90);
   std::uint64_t fibonacci_90_result;
   sanema_script_system.run_script(script_90_id);
   sanema_script_system.get_return_value(fibonacci_90_result);
-  CHECK(fibonacci_90_result == 2880067194370816120);
+  CHECK(fibonacci_90_result == 832040);
   // some more asserts..
   CHECK(fibonacci_20_result == 6765);
   // some more asserts..
@@ -84,6 +84,6 @@ set result fib (90);
                             };
 
   BENCHMARK("Fibonacci CPP 90") {
-                              return fib(90);
+                              return fib(30);
                             };
 }

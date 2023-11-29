@@ -754,8 +754,8 @@ void sanema::ByteCodeCompiler::process(sanema::BlockOfCode &block_of_code, Funct
   function_bytecode_generators.map["multiply"] = generate_multiply;
   function_bytecode_generators.map["divide"] = generate_divide;
   function_bytecode_generators.map["set"] = generate_set;
-//  function_bytecode_generators.map["greater"] = generate_greater;
-//  function_bytecode_generators.map["less"] = generate_less;
+  function_bytecode_generators.map["greater"] = generate_greater;
+  function_bytecode_generators.map["less"] = generate_less;
   function_bytecode_generators.map["equal"] = generate_equal;
   function_bytecode_generators.map["return"] = generate_return;
   scope_stack.back().function_collection = built_in_functions;

@@ -148,7 +148,7 @@ namespace sanema {
       auto value2 = pop_function_parameter_value<type>();
       auto value1 = pop_function_parameter_value<type>();
       auto result = value1 + value2;
-      std::cout << "adding " << value1 << " + " << value2 << " = " << result << "\n";
+//      std::cout << "adding " << value1 << " + " << value2 << " = " << result << "\n";
       push(result);
     }
 

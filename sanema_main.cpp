@@ -17,7 +17,7 @@
 #include "built-in/print.h"
 #include "parsing/SanemaParser.hpp"
 #include "SanemaScriptSystem.h"
-
+#include <chrono>
 void print_type(sanema::CompleteType &type) {
   match(type,
         [](sanema::Integer &integer) {
@@ -150,6 +150,15 @@ struct vec3{
   float z;
 };
 
+std::uint64_t fib(std::uint64_t n) {
+  if (n <2){
+      return n;
+    } else {
+      return fib(n - 1) +
+             fib(n - 2);
+    }
+}
+
 int main(int argc, char *argv[]) {
 
   sanema::SanemaParser parser;
@@ -164,7 +173,16 @@ int main(int argc, char *argv[]) {
       ->with_field("y",&vec3::y)
       ->with_field("z",&vec3::z);
     auto id = scriptSystem.add_script(f);
+    std::chrono::high_resolution_clock clock;
+    auto first =clock.now();
     scriptSystem.run_script(id);
+    auto second =clock.now();
+    std::cout<<"\n duration:"<<std::chrono::duration_cast<std::chrono::milliseconds>(second-first)<<"\n";
+    first =clock.now();
+    auto value=fib(40);
+    second =clock.now();
+    std::cout<<"\n duration:"<<std::chrono::duration_cast<std::chrono::milliseconds>(second-first)<<"\n";
+    std::cout<<value<<"\n";
   }catch (std::runtime_error &e){
     std::cout<<e.what()<<"\n";
   }

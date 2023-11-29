@@ -10,6 +10,8 @@
 namespace sanema{
   void generate_add(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition);
   void generate_equal(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition);
+  void generate_less(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition);
+  void generate_greater(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition);
   void generate_multiply(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition);
 
 
