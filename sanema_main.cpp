@@ -174,15 +174,16 @@ int main(int argc, char *argv[]) {
       ->with_field("z",&vec3::z);
     auto id = scriptSystem.add_script(f);
     std::chrono::high_resolution_clock clock;
+    std::cout<<"\n started\n";
     auto first =clock.now();
     scriptSystem.run_script(id);
     auto second =clock.now();
     std::cout<<"\n duration:"<<std::chrono::duration_cast<std::chrono::milliseconds>(second-first)<<"\n";
-    first =clock.now();
-    auto value=fib(40);
-    second =clock.now();
-    std::cout<<"\n duration:"<<std::chrono::duration_cast<std::chrono::milliseconds>(second-first)<<"\n";
-    std::cout<<value<<"\n";
+//    first =clock.now();
+//    auto value=fib(40);
+//    second =clock.now();
+//    std::cout<<"\n duration:"<<std::chrono::duration_cast<std::chrono::milliseconds>(second-first)<<"\n";
+//    std::cout<<value<<"\n";
   }catch (std::runtime_error &e){
     std::cout<<e.what()<<"\n";
   }

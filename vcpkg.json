@@ -14,5 +14,8 @@
   }, {
     "name" : "boost-algorithm",
     "version>=" : "1.82.0#2"
+  }, {
+    "name" : "gperftools",
+    "version>=" : "2.10#1"
   } ]
 }

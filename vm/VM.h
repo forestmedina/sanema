@@ -81,8 +81,7 @@ namespace sanema {
     }
 
     template<class type>
-    type read_local(address_t address) {
-      sanema::ContextFrame &context_frame = call_stack.back();
+    inline type read_local(address_t address) {
       return *((type*)address.address);
     }
 
@@ -91,9 +90,8 @@ namespace sanema {
     inline void push_local(IPType &ip) {
       auto address = pop<address_t>();
 
-      auto value = read_local<type>(address);
 //      std::cout<<"Pushing address: "<<address<<" value:"<<value<<"\n";
-      push(value);
+      push(read_local<type>(address));
     }
 
     template<class type>
@@ -123,8 +121,9 @@ namespace sanema {
     }
 
     template<class type>
-    void push(type t) {
+    inline void push(type t) {
       operand_stack.emplace_back(t);
+
     }
 
     inline void swap_last_two() {
@@ -145,20 +144,18 @@ namespace sanema {
     inline void add() {
       //TODO implement type conversion
 
-      auto value2 = pop_function_parameter_value<type>();
-      auto value1 = pop_function_parameter_value<type>();
-      auto result = value1 + value2;
-//      std::cout << "adding " << value1 << " + " << value2 << " = " << result << "\n";
-      push(result);
+       type& value_ref= (type&)(operand_stack.end()[-2]);
+       value_ref+=(type&)operand_stack.end()[-1];
+      operand_stack.pop_back();
+
     }
 
     template<typename type>
     inline void subtract() {
       //TODO implement type conversion
-      auto value2 = pop_function_parameter_value<type>();
-      auto value1 = pop_function_parameter_value<type>();
-      auto result = value1 - value2;
-      push(result);
+      type& value_ref= (type&)operand_stack.end()[-2];
+       value_ref-=(type&)operand_stack.end()[-1];
+      operand_stack.pop_back();
     }
 
     template<typename type>
@@ -190,8 +187,8 @@ namespace sanema {
     template<typename type>
     inline void less() {
       //TODO implement type conversion
-      auto value2 = pop_function_parameter_value<type>();
-      auto value1 = pop_function_parameter_value<type>();
+      auto value2 = pop<type>();
+      auto value1 = pop<type>();
       bool result = value1 < value2;
       push(result);
     }
@@ -199,8 +196,8 @@ namespace sanema {
     template<typename type>
     inline void equal() {
       //TODO implement type conversion
-      auto value2 = pop_function_parameter_value<type>();
-      auto value1 = pop_function_parameter_value<type>();
+      auto value2 = pop<type>();
+      auto value1 = pop<type>();
       bool result = value1 == value2;
       push(result);
     }

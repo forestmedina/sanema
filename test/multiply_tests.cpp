@@ -19,7 +19,7 @@ set number2 15;
 multiply number1 number2;
 )--");
   auto result=run_and_get_stack_value<std::uint64_t >(code);
-  auto success=result.has_value() && result.value()==25;
+  auto success=result.has_value() && result.value()==150;
   REQUIRE(success);
 
 }
@@ -38,7 +38,7 @@ multiply number1 number2;
   //
   REQUIRE(result.has_value());
 
-  REQUIRE(result.value()==25);
+  REQUIRE(result.value()==150);
 
 }
 TEST_CASE("multiply two floats ",
@@ -54,7 +54,7 @@ multiply number1 number2;
   auto result=run_and_get_stack_value<float >(code);
 
   REQUIRE(result.has_value());
-  REQUIRE_THAT(result.value(),Catch::Matchers::WithinAbs((10.33+15.65),0.001));
+  REQUIRE_THAT(result.value(),Catch::Matchers::WithinAbs((10.33*15.65),0.001));
 
 }
 
@@ -72,7 +72,7 @@ multiply number1 number2;
   auto result=run_and_get_stack_value<float >(code);
 
   REQUIRE(result.has_value());
-  REQUIRE_THAT(result.value(),Catch::Matchers::WithinAbs((10.33+15.65),0.001));
+  REQUIRE_THAT(result.value(),Catch::Matchers::WithinAbs((10.33*15.65),0.001));
 
 }
 
@@ -88,6 +88,6 @@ multiply number1 10d;
   auto result=run_and_get_stack_value<double >(code);
 
   REQUIRE(result.has_value());
-  REQUIRE_THAT(result.value(),Catch::Matchers::WithinAbs((10.33+10.0),0.001));
+  REQUIRE_THAT(result.value(),Catch::Matchers::WithinAbs((10.33*10.0),0.001));
 
 }

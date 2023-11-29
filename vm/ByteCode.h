@@ -24,6 +24,12 @@ namespace sanema {
     ip += size;
     return value;
   }
+  template<typename T,typename TDEST>
+  void read_from_bytecode_into(BYTECodeIPType &ip,TDEST* dest) {
+    constexpr std::uint64_t size = sizeof(T);
+    (*dest) = *((T *) ip);
+    ip += size;
+  }
 
   template<>
   std::uint64_t read_from_bytecode(BYTECodeIPType &ip);

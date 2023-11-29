@@ -12,6 +12,8 @@
 namespace sanema {
 
   struct address_t {
+    address_t();
+
     explicit address_t(uint8_t*  address);
 
     uint8_t* address{0};

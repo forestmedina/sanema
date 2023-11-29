@@ -9,23 +9,7 @@
 
 //Generate function calls for each operation of the specified type
 #define GENERATE_OPERATION(OP_TYPE, type, OPERATIONENUM, OPERATION_FUNCTION)  case OPCODE::OP_##OPERATIONENUM##OP_TYPE: {OPERATION_FUNCTION<type>();}break;
-#define GENERATE_LOCAL_OPERATION(OP_TYPE, type, OPERATIONENUM, OPERATION_FUNCTION)  case OPCODE::OP_##OPERATIONENUM##OP_TYPE: {OPERATION_FUNCTION<type>(ip);}break;
 #define GENERATE_PUSH(OPTYPE, type)  case OPCODE::OP_PUSH_##OPTYPE##_CONST: {push_const<type>(ip);}break;
-#define GENERATE_TYPE_OPERATIONS(OP_TYPE, type) \
-GENERATE_OPERATION(OP_TYPE,type,ADD_,add)\
-GENERATE_OPERATION(OP_TYPE,type,MULTIPLY_,multiply)\
-GENERATE_OPERATION(OP_TYPE,type,DIVIDE_,divide)\
-GENERATE_OPERATION(OP_TYPE,type,SUBTRACT_,subtract)\
-GENERATE_OPERATION(OP_TYPE,type,NEGATE_,negate)\
-GENERATE_OPERATION(OP_TYPE,type,GREATER_,greater)\
-GENERATE_OPERATION(OP_TYPE,type,LESS_,less)\
-GENERATE_OPERATION(OP_TYPE,type,GREATER_EQUAL_,greater_equal)\
-GENERATE_OPERATION(OP_TYPE,type,LESS_EQUAL_,less_equal)\
-GENERATE_OPERATION(OP_TYPE,type,EQUAL_,equal)      \
-GENERATE_LOCAL_OPERATION(OP_TYPE,type,PUSH_LOCAL_,push_local)\
-GENERATE_LOCAL_OPERATION(OP_TYPE,type,SET_EXTERNAL_,pop_to_local)\
-GENERATE_LOCAL_OPERATION(OP_TYPE,type,SET_LOCAL_,set_local)\
-GENERATE_PUSH(OP_TYPE,type)
 
 void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_collection) {
   running_byte_code = &byte_code;
@@ -33,11 +17,11 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
   call_stack.emplace_back(stack_memory.data());
   auto end_address = byte_code.code_data.data() + byte_code.code_data.size();
   bool should_continue = true;
-  while (should_continue) {
+  while (true) {
 //    std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << " ; ";
     auto opcode = static_cast<OPCODE>(*ip);
 //    std::cout << "Executing opcode: " << opcode_to_string(opcode) << "\n";
-    ip++;
+    ++ip;
     switch (opcode) {
       case OPCODE::OP_POP: {
         pop<uint64_t>();
@@ -59,30 +43,354 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
 
-      GENERATE_TYPE_OPERATIONS(SINT64,
-                               std::int64_t)
-      GENERATE_TYPE_OPERATIONS(SINT32,
-                               std::int32_t)
-      GENERATE_TYPE_OPERATIONS(SINT16,
-                               std::int16_t)
-      GENERATE_TYPE_OPERATIONS(SINT8,
-                               std::int8_t)
-      GENERATE_TYPE_OPERATIONS(FLOAT,
-                               float)
-      GENERATE_TYPE_OPERATIONS(DOUBLE,
-                               double)
-      GENERATE_LOCAL_OPERATION(STRING,
-                               sanema::StringReference,
-                               PUSH_LOCAL_,
-                               push_local)
-      GENERATE_LOCAL_OPERATION(STRING,
-                               sanema::StringReference,
-                               SET_EXTERNAL_,
-                               pop_to_local)
-      GENERATE_LOCAL_OPERATION(STRING,
-                               sanema::StringReference,
-                               SET_LOCAL_,
-                               set_local)
+      case OPCODE::OP_ADD_SINT64: {
+        add<std::int64_t>();
+      }
+        break;
+      case OPCODE::OP_MULTIPLY_SINT64: {
+        multiply<std::int64_t>();
+      }
+        break;
+      case OPCODE::OP_DIVIDE_SINT64: {
+        divide<std::int64_t>();
+      }
+        break;
+      case OPCODE::OP_SUBTRACT_SINT64: {
+        subtract<std::int64_t>();
+      }
+        break;
+      case OPCODE::OP_NEGATE_SINT64: {
+        negate<std::int64_t>();
+      }
+        break;
+      case OPCODE::OP_GREATER_SINT64: {
+        greater<std::int64_t>();
+      }
+        break;
+      case OPCODE::OP_LESS_SINT64: {
+        less<std::int64_t>();
+      }
+        break;
+      case OPCODE::OP_GREATER_EQUAL_SINT64: {
+        greater_equal<std::int64_t>();
+      }
+        break;
+      case OPCODE::OP_LESS_EQUAL_SINT64: {
+        less_equal<std::int64_t>();
+      }
+        break;
+      case OPCODE::OP_EQUAL_SINT64: {
+        equal<std::int64_t>();
+      }
+        break;
+      case OPCODE::OP_PUSH_LOCAL_SINT64: {
+        push_local<std::int64_t>(ip);
+      }
+        break;
+      case OPCODE::OP_SET_EXTERNAL_SINT64: {
+        pop_to_local<std::int64_t>(ip);
+      }
+        break;
+      case OPCODE::OP_SET_LOCAL_SINT64: {
+        set_local<std::int64_t>(ip);
+      }
+        break;
+      case OPCODE::OP_PUSH_SINT64_CONST: {
+        push_const<std::int64_t>(ip);
+      }
+        break;
+      case OPCODE::OP_ADD_SINT32: {
+        add<std::int32_t>();
+      }
+        break;
+      case OPCODE::OP_MULTIPLY_SINT32: {
+        multiply<std::int32_t>();
+      }
+        break;
+      case OPCODE::OP_DIVIDE_SINT32: {
+        divide<std::int32_t>();
+      }
+        break;
+      case OPCODE::OP_SUBTRACT_SINT32: {
+        subtract<std::int32_t>();
+      }
+        break;
+      case OPCODE::OP_NEGATE_SINT32: {
+        negate<std::int32_t>();
+      }
+        break;
+      case OPCODE::OP_GREATER_SINT32: {
+        greater<std::int32_t>();
+      }
+        break;
+      case OPCODE::OP_LESS_SINT32: {
+        less<std::int32_t>();
+      }
+        break;
+      case OPCODE::OP_GREATER_EQUAL_SINT32: {
+        greater_equal<std::int32_t>();
+      }
+        break;
+      case OPCODE::OP_LESS_EQUAL_SINT32: {
+        less_equal<std::int32_t>();
+      }
+        break;
+      case OPCODE::OP_EQUAL_SINT32: {
+        equal<std::int32_t>();
+      }
+        break;
+      case OPCODE::OP_PUSH_LOCAL_SINT32: {
+        push_local<std::int32_t>(ip);
+      }
+        break;
+      case OPCODE::OP_SET_EXTERNAL_SINT32: {
+        pop_to_local<std::int32_t>(ip);
+      }
+        break;
+      case OPCODE::OP_SET_LOCAL_SINT32: {
+        set_local<std::int32_t>(ip);
+      }
+        break;
+      case OPCODE::OP_PUSH_SINT32_CONST: {
+        push_const<std::int32_t>(ip);
+      }
+        break;
+      case OPCODE::OP_ADD_SINT16: {
+        add<std::int16_t>();
+      }
+        break;
+      case OPCODE::OP_MULTIPLY_SINT16: {
+        multiply<std::int16_t>();
+      }
+        break;
+      case OPCODE::OP_DIVIDE_SINT16: {
+        divide<std::int16_t>();
+      }
+        break;
+      case OPCODE::OP_SUBTRACT_SINT16: {
+        subtract<std::int16_t>();
+      }
+        break;
+      case OPCODE::OP_NEGATE_SINT16: {
+        negate<std::int16_t>();
+      }
+        break;
+      case OPCODE::OP_GREATER_SINT16: {
+        greater<std::int16_t>();
+      }
+        break;
+      case OPCODE::OP_LESS_SINT16: {
+        less<std::int16_t>();
+      }
+        break;
+      case OPCODE::OP_GREATER_EQUAL_SINT16: {
+        greater_equal<std::int16_t>();
+      }
+        break;
+      case OPCODE::OP_LESS_EQUAL_SINT16: {
+        less_equal<std::int16_t>();
+      }
+        break;
+      case OPCODE::OP_EQUAL_SINT16: {
+        equal<std::int16_t>();
+      }
+        break;
+      case OPCODE::OP_PUSH_LOCAL_SINT16: {
+        push_local<std::int16_t>(ip);
+      }
+        break;
+      case OPCODE::OP_SET_EXTERNAL_SINT16: {
+        pop_to_local<std::int16_t>(ip);
+      }
+        break;
+      case OPCODE::OP_SET_LOCAL_SINT16: {
+        set_local<std::int16_t>(ip);
+      }
+        break;
+      case OPCODE::OP_PUSH_SINT16_CONST: {
+        push_const<std::int16_t>(ip);
+      }
+        break;
+      case OPCODE::OP_ADD_SINT8: {
+        add<std::int8_t>();
+      }
+        break;
+      case OPCODE::OP_MULTIPLY_SINT8: {
+        multiply<std::int8_t>();
+      }
+        break;
+      case OPCODE::OP_DIVIDE_SINT8: {
+        divide<std::int8_t>();
+      }
+        break;
+      case OPCODE::OP_SUBTRACT_SINT8: {
+        subtract<std::int8_t>();
+      }
+        break;
+      case OPCODE::OP_NEGATE_SINT8: {
+        negate<std::int8_t>();
+      }
+        break;
+      case OPCODE::OP_GREATER_SINT8: {
+        greater<std::int8_t>();
+      }
+        break;
+      case OPCODE::OP_LESS_SINT8: {
+        less<std::int8_t>();
+      }
+        break;
+      case OPCODE::OP_GREATER_EQUAL_SINT8: {
+        greater_equal<std::int8_t>();
+      }
+        break;
+      case OPCODE::OP_LESS_EQUAL_SINT8: {
+        less_equal<std::int8_t>();
+      }
+        break;
+      case OPCODE::OP_EQUAL_SINT8: {
+        equal<std::int8_t>();
+      }
+        break;
+      case OPCODE::OP_PUSH_LOCAL_SINT8: {
+        push_local<std::int8_t>(ip);
+      }
+        break;
+      case OPCODE::OP_SET_EXTERNAL_SINT8: {
+        pop_to_local<std::int8_t>(ip);
+      }
+        break;
+      case OPCODE::OP_SET_LOCAL_SINT8: {
+        set_local<std::int8_t>(ip);
+      }
+        break;
+      case OPCODE::OP_PUSH_SINT8_CONST: {
+        push_const<std::int8_t>(ip);
+      }
+        break;
+      case OPCODE::OP_ADD_FLOAT: {
+        add<float>();
+      }
+        break;
+      case OPCODE::OP_MULTIPLY_FLOAT: {
+        multiply<float>();
+      }
+        break;
+      case OPCODE::OP_DIVIDE_FLOAT: {
+        divide<float>();
+      }
+        break;
+      case OPCODE::OP_SUBTRACT_FLOAT: {
+        subtract<float>();
+      }
+        break;
+      case OPCODE::OP_NEGATE_FLOAT: {
+        negate<float>();
+      }
+        break;
+      case OPCODE::OP_GREATER_FLOAT: {
+        greater<float>();
+      }
+        break;
+      case OPCODE::OP_LESS_FLOAT: {
+        less<float>();
+      }
+        break;
+      case OPCODE::OP_GREATER_EQUAL_FLOAT: {
+        greater_equal<float>();
+      }
+        break;
+      case OPCODE::OP_LESS_EQUAL_FLOAT: {
+        less_equal<float>();
+      }
+        break;
+      case OPCODE::OP_EQUAL_FLOAT: {
+        equal<float>();
+      }
+        break;
+      case OPCODE::OP_PUSH_LOCAL_FLOAT: {
+        push_local<float>(ip);
+      }
+        break;
+      case OPCODE::OP_SET_EXTERNAL_FLOAT: {
+        pop_to_local<float>(ip);
+      }
+        break;
+      case OPCODE::OP_SET_LOCAL_FLOAT: {
+        set_local<float>(ip);
+      }
+        break;
+      case OPCODE::OP_PUSH_FLOAT_CONST: {
+        push_const<float>(ip);
+      }
+        break;
+      case OPCODE::OP_ADD_DOUBLE: {
+        add<double>();
+      }
+        break;
+      case OPCODE::OP_MULTIPLY_DOUBLE: {
+        multiply<double>();
+      }
+        break;
+      case OPCODE::OP_DIVIDE_DOUBLE: {
+        divide<double>();
+      }
+        break;
+      case OPCODE::OP_SUBTRACT_DOUBLE: {
+        subtract<double>();
+      }
+        break;
+      case OPCODE::OP_NEGATE_DOUBLE: {
+        negate<double>();
+      }
+        break;
+      case OPCODE::OP_GREATER_DOUBLE: {
+        greater<double>();
+      }
+        break;
+      case OPCODE::OP_LESS_DOUBLE: {
+        less<double>();
+      }
+        break;
+      case OPCODE::OP_GREATER_EQUAL_DOUBLE: {
+        greater_equal<double>();
+      }
+        break;
+      case OPCODE::OP_LESS_EQUAL_DOUBLE: {
+        less_equal<double>();
+      }
+        break;
+      case OPCODE::OP_EQUAL_DOUBLE: {
+        equal<double>();
+      }
+        break;
+      case OPCODE::OP_PUSH_LOCAL_DOUBLE: {
+        push_local<double>(ip);
+      }
+        break;
+      case OPCODE::OP_SET_EXTERNAL_DOUBLE: {
+        pop_to_local<double>(ip);
+      }
+        break;
+      case OPCODE::OP_SET_LOCAL_DOUBLE: {
+        set_local<double>(ip);
+      }
+        break;
+      case OPCODE::OP_PUSH_DOUBLE_CONST: {
+        push_const<double>(ip);
+      }
+        break;
+      case OPCODE::OP_PUSH_LOCAL_STRING: {
+        push_local<sanema::StringReference>(ip);
+      }
+        break;
+      case OPCODE::OP_SET_EXTERNAL_STRING: {
+        pop_to_local<sanema::StringReference>(ip);
+      }
+        break;
+      case OPCODE::OP_SET_LOCAL_STRING: {
+        set_local<sanema::StringReference>(ip);
+      }
+        break;
       case OPCODE::OP_PUSH_STRING_CONST: {
         auto string_literal_index = read_from_bytecode<StringReference>(ip);
         push(string_literal_index);
@@ -111,7 +419,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
         break;
       case OPCODE::OP_PREPARE_PARAMETER: {
         auto address = read_from_bytecode<std::uint64_t>(ip);
-        std::uint8_t* global_address = call_stack.back().get_begin_address()+address  ;
+        std::uint8_t *global_address = call_stack.back().get_begin_address() + address;
         push<address_t>(address_t{global_address});
         swap_last_two();
 
@@ -125,7 +433,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
           ip += offset;
         }
       }
-      break;
+        break;
       case OPCODE::OP_RETURN: {
         should_continue = call_stack.size() > 1;
         call_stack.pop_back();
@@ -136,26 +444,26 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
       case OPCODE::OP_PUSH_LOCAL_ADDRESS_AS_GLOBAL: {
         auto local_address = read_from_bytecode<std::uint64_t>(ip);
-        auto global_address = call_stack.back().get_begin_address()  + local_address;
+        auto global_address = call_stack.back().get_begin_address() + local_address;
         push(address_t{global_address});
       }
-        break; case OPCODE::OP_PUSH_EXTERNAL_FIELD_ADDRESS: {
-        auto field_id= pop<std::uint64_t>();
-        auto type_id= pop<std::uint64_t>();
-        auto object_address= pop<address_t>();
-        auto& type= binding_collection.get_type_by_id(type_id);
-        auto field_pointer=type.get_field_address((void*)object_address.address,field_id);
-        push(address_t{(std::uint8_t *)field_pointer});
+        break;
+      case OPCODE::OP_PUSH_EXTERNAL_FIELD_ADDRESS: {
+        auto field_id = pop<std::uint64_t>();
+        auto type_id = pop<std::uint64_t>();
+        auto object_address = pop<address_t>();
+        auto &type = binding_collection.get_type_by_id(type_id);
+        auto field_pointer = type.get_field_address((void *) object_address.address,
+                                                    field_id);
+        push(address_t{(std::uint8_t *) field_pointer});
       }
         break;
       case OPCODE::OP_POP_GLOBAL_ADDRESS_AS_LOCAL: {
         sanema::ContextFrame &context_frame = call_stack.back();
-        auto global_address = pop<address_t >();
+        auto global_address = pop<address_t>();
         auto variable_address = pop<address_t>();
-//      std::cout << "Setting local value=" << value << " address=" << address2 << "\n";
-        address_t new_local_address{global_address.address-(int64_t)(context_frame.get_begin_address()-stack_memory.data())};
-//        context_frame.write<address_t>(variable_address,
-//                                  new_local_address);
+        address_t new_local_address{
+          global_address.address - (int64_t) (context_frame.get_begin_address() - stack_memory.data())};
       }
         break;
     }
@@ -166,6 +474,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
 sanema::VM::VM(int memory_size_mb) : running_byte_code(nullptr) {
   auto megabytes_to_bytes = [](std::uint64_t size) { return (size * 1024) * 1024; };
   stack_memory.reserve(megabytes_to_bytes(memory_size_mb));
+  operand_stack.reserve(1000000);
 }
 
 void sanema::VM::prepare_function_parameters(std::uint32_t n) {
@@ -234,7 +543,7 @@ std::string const &sanema::get_function_parameter_from_vm<std::string const &>(V
     case FunctionParameter::Modifier::CONST:
     case FunctionParameter::Modifier::MUTABLE:
       auto address = static_cast<address_t>(value);
-      reference = *((StringReference*)address.address);
+      reference = *((StringReference *) address.address);
       break;
   }
   return vm.get_string(reference);

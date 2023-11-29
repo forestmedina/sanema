@@ -6,6 +6,6 @@ def fib(n):
         return fib(n - 1) + fib(n - 2)
 
 start = time.perf_counter()
-fib(40)
+fib(35)
 total=(time.perf_counter() - start)*1000
 print(f"Completed Execution in {total} miliseconds")

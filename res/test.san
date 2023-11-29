@@ -8,4 +8,4 @@ function fib int64
     };
 
 var result int64;
-fib (40);
+    fib (35);
