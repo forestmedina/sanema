@@ -3,7 +3,7 @@
 
 #include "types.h"
 #include <util/lambda_visitor.hpp>
-
+#include <algorithm>
 sanema::TypeIdentifier::TypeIdentifier(const std::string &identifier)
   : identifier(identifier) {}
 

@@ -304,8 +304,7 @@ generate_push_const_literal(sanema::ByteCode &byte_code,
 void
 generate_local_variable_access(sanema::ByteCode &byte_code, sanema::ByteCodeCompiler::Scope &context_frame_aux,
                                std::string identifier_p,
-                               bool copy,
-                               bool require_global_address) {
+                               bool copy) {
 
   auto pos = identifier_p.find('.');
   bool is_field = is_field_identifier(identifier_p);
@@ -459,6 +458,103 @@ generate_function_call(
   sanema::ByteCodeCompiler::Scope &context_frame_aux,
   sanema::ByteCodeCompiler::GeneratorsMap &generator_map,
   std::vector<sanema::ByteCodeCompiler::FuctionCallSustitution> &function_call_sustitutions
+);
+
+void generate_expression_access(
+  sanema::Expression const &expression,
+  sanema::FunctionParameter::Modifier modifier,
+  sanema::CompleteType const &type,
+  sanema::ByteCode &byte_code,
+  sanema::ByteCodeCompiler::Scope &context_frame_aux,
+  sanema::ByteCodeCompiler::GeneratorsMap &generator_map,
+  std::vector<sanema::ByteCodeCompiler::FuctionCallSustitution> &function_call_sustitutions
+) {
+  match(expression,
+        [&](sanema::Literal literal) -> void {
+          auto literal_type = sanema::get_literal_type(literal);
+          if (modifier == sanema::FunctionParameter::Modifier::MUTABLE) {
+            throw std::runtime_error("can't bind literal to a mutable reference");
+          }
+          if (modifier == sanema::FunctionParameter::Modifier::CONST) {
+            generate_push_temp_variable(byte_code,
+                                        literal,
+                                        context_frame_aux,
+                                        generator_map,
+                                        literal_type);
+
+          } else {
+            generate_push_const_literal(byte_code,
+                                        literal,
+                                        context_frame_aux,
+                                        generator_map,
+                                        literal_type);
+          }
+        },
+        [&](sanema::FunctionCall function_call_nested) -> void {
+          if (modifier == sanema::FunctionParameter::Modifier::MUTABLE) {
+            throw std::runtime_error("can't bind temporary value  to a mutable reference");
+          }
+          bool is_reference = modifier == sanema::FunctionParameter::Modifier::CONST;
+          auto address = context_frame_aux.scope_address;
+          if (is_reference) {
+
+            context_frame_aux.reserve_space_for_type(type);
+            byte_code.write(OPCODE::OP_RESERVE_STACK_SPACE);
+            byte_code.write(sanema::get_type_size(type));
+            byte_code.write(OPCODE::OP_PUSH_LOCAL_ADDRESS_AS_GLOBAL);
+            byte_code.write(address);
+          }
+          auto definition = generate_function_call(byte_code,
+                                                   function_call_nested,
+                                                   context_frame_aux,
+                                                   generator_map,
+                                                   function_call_sustitutions);
+          if (is_reference) {
+            generate_set(byte_code,
+                         sanema::DefineFunction{"", type});
+            byte_code.write(OPCODE::OP_PUSH_LOCAL_ADDRESS_AS_GLOBAL);
+            byte_code.write(address);
+          }
+          if (!definition) {
+            //We should not reach this
+            throw std::runtime_error(std::format(
+              "function {} not found, but that is unexpected",
+              function_call_nested.identifier));
+          }
+        },
+        [&](sanema::VariableEvaluation variable_evaluation) -> void {
+          auto variable_type = get_variable_type(variable_evaluation,
+                                                 context_frame_aux);
+          if (!variable_type.has_value()) {
+            throw std::runtime_error(std::format("variable  {} not found ",
+                                                 variable_evaluation.identifier));
+          }
+          bool should_copy = false;
+          switch (modifier) {
+            case sanema::FunctionParameter::Modifier::MUTABLE:
+              should_copy = false;
+              break;
+            case sanema::FunctionParameter::Modifier::CONST:
+              should_copy = false;
+              break;
+            case sanema::FunctionParameter::Modifier::VALUE:
+              should_copy = true;
+              break;
+          }
+          generate_local_variable_access(byte_code,
+                                         context_frame_aux,
+                                         variable_evaluation.identifier,
+                                         should_copy);
+        });
+}
+
+std::optional<sanema::DefineFunction>
+generate_function_call(
+  sanema::ByteCode &byte_code,
+  sanema::FunctionCall &function_call,
+  sanema::ByteCodeCompiler::Scope &context_frame_aux,
+  sanema::ByteCodeCompiler::GeneratorsMap &generator_map,
+  std::vector<sanema::ByteCodeCompiler::FuctionCallSustitution> &function_call_sustitutions
 ) {
 
   sanema::DefineFunction function_definition;
@@ -471,90 +567,13 @@ generate_function_call(
   for (int i = 0; i < final_function_definition.value().parameters.size(); i++) {
     auto &argument = function_call.arguments[i];
     auto &parameter = final_function_definition.value().parameters[i];
-    match(argument.expression,
-          [&](sanema::Literal literal) -> void {
-            auto literal_type = sanema::get_literal_type(literal);
-            if (parameter.modifier == sanema::FunctionParameter::Modifier::MUTABLE) {
-              throw std::runtime_error("can't bind literal to a mutable reference");
-            }
-            if (parameter.modifier == sanema::FunctionParameter::Modifier::CONST) {
-              generate_push_temp_variable(byte_code,
-                                          literal,
-                                          context_frame_aux,
-                                          generator_map,
-                                          literal_type);
-
-            } else {
-              generate_push_const_literal(byte_code,
-                                          literal,
-                                          context_frame_aux,
-                                          generator_map,
-                                          literal_type);
-            }
-          },
-          [&](sanema::FunctionCall function_call_nested) -> void {
-            if (parameter.modifier == sanema::FunctionParameter::Modifier::MUTABLE) {
-              throw std::runtime_error("can't bind temporary value  to a mutable reference");
-            }
-            bool is_reference = parameter.modifier == sanema::FunctionParameter::Modifier::CONST;
-            auto address = context_frame_aux.scope_address;
-            if (is_reference) {
-
-              context_frame_aux.reserve_space_for_type(parameter.type.value());
-              byte_code.write(OPCODE::OP_RESERVE_STACK_SPACE);
-              byte_code.write(sanema::get_type_size(parameter.type.value()));
-              byte_code.write(OPCODE::OP_PUSH_LOCAL_ADDRESS_AS_GLOBAL);
-              byte_code.write(address);
-            }
-            auto definition = generate_function_call(byte_code,
-                                                     function_call_nested,
-                                                     context_frame_aux,
-                                                     generator_map,
-                                                     function_call_sustitutions);
-            if (is_reference) {
-              generate_set(byte_code,
-                           sanema::DefineFunction{"", parameter.type.value()});
-              byte_code.write(OPCODE::OP_PUSH_LOCAL_ADDRESS_AS_GLOBAL);
-              byte_code.write(address);
-            }
-            if (!definition) {
-              //We should not reach this
-              throw std::runtime_error(std::format(
-                "function {} not found, but that is unexpected",
-                function_call_nested.identifier));
-            }
-          },
-          [&](sanema::VariableEvaluation variable_evaluation) -> void {
-            auto variable_type = get_variable_type(variable_evaluation,
-                                                   context_frame_aux);
-            if (!variable_type.has_value()) {
-              throw std::runtime_error(std::format("variable  {} not found ",
-                                                   variable_evaluation.identifier));
-            }
-            bool should_copy = false;
-            switch (parameter.modifier) {
-              case sanema::FunctionParameter::Modifier::MUTABLE:
-                should_copy = false;
-                break;
-              case sanema::FunctionParameter::Modifier::CONST:
-                should_copy = false;
-                break;
-              case sanema::FunctionParameter::Modifier::VALUE:
-                should_copy = true;
-                break;
-            }
-            bool require_global_address = false;
-            if (generator_map.map.count(function_call.identifier) == 0 &&
-                !final_function_definition->external_id.has_value()) {
-              //** when we call a function we need to generate a new stack so the address of the variable must be global and not local
-              require_global_address = true;
-            }
-            generate_local_variable_access(byte_code,
-                                           context_frame_aux,
-                                           variable_evaluation.identifier,
-                                           should_copy,
-                                           require_global_address);
-          });
+    generate_expression_access(argument.expression,
+                               parameter.modifier,
+                               parameter.type.value(),
+                               byte_code,
+                               context_frame_aux,
+                               generator_map,
+                               function_call_sustitutions);
   }
 
   if (generator_map.map.count(function_call.identifier) > 0) {
@@ -567,9 +586,18 @@ generate_function_call(
     byte_code.write(OPCODE::OP_CALL);
     auto address = byte_code.get_current_address();
     byte_code.write(static_cast<std::uint64_t>(final_function_definition->id));
-    function_call_sustitutions.emplace_back(address,
-                                            0,
-                                            final_function_definition->id);
+    auto sustitution_iter=std::find_if(function_call_sustitutions.begin(),
+                 function_call_sustitutions.end(),
+                 [&final_function_definition](sanema::ByteCodeCompiler::FuctionCallSustitution &sustitution) {
+                   return sustitution.function_id == final_function_definition->id;
+                 });
+    if(sustitution_iter==function_call_sustitutions.end()) {
+      function_call_sustitutions.emplace_back(std::vector{address},
+                                              0,
+                                              final_function_definition->id);
+    }else{
+      sustitution_iter->caller_addresses.emplace_back(address);
+    }
   }
   return final_function_definition;
 }
@@ -578,6 +606,143 @@ generate_function_call(
 void sanema::ByteCodeCompiler::Scope::reserve_space_for_type(CompleteType const &type) {
   auto size = get_type_size(type);
   scope_address.address += size;
+}
+
+void
+sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, FunctionCollection &built_in_functions,
+                                         TypeCollection &external_types) {
+  for (auto &instruction: block_of_code.instructions) {
+    match(instruction.instruction_sum,
+          [this](DefineStruct &define_struct) {
+            auto &scope = scope_stack.back();
+            if (!define_struct.user_type.has_value()) {
+              throw std::runtime_error("user type has no value ");
+            }
+
+            auto identifier = define_struct.user_type.value().type_id.identifier;
+            if (!scope.types.containts(identifier)) {
+              std::uint64_t offset = 0;
+              for (auto &field: define_struct.user_type->fields) {
+                field.offset = offset;
+                offset += get_type_size(field.type.value());
+              }
+              scope.types.add_type(define_struct.user_type.value());
+            }
+          },
+          [&](IfStatement &if_statement) {
+            auto current_scope = scope_stack.back();
+            generate_expression_access(if_statement.expression,
+                                       FunctionParameter::Modifier::VALUE,
+                                       CompleteType{sanema::Boolean{}},
+                                       byte_code,
+                                       current_scope,
+                                       function_bytecode_generators,
+                                       function_call_sustitutions);
+
+            byte_code.write(OPCODE::OP_JUMP_IF_FALSE);
+            std::uint64_t address_false_jump_offset = byte_code.get_current_address();//Address of the jump instruction
+            byte_code.write(std::uint64_t(0));
+            std::uint64_t address_false_jump_instruction = byte_code.get_current_address();
+            generate_block(if_statement.true_path,
+                           built_in_functions,
+                           external_types);
+
+            byte_code.write(OPCODE::OP_JUMP);
+            std::uint64_t address_true_jump_offset = byte_code.get_current_address();
+            byte_code.write(std::uint64_t(0));
+            std::uint64_t address_true_jump_instruction = byte_code.get_current_address();
+            //Address of the jump instruction
+            auto address_false_branch = byte_code.get_current_address();
+
+            generate_block(if_statement.false_path,
+                           built_in_functions,
+                           external_types);
+            auto address_end_if = byte_code.get_current_address();
+            write_to_byte_code(byte_code.code_data,
+                               address_true_jump_offset,
+                               address_end_if - address_true_jump_instruction);
+            write_to_byte_code(byte_code.code_data,
+                               address_false_jump_offset,
+                               address_false_branch - address_false_jump_instruction);
+
+
+          },
+          [this](DeclareVariable &declare_variable) {
+            auto &current_scope = scope_stack.back();
+            if (current_scope.local_variables.count(declare_variable.identifier) != 0) {
+              throw std::runtime_error("variable " + declare_variable.identifier + " already defined");
+            }
+            address_t address = current_scope.scope_address;
+            current_scope.local_variables.emplace(declare_variable.identifier,
+                                                  VariableEntry{declare_variable, address});
+            current_scope.reserve_space_for_type(declare_variable.type_identifier);
+
+
+            if (is_user_defined(declare_variable.type_identifier)) {
+              //TODO we need to call the constructor here but for now we will initialize each field with
+              //their default value
+              UserDefined user_defined = std::get<UserDefined>(declare_variable.type_identifier);
+              auto final_type = current_scope.types.find_type(declare_variable.type_identifier);
+              if (final_type.has_value()) {
+                byte_code.write(OPCODE::OP_RESERVE_STACK_SPACE);
+                byte_code.write(get_type_size(final_type.value()));
+                for (auto &field: final_type.value().fields) {
+                  FunctionCall function_call;
+                  function_call.identifier = "set";
+                  function_call.arguments.emplace_back(VariableEvaluation{
+                    declare_variable.identifier + "." + field.identifier});
+                  function_call.arguments.emplace_back(get_default_literal_for_type(field.type.value()));
+                  generate_function_call(byte_code,
+                                         function_call,
+                                         current_scope,
+                                         function_bytecode_generators,
+                                         function_call_sustitutions);
+                }
+              } else {
+                throw std::runtime_error(std::format("Type {} does not exists",
+                                                     user_defined.type_id.identifier));
+              }
+
+            } else {
+              byte_code.write(OPCODE::OP_RESERVE_STACK_SPACE);
+              byte_code.write(get_type_size(declare_variable.type_identifier));
+              FunctionCall function_call;
+              function_call.identifier = "set";
+              function_call.arguments.emplace_back(VariableEvaluation{declare_variable.identifier});
+              function_call.arguments.emplace_back(get_default_literal_for_type(declare_variable.type_identifier));
+              generate_function_call(byte_code,
+                                     function_call,
+                                     current_scope,
+                                     function_bytecode_generators,
+                                     function_call_sustitutions);
+            }
+
+          },
+          [this](DefineFunction &function) {
+            auto function_entry = scope_stack.back().function_collection.find_function(function);
+            if (!function_entry) {
+              auto id = scope_stack.back().function_collection.add_function(function);
+              pendind_to_generate_functions.emplace_back(id);
+            } else {
+              throw std::runtime_error(std::format("function {} already defined",
+                                                   function.identifier));
+            }
+          },
+          [this](FunctionCall &function_call) {
+            generate_function_call(byte_code,
+                                   function_call,
+                                   scope_stack.back(),
+                                   function_bytecode_generators,
+                                   function_call_sustitutions);
+          },
+          [&](BlockOfCode &block_of_code) {
+            generate_block(block_of_code,
+                           built_in_functions,
+                           external_types);
+          }
+         );
+  }
+
 }
 
 void sanema::ByteCodeCompiler::process(sanema::BlockOfCode &block_of_code, FunctionCollection &built_in_functions,
@@ -589,105 +754,23 @@ void sanema::ByteCodeCompiler::process(sanema::BlockOfCode &block_of_code, Funct
   function_bytecode_generators.map["multiply"] = generate_multiply;
   function_bytecode_generators.map["divide"] = generate_divide;
   function_bytecode_generators.map["set"] = generate_set;
+//  function_bytecode_generators.map["greater"] = generate_greater;
+//  function_bytecode_generators.map["less"] = generate_less;
+  function_bytecode_generators.map["equal"] = generate_equal;
   function_bytecode_generators.map["return"] = generate_return;
   scope_stack.back().function_collection = built_in_functions;
   scope_stack.back().types = external_types;
   std::optional<BlockOfCode> next_block = block_of_code;
+  bool main = true;
   while (next_block) {
-    for (auto &instruction: next_block->instructions) {
-      match(instruction.instruction_sum,
-            [this](DefineStruct &define_struct) {
-              auto &scope = scope_stack.back();
-              if (!define_struct.user_type.has_value()) {
-                throw std::runtime_error("user type has no value ");
-              }
-
-              auto identifier = define_struct.user_type.value().type_id.identifier;
-              if (!scope.types.containts(identifier)) {
-                std::uint64_t offset = 0;
-                for (auto &field: define_struct.user_type->fields) {
-                  field.offset = offset;
-                  offset += get_type_size(field.type.value());
-                }
-                scope.types.add_type(define_struct.user_type.value());
-              }
-            },
-            [this](DeclareVariable &declare_variable) {
-              auto &current_scope = scope_stack.back();
-              if (current_scope.local_variables.count(declare_variable.identifier) != 0) {
-                throw std::runtime_error("variable " + declare_variable.identifier + " already defined");
-              }
-              address_t address = current_scope.scope_address;
-              current_scope.local_variables.emplace(declare_variable.identifier,
-                                                    VariableEntry{declare_variable, address});
-              current_scope.reserve_space_for_type(declare_variable.type_identifier);
-
-
-              if (is_user_defined(declare_variable.type_identifier)) {
-                //TODO we need to call the constructor here but for now we will initialize each field with
-                //their default value
-                UserDefined user_defined = std::get<UserDefined>(declare_variable.type_identifier);
-                auto final_type = current_scope.types.find_type(declare_variable.type_identifier);
-                if (final_type.has_value()) {
-                  byte_code.write(OPCODE::OP_RESERVE_STACK_SPACE);
-                  byte_code.write(get_type_size(final_type.value()));
-                  for (auto &field: final_type.value().fields) {
-                    FunctionCall function_call;
-                    function_call.identifier = "set";
-                    function_call.arguments.emplace_back(VariableEvaluation{
-                      declare_variable.identifier + "." + field.identifier});
-                    function_call.arguments.emplace_back(get_default_literal_for_type(field.type.value()));
-                    generate_function_call(byte_code,
-                                           function_call,
-                                           current_scope,
-                                           function_bytecode_generators,
-                                           function_call_sustitutions);
-                  }
-                } else {
-                  throw std::runtime_error(std::format("Type {} does not exists",
-                                                       user_defined.type_id.identifier));
-                }
-
-              } else {
-                byte_code.write(OPCODE::OP_RESERVE_STACK_SPACE);
-                byte_code.write(get_type_size(declare_variable.type_identifier));
-                FunctionCall function_call;
-                function_call.identifier = "set";
-                function_call.arguments.emplace_back(VariableEvaluation{declare_variable.identifier});
-                function_call.arguments.emplace_back(get_default_literal_for_type(declare_variable.type_identifier));
-                generate_function_call(byte_code,
-                                       function_call,
-                                       current_scope,
-                                       function_bytecode_generators,
-                                       function_call_sustitutions);
-              }
-
-            },
-            [this](DefineFunction &function) {
-              auto function_entry = scope_stack.back().function_collection.find_function(function);
-              if (!function_entry) {
-                auto id = scope_stack.back().function_collection.add_function(function);
-                pendind_to_generate_functions.emplace_back(id);
-              } else {
-                throw std::runtime_error(std::format("function {} already defined",
-                                                     function.identifier));
-              }
-            },
-            [this](FunctionCall &function_call) {
-              generate_function_call(byte_code,
-                                     function_call,
-                                     scope_stack.back(),
-                                     function_bytecode_generators,
-                                     function_call_sustitutions);
-            },
-            [this, &blocks_stack](BlockOfCode &block_of_code) {
-              scope_stack.emplace_back(scope_stack.back());
-              blocks_stack.emplace_back(block_of_code);
-            }
-           );
+    generate_block(next_block.value(),
+                   built_in_functions,
+                   external_types);
+    if (main) {
+      write_to_byte_code(byte_code.code_data,
+                         OPCODE::OP_RETURN);
+      main = false;
     }
-    write_to_byte_code(byte_code.code_data,
-                       OPCODE::OP_RETURN);
     next_block = {};
     if (!pendind_to_generate_functions.empty()) {
       auto pending_function = pendind_to_generate_functions.back();
@@ -749,13 +832,16 @@ void sanema::ByteCodeCompiler::process(sanema::BlockOfCode &block_of_code, Funct
       pendind_to_generate_functions.pop_back();
 
     }
+
   }
   for (auto &sustition: function_call_sustitutions) {
-    std::cout << "function call sustitution: " << sustition.caller_address << "->" << sustition.function_code_addres
-              << "\n";
-    write_to_byte_code(byte_code.code_data,
-                       sustition.caller_address,
-                       sustition.function_code_addres);
+    for(auto& caller_address:sustition.caller_addresses) {
+      std::cout << "function call sustitution: " << caller_address << "->" << sustition.function_code_addres
+                << "\n";
+      write_to_byte_code(byte_code.code_data,
+                         caller_address,
+                         sustition.function_code_addres);
+    }
   }
 
 }

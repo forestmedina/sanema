@@ -55,6 +55,7 @@ void sanema::ValidationStage::process(sanema::BlockOfCode &block_of_code) {
             auto function_definition=get_function_definition(function_call,scope_stack);
             if(function_call.identifier!="set"&&!function_definition.has_value())
               throw std::runtime_error("function "+function_call.identifier+" not found");
+          },[&](IfStatement &function_call) {
           },
           [&](DefineStruct &define_struct) {
             auto &scope = scope_stack.back();

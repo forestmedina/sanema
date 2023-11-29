@@ -1,13 +1,12 @@
-struct A
-    a int64,
-    b int64;
-
-function add_five_to_x void
-    mut vector vec3 {
-        set vector.x add (vector.x 5) ;
+function factorial int64
+    var n int64 {
+        if equal( n 0)
+            return 1;
+        else
+            return multiply(n factorial (subtract (n 1)));
+        end
     };
-var vec vec3;
-set vec.x 10f;
-set vec.y 12.0;
-set vec.z 13.0;
-print vec.x;
+
+var result int64;
+set result factorial (5);
+print result;

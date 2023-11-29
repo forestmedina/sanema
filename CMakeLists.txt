@@ -92,7 +92,8 @@ add_executable(sanema_tests test/test.cpp
         test/multiply_tests.cpp
         test/divide_tests.cpp
         test/parameter_passing.cpp
-        test/sanema_function_calling.cpp)
+        test/sanema_function_calling.cpp
+        test/benchmarks.cpp)
 target_link_libraries(sanema_tests PRIVATE Catch2::Catch2WithMain)
 target_link_libraries (sanema_tests PRIVATE sanema)
 

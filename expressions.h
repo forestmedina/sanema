@@ -61,6 +61,16 @@ namespace sanema {
   struct BlockOfCode {
     std::vector<BlockInstruction> instructions;
   };
+  struct IfStatement {
+    Expression expression;
+    BlockOfCode true_path;
+    BlockOfCode false_path;
+    enum class IfStatementState {
+      EXPRESSION,
+      TRUE_PATH,
+      FALSE_PATH
+    } state{IfStatementState::EXPRESSION};
+  };
    struct DefineFunction {
     std::string identifier;
     CompleteType type;
@@ -83,7 +93,7 @@ namespace sanema {
 
      bool operator!=(const DefineFunction &rhs) const;
    };
-  using Instruction = std::variant<DefineStruct, DeclareVariable, DefineFunction, FunctionCall,BlockOfCode>;
+  using Instruction = std::variant<DefineStruct, DeclareVariable, DefineFunction, FunctionCall,BlockOfCode,IfStatement>;
   struct BlockInstruction {
     explicit BlockInstruction(const Instruction &instruction_sum);
 

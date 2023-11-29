@@ -110,6 +110,8 @@ void print_block_of_code(sanema::BlockOfCode block_of_code){
             }
 
           },
+           [](sanema::IfStatement &if_statement) {
+          },
           [](sanema::DeclareVariable &expression) {
             std::cout << "Declaring variable: " << expression.identifier << " of type ";
             print_type(expression.type_identifier);

@@ -27,7 +27,7 @@ namespace sanema {
      template<class T>
      void write(address_t address,T value){
 
-      auto final_address=begin_address+address.address;
+      auto final_address=begin_address+std::uint64_t (address.address);
       //TODO we could make this a runtime check instead of only a assert
       assert(final_address+sizeof(T)<end_address);
        *((T*)final_address)=value;

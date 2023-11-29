@@ -32,7 +32,7 @@ namespace sanema {
     };
 
     struct FuctionCallSustitution {
-      std::uint64_t caller_address;// The address where the functionn is called
+      std::vector<std::uint64_t> caller_addresses;// The address where the functionn is called
       std::uint64_t function_code_addres;// Address poiting to the function body
       FunctionID function_id;
     };
@@ -48,6 +48,7 @@ namespace sanema {
     };
 
     void process(BlockOfCode &block_of_code, FunctionCollection &built_in_functions,TypeCollection& external_types) override;
+    void generate_block(BlockOfCode &block_of_code, FunctionCollection &built_in_functions,TypeCollection& external_types) ;
 
     GeneratorsMap function_bytecode_generators;
 

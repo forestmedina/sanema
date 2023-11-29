@@ -13,6 +13,7 @@
 #include <stack>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
+
 enum class ParserState {
   DefininVariable,
   DefiningFunction,
@@ -32,10 +33,12 @@ char read_character = ' ';
 
 
 sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token> &tokens) {
+  using NestedExpression = std::variant<FunctionCall, IfStatement>;
   struct Context {
     BlockOfCode current_block{};
+
     std::optional<Instruction> instruction;
-    std::stack<sanema::FunctionCall> function_call_stack{};
+    std::stack<NestedExpression> function_call_stack{};
   };
   std::stack<Context> context_stack;
   Context current_context;
@@ -57,12 +60,15 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
         current_context.instruction = DefineFunction{};
       } else if (token.token == struct_declaring_word) {
         current_context.instruction = DefineStruct{};
+      } else if (token.token == if_word) {
+        current_context.instruction = IfStatement{};
       } else if (token.token == "{") {
         stack_context();
-      } else if (token.token == "}") {
+      } else if (token.token == "}" || token.token == if_else_word || token.token == if_ending_word) {
         auto aux_context = current_context;
         current_context = context_stack.top();
         context_stack.pop();
+
         if (current_context.instruction.has_value()) {
           match(current_context.instruction.value(),
                 [&](DefineFunction &define_function) {
@@ -70,6 +76,30 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
                   define_function.body = aux_context.current_block;
                   current_context.current_block.instructions.emplace_back(define_function);
                   current_context.instruction = {};
+                },
+                [&](IfStatement &if_statement) {
+                  std::cout << "block ffinished define function\n";
+                  switch (if_statement.state) {
+                    case IfStatement::IfStatementState::TRUE_PATH:
+                      if_statement.true_path = aux_context.current_block;
+                      if (token.token == if_else_word) {
+                        if_statement.state = IfStatement::IfStatementState::FALSE_PATH;
+                        stack_context();
+                      } else {
+                        if_statement.false_path = BlockOfCode();
+                        current_context.current_block.instructions.emplace_back(if_statement);
+                        current_context.instruction = {};
+                      }
+                      break;
+                    case IfStatement::IfStatementState::FALSE_PATH:
+                      if_statement.false_path = aux_context.current_block;
+                      current_context.current_block.instructions.emplace_back(if_statement);
+                      current_context.instruction = {};
+                      break;
+
+                    case IfStatement::IfStatementState::EXPRESSION:
+                      break;
+                  }
                 },
                 [&](auto &ignore) {
                   std::cout << "block ffinished ignore\n";
@@ -109,6 +139,30 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
                   }
                   break;
               }
+            },
+            [&](IfStatement &if_statement) {
+              switch (if_statement.state) {
+                case IfStatement::IfStatementState::EXPRESSION:
+                  if (is_literal(token.token)) {
+                    if_statement.expression = get_literal_from_string(token.token);
+                  } else {
+                    auto next_token_it = std::next(token_it);
+                    if (next_token_it != tokens.end()) {
+                      auto &next_token = *next_token_it;
+                      if (next_token.token == "(") {
+                        current_context.function_call_stack.emplace(if_statement);
+                        auto new_function_call = FunctionCall{};
+                        new_function_call.identifier = token.token;
+                        current_context.instruction = new_function_call;
+                      } else {
+                        if_statement.expression = VariableEvaluation{token.token};
+                      }
+
+                    }
+                  }
+                  break;
+              }
+
             },
             [&](DefineFunction &define_function) {
               switch (define_function.state) {
@@ -188,10 +242,23 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
                       current_context.instruction = {};
                     } else {
                       std::cout << "unstacking function\n";
-                      FunctionCall previous_function_call = current_context.function_call_stack.top();
-                      current_context.function_call_stack.pop();
-                      previous_function_call.arguments.emplace_back(FunctionArgument{function_call});
-                      current_context.instruction = previous_function_call;
+                      auto previous_instruction = current_context.function_call_stack.top();
+                      match(previous_instruction,
+                            [&function_call, &current_context, &stack_context](IfStatement &previous_if_statement) {
+                              previous_if_statement.expression = function_call;
+                               current_context.function_call_stack.pop();
+                              previous_if_statement.state = IfStatement::IfStatementState::TRUE_PATH;
+                              current_context.instruction = previous_if_statement;
+                              stack_context();
+                            },
+                            [&function_call, &current_context](FunctionCall &previous_function_call) {
+                              current_context.function_call_stack.pop();
+                              previous_function_call.arguments.emplace_back(FunctionArgument{function_call});
+                              current_context.instruction = previous_function_call;
+                            }
+                           );
+
+
                     }
                   } else {
                     auto next_token_it = std::next(token_it);
@@ -241,7 +308,7 @@ std::vector<sanema::Token> sanema::SanemaParser::tokenize(std::istream &text) {
         }
         if (string_delimiters.contains(read_character)) {
           reading_string = true;
-          token=Token{std::string("")+read_character,(int) line_number + 1, column_number};
+          token = Token{std::string("") + read_character, (int) line_number + 1, column_number};
           continue;
         }
         if (!(std::string("") + read_character).empty()) {
@@ -372,10 +439,18 @@ sanema::Literal sanema::SanemaParser::get_literal_from_string(std::string token)
     token.replace(token.length() - 1,
                   1,
                   "");
-    boost::algorithm::replace_all(token,"\\n","\n");
-    boost::algorithm::replace_all(token,"\\t","\t");
-    boost::algorithm::replace_all(token,"\\r","\r");
-    boost::algorithm::replace_all(token,"\\b","\b");
+    boost::algorithm::replace_all(token,
+                                  "\\n",
+                                  "\n");
+    boost::algorithm::replace_all(token,
+                                  "\\t",
+                                  "\t");
+    boost::algorithm::replace_all(token,
+                                  "\\r",
+                                  "\r");
+    boost::algorithm::replace_all(token,
+                                  "\\b",
+                                  "\b");
     return LiteralString(token);
   }
   return LiteralSInt64{atoi(token.c_str())};

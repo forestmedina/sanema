@@ -34,9 +34,9 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
   auto end_address = byte_code.code_data.data() + byte_code.code_data.size();
   bool should_continue = true;
   while (should_continue) {
-    std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << " ; ";
+//    std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << " ; ";
     auto opcode = static_cast<OPCODE>(*ip);
-    std::cout << "Executing opcode: " << opcode_to_string(opcode) << "\n";
+//    std::cout << "Executing opcode: " << opcode_to_string(opcode) << "\n";
     ip++;
     switch (opcode) {
       case OPCODE::OP_POP: {
@@ -118,12 +118,14 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_JUMP_IF_FALSE: {
-        auto offset = read_from_bytecode<std::uint16_t>(ip);
+        auto offset = read_from_bytecode<std::uint64_t>(ip);
+        std::cout<<"offset: "<<offset<<"\n";
         auto value = pop<bool>();
         if (!value) {
           ip += offset;
         }
       }
+      break;
       case OPCODE::OP_RETURN: {
         should_continue = call_stack.size() > 1;
         call_stack.pop_back();

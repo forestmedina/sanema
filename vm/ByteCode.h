@@ -119,8 +119,8 @@ namespace sanema {
           }
             break;
           case OPCODE::OP_JUMP: {
-            auto offset = read_from_bytecode<std::uint16_t>(ip);
-            ip += offset;
+            auto offset = read_from_bytecode<std::uint64_t>(ip);
+            std::cout<<" Offset: "<<offset<<"\n";
           }
             break;
           case OPCODE::OP_CALL_EXTERNAL_FUNCTION: {
@@ -140,7 +140,7 @@ namespace sanema {
           }
             break;
           case OPCODE::OP_JUMP_IF_FALSE: {
-            auto offset = read_from_bytecode<std::uint16_t>(ip);
+            auto offset = read_from_bytecode<std::uint64_t>(ip);
             std::cout << " offset: " << offset;
           }
           case OPCODE::OP_RETURN:
