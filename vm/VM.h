@@ -16,11 +16,13 @@
 
 namespace sanema {
   using IPType = std::uint8_t const *;
+
   enum class ExecuteResult {
     OK,
     END,
     ERROR
   };
+
   enum class OperandTypeEnum : std::uint64_t {
     Boolean = 1,
     UINT8,
@@ -41,14 +43,15 @@ namespace sanema {
 
   class VM {
   public:
-
     explicit VM(int memory_size_mb = 300);
 
-    void run(ByteCode const &byte_code, BindingCollection &collection);
+    ~VM();
+
+    void run(ByteCode const&byte_code, BindingCollection&collection);
 
     template<class T>
     std::optional<T> get_value_stack() {
-      if (operand_stack_pointer== nullptr) return {};
+      if (operand_stack_pointer == nullptr) return {};
       return pop<T>();
     }
 
@@ -56,81 +59,86 @@ namespace sanema {
 
     [[nodiscard]] sanema::OperandType get_external_function_parameter(size_t index) const;
 
-    std::string const &get_string(StringReference const &reference);
+    std::string const& get_string(StringReference const&reference);
 
-    ByteCode const *running_byte_code;
+    ByteCode const* running_byte_code;
 
-    void push_function_return(OperandType value);
 
-    void push_string(std::string const &string_value);
+    void push_string(std::string const&string_value);
+
+    template<typename T>
+    void push_function_return(T value) {
+      push(value);
+    }
 
     std::vector<sanema::ContextFrame> call_stack;
+
   private:
     std::vector<OperandType> external_function_parameters;
-    std::array<OperandType,1000> operand_stack;
-    OperandType* operand_stack_pointer{nullptr};
+    unsigned char* operand_stack;
+    unsigned char* operand_stack_pointer{nullptr};
 
     std::vector<std::string> string_stack;
     std::vector<std::uint8_t> stack_memory;
 
 
     template<class type>
-   inline type pop() {
-      type t = (*(type*)operand_stack_pointer);
-      operand_stack_pointer--;
+    inline type pop() {
+      operand_stack_pointer -= sizeof(type);
+      type t = (*(type *)operand_stack_pointer);
+
       return t;
     }
 
     template<class type>
     inline type read_local(address_t address) {
-      return *((type*)address.address);
+      return *((type *)address.address);
     }
 
 
     template<class type>
-    inline void push_local(IPType &ip) {
+    inline void push_local(IPType&ip) {
       auto address = pop<address_t>();
-
-//      std::cout<<"Pushing address: "<<address<<" value:"<<value<<"\n";
-      push(read_local<type>(address));
+      auto value = read_local<type>(address);
+      // std::cout<<"Pushing address: "<<(uint64_t)address.address<<" value:"<<value<<"\n";
+      push(value);
     }
 
     template<class type>
-    inline void pop_to_local(IPType &ip) {
+    inline void pop_to_local(IPType&ip) {
       auto address = read_from_bytecode<address_t>(ip);
-      sanema::ContextFrame &context_frame = call_stack.back();
+      sanema::ContextFrame&context_frame = call_stack.back();
       auto value = pop<type>();
     }
 
     template<class type>
-    inline void set_local(IPType &ip) {
-      sanema::ContextFrame &context_frame = call_stack.back();
+    inline void set_local(IPType&ip) {
+      sanema::ContextFrame&context_frame = call_stack.back();
       auto value = pop<type>();
       auto address2 = pop<address_t>();
-//      std::cout << "Setting local value=" << value << " address=" << address2 << "\n";
-//      context_frame.write<type>(address2,
-//                                value);
-      *((type*)address2.address)=value;
+      //      std::cout << "Setting local value=" << value << " address=" << address2 << "\n";
+      //      context_frame.write<type>(address2,
+      //                                value);
+      *((type *)address2.address) = value;
     }
 
 
     template<class type>
-    void push_const(IPType &ip) {
+    void push_const(IPType&ip) {
       auto value = read_from_bytecode<type>(ip);
-//      std::cout << "constant value " << value << "\n";
+      //      std::cout << "constant value " << value << "\n";
       push(value);
     }
 
     template<class type>
     inline void push(type t) {
-      operand_stack_pointer++;
-      *((type*) operand_stack_pointer)= t;
-
+      *reinterpret_cast<type *>(operand_stack_pointer) = t;
+      operand_stack_pointer += sizeof(type);
     }
 
     inline void swap_last_two() {
-      std::swap(*operand_stack_pointer,
-                *(operand_stack_pointer-1));
+      std::swap(*(OperandType *)operand_stack_pointer,
+                *(((OperandType *)operand_stack_pointer) - 1));
     }
 
     template<typename type>
@@ -143,20 +151,19 @@ namespace sanema {
 
     template<typename type>
     inline void add() {
-
-       auto value2 = pop<type>();
+      auto value2 = pop<type>();
       auto value1 = pop<type>();
       auto result = value1 + value2;
       // std::cout<<"adding "<<value1<<" + " <<value2<<"\n";
       push(result);
-
     }
 
     template<typename type>
     inline void subtract() {
-     auto value2 = pop<type>();
+      auto value2 = pop<type>();
       auto value1 = pop<type>();
       auto result = value1 - value2;
+      // std::cout<<value1<<" - "<<value2<<"\n";
       push(result);
     }
 
@@ -232,7 +239,7 @@ namespace sanema {
   };
 
   template<typename T>
-  T get_function_parameter_from_vm(VM &vm, size_t index, sanema::FunctionParameter::Modifier modifier) {
+  T get_function_parameter_from_vm(VM&vm, size_t index, sanema::FunctionParameter::Modifier modifier) {
     auto value = vm.get_external_function_parameter(index);
     T final_value;
     switch (modifier) {
@@ -242,7 +249,7 @@ namespace sanema {
       case sanema::FunctionParameter::Modifier::MUTABLE:
       case sanema::FunctionParameter::Modifier::CONST:
         auto address = static_cast<address_t>(value);
-        final_value = *((T*)address.address);
+        final_value = *((T *)address.address);
         break;
     }
     return final_value;
@@ -250,37 +257,33 @@ namespace sanema {
 
   template<>
   std::string
-  get_function_parameter_from_vm<std::string>(VM &vm, size_t index, sanema::FunctionParameter::Modifier modifier);
+  get_function_parameter_from_vm<std::string>(VM&vm, size_t index, sanema::FunctionParameter::Modifier modifier);
 
   template<>
-  std::string const &get_function_parameter_from_vm<std::string const &>(VM &vm, size_t index,
+  std::string const& get_function_parameter_from_vm<std::string const &>(VM&vm, size_t index,
                                                                          sanema::FunctionParameter::Modifier modifier);
 
   template<>
-  std::string &
-  get_function_parameter_from_vm<std::string &>(VM &vm, size_t index, sanema::FunctionParameter::Modifier modifier);
+  std::string&
+  get_function_parameter_from_vm<std::string &>(VM&vm, size_t index, sanema::FunctionParameter::Modifier modifier);
 
   template<typename T>
-  void push_function_return_to_vm(VM &vm, T value) {
-    vm.push_function_return(OperandType(value));
+  void push_function_return_to_vm(VM&vm, T value) {
+    vm.push_function_return(value);
   }
-  template<typename RETURN_TYPE, typename ...ARGS>
-  RETURN_TYPE call_function(ByteCode const &byte_code, BindingCollection &collection,std::string identifier,ARGS... args){
+
+  template<typename RETURN_TYPE, typename... ARGS>
+  RETURN_TYPE call_function(ByteCode const&byte_code, BindingCollection&collection, std::string identifier,
+                            ARGS... args) {
   }
 
   template<>
-  void push_function_return_to_vm<std::string>(VM &vm, std::string value);
+  void push_function_return_to_vm<std::string>(VM&vm, std::string value);
 
   template<>
-  void push_function_return_to_vm<std::string const &>(VM &vm, std::string const &value);
+  void push_function_return_to_vm<std::string const &>(VM&vm, std::string const&value);
 
   template<>
-  void push_function_return_to_vm<std::string &>(VM &vm, std::string &value);
-
-  inline void VM::push_function_return(OperandType value) {
-    push(value);
-  }
-
-
+  void push_function_return_to_vm<std::string &>(VM&vm, std::string&value);
 }
 #endif //UPDATE_SKELETON_PY_VM_H

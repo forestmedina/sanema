@@ -13,7 +13,7 @@
 
 void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_collection) {
   running_byte_code = &byte_code;
-  operand_stack_pointer=&operand_stack[0];
+  operand_stack_pointer=operand_stack;
   IPType ip = byte_code.code_data.data();
   call_stack.emplace_back(stack_memory.data());
   auto end_address = byte_code.code_data.data() + byte_code.code_data.size();
@@ -421,8 +421,9 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       case OPCODE::OP_PREPARE_PARAMETER: {
         auto address = read_from_bytecode<std::uint64_t>(ip);
         std::uint8_t *global_address = call_stack.back().get_begin_address() + address;
+        auto value=pop<OperandType>();
         push<address_t>(address_t{global_address});
-        swap_last_two();
+        push<OperandType>(value);
 
       }
         break;
@@ -503,7 +504,12 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
 sanema::VM::VM(int memory_size_mb) : running_byte_code(nullptr) {
   auto megabytes_to_bytes = [](std::uint64_t size) { return (size * 1024) * 1024; };
   stack_memory.reserve(megabytes_to_bytes(memory_size_mb));
+  operand_stack=new unsigned char[megabytes_to_bytes(memory_size_mb)];
 
+}
+
+sanema::VM::~VM() {
+  delete operand_stack;
 }
 
 void sanema::VM::prepare_function_parameters(std::uint32_t n) {

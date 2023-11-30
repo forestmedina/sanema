@@ -18,6 +18,8 @@ std::string sanema::concat(std::string const &a, std::string const &b) {
 }
 
 bool sanema::ends_with(const std::string &a, const std::string &b) {
+  std::cout<<"Ends with "<<a<<": "<<b<<"\n";
+  std::cout<<(boost::algorithm::ends_with(a,b)?"true":"false")<<"\n";
   return boost::algorithm::ends_with(a,b);
 }
 
