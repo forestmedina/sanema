@@ -190,51 +190,51 @@ int main(int argc, char *argv[]) {
     std::cout << "\n duration:" << std::chrono::duration_cast<std::chrono::milliseconds>(second - first) << "\n";
 
 
-    asIScriptEngine *engine = asCreateScriptEngine();
-    const char *fibonacciScript =
-      "int fibonacci(int n) {"
-      "    if (n <= 1) return n;"
-      "    return fibonacci(n - 1) + fibonacci(n - 2);"
-      "}";
-
-    asIScriptModule *module = engine->GetModule("FibModule",
-                                                asGM_ALWAYS_CREATE);
-    module->AddScriptSection("fibScript",
-                             fibonacciScript);
-    module->Build();
-    asIScriptFunction *func = module->GetFunctionByDecl("int fibonacci(int)");
-    asIScriptContext *context = engine->CreateContext();
-    context->Prepare(func);
-    context->SetArgDWord(0,
-                         35); // Change the parameter here for different Fibonacci numbers
-    std::cout << "\n started angel\n";
-    first = clock.now();
-    context->Execute();
-    second = clock.now();
-    std::cout << "\n duration:" << std::chrono::duration_cast<std::chrono::milliseconds>(second - first) << "\n";
-
-     lua_State* L = luaL_newstate();
-    luaL_openlibs(L);
-
-    const char* fibonacciLuaScript =
-    "function fibonacci(n) "
-    "    if n <= 1 then return n end "
-    "    return fibonacci(n - 1) + fibonacci(n - 2) "
-    "end";
-    // Load the Fibonacci script into Lua
-    luaL_dostring(L, fibonacciLuaScript);
- std::cout << "\n started lua\n";
-    first = clock.now();
-     luaL_loadstring(L, "result = fibonacci(35)"); // Change the parameter here for different Fibonacci numbers
-    lua_pcall(L, 0, 0, 0);
-    second = clock.now();
-    std::cout << "\n duration:" << std::chrono::duration_cast<std::chrono::milliseconds>(second - first) << "\n";
-    // Start measuring time
-//    first =clock.now();
-//    auto value=fib(40);
-//    second =clock.now();
-//    std::cout<<"\n duration:"<<std::chrono::duration_cast<std::chrono::milliseconds>(second-first)<<"\n";
-//    std::cout<<value<<"\n";
+//    asIScriptEngine *engine = asCreateScriptEngine();
+//    const char *fibonacciScript =
+//      "int fibonacci(int n) {"
+//      "    if (n <= 1) return n;"
+//      "    return fibonacci(n - 1) + fibonacci(n - 2);"
+//      "}";
+//
+//    asIScriptModule *module = engine->GetModule("FibModule",
+//                                                asGM_ALWAYS_CREATE);
+//    module->AddScriptSection("fibScript",
+//                             fibonacciScript);
+//    module->Build();
+//    asIScriptFunction *func = module->GetFunctionByDecl("int fibonacci(int)");
+//    asIScriptContext *context = engine->CreateContext();
+//    context->Prepare(func);
+//    context->SetArgDWord(0,
+//                         35); // Change the parameter here for different Fibonacci numbers
+//    std::cout << "\n started angel\n";
+//    first = clock.now();
+//    context->Execute();
+//    second = clock.now();
+//    std::cout << "\n duration:" << std::chrono::duration_cast<std::chrono::milliseconds>(second - first) << "\n";
+//
+//     lua_State* L = luaL_newstate();
+//    luaL_openlibs(L);
+//
+//    const char* fibonacciLuaScript =
+//    "function fibonacci(n) "
+//    "    if n <= 1 then return n end "
+//    "    return fibonacci(n - 1) + fibonacci(n - 2) "
+//    "end";
+//    // Load the Fibonacci script into Lua
+//    luaL_dostring(L, fibonacciLuaScript);
+// std::cout << "\n started lua\n";
+//    first = clock.now();
+//     luaL_loadstring(L, "result = fibonacci(35)"); // Change the parameter here for different Fibonacci numbers
+//    lua_pcall(L, 0, 0, 0);
+//    second = clock.now();
+//    std::cout << "\n duration:" << std::chrono::duration_cast<std::chrono::milliseconds>(second - first) << "\n";
+//    // Start measuring time
+////    first =clock.now();
+////    auto value=fib(40);
+////    second =clock.now();
+////    std::cout<<"\n duration:"<<std::chrono::duration_cast<std::chrono::milliseconds>(second-first)<<"\n";
+////    std::cout<<value<<"\n";
   } catch (std::runtime_error &e) {
     std::cout << e.what() << "\n";
   }

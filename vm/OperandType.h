@@ -20,6 +20,8 @@ namespace sanema {
   };
 
   union OperandType {
+    OperandType();
+
     bool bool_v;
     std::uint8_t uint8_v;
     std::uint16_t uint16_v;

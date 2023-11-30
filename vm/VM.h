@@ -48,7 +48,7 @@ namespace sanema {
 
     template<class T>
     std::optional<T> get_value_stack() {
-      if (operand_stack.empty()) return {};
+      if (operand_stack_pointer== nullptr) return {};
       return pop<T>();
     }
 
@@ -67,16 +67,17 @@ namespace sanema {
     std::vector<sanema::ContextFrame> call_stack;
   private:
     std::vector<OperandType> external_function_parameters;
-    std::vector<OperandType> operand_stack;
+    std::array<OperandType,1000> operand_stack;
+    OperandType* operand_stack_pointer{nullptr};
 
     std::vector<std::string> string_stack;
     std::vector<std::uint8_t> stack_memory;
 
 
     template<class type>
-    type pop() {
-      type t = (type) operand_stack.back();
-      operand_stack.pop_back();
+   inline type pop() {
+      type t = (*(type*)operand_stack_pointer);
+      operand_stack_pointer--;
       return t;
     }
 
@@ -122,13 +123,14 @@ namespace sanema {
 
     template<class type>
     inline void push(type t) {
-      operand_stack.emplace_back(t);
+      operand_stack_pointer++;
+      *((type*) operand_stack_pointer)= t;
 
     }
 
     inline void swap_last_two() {
-      std::swap(operand_stack[operand_stack.size() - 1],
-                operand_stack[operand_stack.size() - 2]);
+      std::swap(*operand_stack_pointer,
+                *(operand_stack_pointer-1));
     }
 
     template<typename type>
@@ -145,6 +147,7 @@ namespace sanema {
        auto value2 = pop<type>();
       auto value1 = pop<type>();
       auto result = value1 + value2;
+      // std::cout<<"adding "<<value1<<" + " <<value2<<"\n";
       push(result);
 
     }

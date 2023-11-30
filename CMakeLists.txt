@@ -79,9 +79,12 @@ add_library(sanema
         common/TypeCollection.h)
 
 target_include_directories(sanema PUBLIC  "./")
+
 add_executable(sanema_main   sanema_main.cpp)
 target_link_libraries (sanema_main PRIVATE sanema)
-#target_link_options(sanema_main PRIVATE "-lprofiler")
+target_link_options(sanema_main PRIVATE "-lprofiler")
+add_compile_options("-g")
+
 
 find_package(Catch2 3 REQUIRED)
 
@@ -103,8 +106,6 @@ add_executable(sanema_tests test/test.cpp
         test/benchmarks.cpp)
 target_link_libraries(sanema_tests PRIVATE Catch2::Catch2WithMain)
 target_link_libraries (sanema_tests PRIVATE sanema)
-
-#aaa
 
 include(CTest)
 include(Catch)

@@ -308,7 +308,7 @@ std::vector<sanema::Token> sanema::SanemaParser::tokenize(std::istream &text) {
         }
         if (string_delimiters.contains(read_character)) {
           reading_string = true;
-          token = Token{std::string("") + read_character, (int) line_number + 1, column_number};
+          token = Token{std::string("") + read_character, (int) line_number + 1, static_cast<int>(column_number)};
           continue;
         }
         if (!(std::string("") + read_character).empty()) {
@@ -391,15 +391,7 @@ sanema::Token::Token(std::string &&token,
 sanema::Literal sanema::SanemaParser::get_literal_from_string(std::string token) {
   try {
     auto value = boost::lexical_cast<std::int64_t>(token);
-    if (value >= std::numeric_limits<std::uint8_t>::min() && value <= std::numeric_limits<std::uint8_t>::max()) {
-      return LiteralSInt8(value);
-    }
-    if (value >= std::numeric_limits<std::uint16_t>::min() && value <= std::numeric_limits<std::uint16_t>::max()) {
-      return LiteralSInt16(value);
-    }
-    if (value >= std::numeric_limits<std::uint32_t>::min() && value <= std::numeric_limits<std::uint32_t>::max()) {
-      return LiteralSInt32(value);
-    }
+
     if (value >= std::numeric_limits<std::uint64_t>::min() && value <= std::numeric_limits<std::uint64_t>::max()) {
       return LiteralSInt64(value);
     }

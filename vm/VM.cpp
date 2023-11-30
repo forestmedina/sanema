@@ -13,14 +13,15 @@
 
 void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_collection) {
   running_byte_code = &byte_code;
+  operand_stack_pointer=&operand_stack[0];
   IPType ip = byte_code.code_data.data();
   call_stack.emplace_back(stack_memory.data());
   auto end_address = byte_code.code_data.data() + byte_code.code_data.size();
   bool should_continue = true;
   for (;;) {
-//    std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << " ; ";
+    // std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << " ; ";
     auto opcode = static_cast<OPCODE>(*ip);
-//    std::cout << "Executing opcode: " << opcode_to_string(opcode) << "\n";
+    // std::cout << "Executing opcode: " << opcode_to_string(opcode) << "\n";
     ++ip;
     switch (opcode) {
       case OPCODE::OP_POP: {
@@ -35,11 +36,11 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_TRUE: {
-        operand_stack.emplace_back(true);
+        push<bool>(true);
       }
         break;
       case OPCODE::OP_FALSE: {
-        operand_stack.emplace_back(false);
+        push<bool>(false);
       }
         break;
 
@@ -502,13 +503,12 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
 sanema::VM::VM(int memory_size_mb) : running_byte_code(nullptr) {
   auto megabytes_to_bytes = [](std::uint64_t size) { return (size * 1024) * 1024; };
   stack_memory.reserve(megabytes_to_bytes(memory_size_mb));
-  operand_stack.reserve(1000000);
+
 }
 
 void sanema::VM::prepare_function_parameters(std::uint32_t n) {
   external_function_parameters.clear();
   for (int i = 0; i < n; i++) {
-
     external_function_parameters.emplace_back(pop<OperandType>());
   }
 }
