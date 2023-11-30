@@ -17,7 +17,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
   call_stack.emplace_back(stack_memory.data());
   auto end_address = byte_code.code_data.data() + byte_code.code_data.size();
   bool should_continue = true;
-  while (true) {
+  for (;;) {
 //    std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << " ; ";
     auto opcode = static_cast<OPCODE>(*ip);
 //    std::cout << "Executing opcode: " << opcode_to_string(opcode) << "\n";
@@ -467,6 +467,32 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
         address_t new_local_address{
           global_address.address - (int64_t) (context_frame.get_begin_address() - stack_memory.data())};
       }
+        break;
+      case OPCODE::OP_NIL:
+        break;
+      case OPCODE::OP_PUSH_LOCAL_BOOL:
+        break;
+      case OPCODE::OP_SET_EXTERNAL_BOOL:
+        break;
+      case OPCODE::OP_SET_LOCAL_BOOL:
+        break;
+      case OPCODE::OP_NOT:
+        break;
+      case OPCODE::OP_PRINT:
+        break;
+      case OPCODE::OP_INVOKE:
+        break;
+      case OPCODE::OP_SUPER_INVOKE:
+        break;
+      case OPCODE::OP_CLOSURE:
+        break;
+      case OPCODE::OP_CLOSE_UPVALUE:
+        break;
+      case OPCODE::OP_CLASS:
+        break;
+      case OPCODE::OP_INHERIT:
+        break;
+      case OPCODE::OP_METHOD:
         break;
     }
   }

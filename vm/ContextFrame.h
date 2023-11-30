@@ -4,7 +4,6 @@
 
 #ifndef NATURE_CONTEXT_FRAME_H
 #define NATURE_CONTEXT_FRAME_H
-#include <vector>
 #include <cassert>
 #include <cstdint>
 #include "OperandType.h"
@@ -17,12 +16,12 @@ namespace sanema {
     template<class T>
      T read(address_t address){
 
-      auto final_address=begin_address+(std::uint64_t)address.address;
-      auto size_of_value=sizeof(T);
+      auto final_address=begin_address+std::uint64_t(address.address);
+       auto const size_of_value=sizeof(T);
       auto end_read_address=final_address+size_of_value;
       //TODO we could make this a runtime check instead of only a assert
       assert(end_read_address<=end_address);
-       return *((T*)final_address);
+       return *reinterpret_cast<T *>(final_address);
      }
      template<class T>
      void write(address_t address,T value){
@@ -30,7 +29,7 @@ namespace sanema {
       auto final_address=begin_address+std::uint64_t (address.address);
       //TODO we could make this a runtime check instead of only a assert
       assert(final_address+sizeof(T)<end_address);
-       *((T*)final_address)=value;
+       *reinterpret_cast<T *>(final_address)=value;
      }
      inline void reserve(std::uint64_t size){
          end_address+=size;

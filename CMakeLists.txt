@@ -85,6 +85,12 @@ target_link_libraries (sanema_main PRIVATE sanema)
 
 find_package(Catch2 3 REQUIRED)
 
+find_package(Angelscript CONFIG REQUIRED)
+target_link_libraries(sanema_main PRIVATE Angelscript::angelscript)
+target_include_directories(sanema_main PRIVATE ${ANGELSCRIPT_INCLUDE_DIR})
+find_package(Lua REQUIRED)
+target_include_directories(sanema_main PRIVATE ${LUA_INCLUDE_DIR})
+target_link_libraries(sanema_main PRIVATE ${LUA_LIBRARIES})
 # These tests need their own main
 add_executable(sanema_tests test/test.cpp
         test/helpers.cpp
@@ -98,6 +104,7 @@ add_executable(sanema_tests test/test.cpp
 target_link_libraries(sanema_tests PRIVATE Catch2::Catch2WithMain)
 target_link_libraries (sanema_tests PRIVATE sanema)
 
+#aaa
 
 include(CTest)
 include(Catch)

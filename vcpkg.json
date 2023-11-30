@@ -15,7 +15,10 @@
     "name" : "boost-algorithm",
     "version>=" : "1.82.0#2"
   }, {
-    "name" : "gperftools",
-    "version>=" : "2.10#1"
+    "name" : "angelscript",
+    "version>=" : "2.36.1#1"
+  }, {
+    "name" : "lua",
+    "version>=" : "5.4.6"
   } ]
 }

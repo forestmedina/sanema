@@ -7,5 +7,4 @@ function fib int64
         end
     };
 
-var result int64;
 fib (35);

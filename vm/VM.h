@@ -133,7 +133,6 @@ namespace sanema {
 
     template<typename type>
     inline void multiply() {
-      //TODO implement type conversion
       auto value2 = pop<type>();
       auto value1 = pop<type>();
       auto result = value1 * value2;
@@ -142,7 +141,6 @@ namespace sanema {
 
     template<typename type>
     inline void add() {
-      //TODO implement type conversion
 
        auto value2 = pop<type>();
       auto value1 = pop<type>();
@@ -161,7 +159,6 @@ namespace sanema {
 
     template<typename type>
     inline void divide() {
-      //TODO implement type conversion
       auto value2 = pop_function_parameter_value<type>();
       auto value1 = pop_function_parameter_value<type>();
       auto result = value1 / value2;
@@ -170,7 +167,6 @@ namespace sanema {
 
     template<typename type>
     inline void negate() {
-      //TODO implement type conversion
       auto value = pop_function_parameter_value<type>();
       auto result = -value;
       push(result);
@@ -178,7 +174,6 @@ namespace sanema {
 
     template<typename type>
     inline void greater() {
-      //TODO implement type conversion
       auto value2 = pop_function_parameter_value<type>();
       auto value1 = pop_function_parameter_value<type>();
       bool result = value1 > value2;
@@ -187,7 +182,6 @@ namespace sanema {
 
     template<typename type>
     inline void less() {
-      //TODO implement type conversion
       auto value2 = pop<type>();
       auto value1 = pop<type>();
       bool result = value1 < value2;
@@ -196,7 +190,6 @@ namespace sanema {
 
     template<typename type>
     inline void equal() {
-      //TODO implement type conversion
       auto value2 = pop<type>();
       auto value1 = pop<type>();
       bool result = value1 == value2;
@@ -205,7 +198,6 @@ namespace sanema {
 
     template<typename type>
     inline void greater_equal() {
-      //TODO implement type conversion
       auto value2 = pop_function_parameter_value<type>();
       auto value1 = pop_function_parameter_value<type>();
       bool result = value1 >= value2;
@@ -229,7 +221,6 @@ namespace sanema {
 
     template<typename type>
     inline void less_equal() {
-      //TODO implement type conversion
       auto value2 = pop_function_parameter_value<type>();
       auto value1 = pop_function_parameter_value<type>();
       bool result = value1 <= value2;
