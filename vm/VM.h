@@ -144,18 +144,19 @@ namespace sanema {
     inline void add() {
       //TODO implement type conversion
 
-       type& value_ref= (type&)(operand_stack.end()[-2]);
-       value_ref+=(type&)operand_stack.end()[-1];
-      operand_stack.pop_back();
+       auto value2 = pop<type>();
+      auto value1 = pop<type>();
+      auto result = value1 + value2;
+      push(result);
 
     }
 
     template<typename type>
     inline void subtract() {
-      //TODO implement type conversion
-      type& value_ref= (type&)operand_stack.end()[-2];
-       value_ref-=(type&)operand_stack.end()[-1];
-      operand_stack.pop_back();
+     auto value2 = pop<type>();
+      auto value1 = pop<type>();
+      auto result = value1 - value2;
+      push(result);
     }
 
     template<typename type>

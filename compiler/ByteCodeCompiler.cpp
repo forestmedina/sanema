@@ -766,11 +766,9 @@ void sanema::ByteCodeCompiler::process(sanema::BlockOfCode &block_of_code, Funct
     generate_block(next_block.value(),
                    built_in_functions,
                    external_types);
-    if (main) {
       write_to_byte_code(byte_code.code_data,
                          OPCODE::OP_RETURN);
-      main = false;
-    }
+
     next_block = {};
     if (!pendind_to_generate_functions.empty()) {
       auto pending_function = pendind_to_generate_functions.back();
@@ -785,12 +783,12 @@ void sanema::ByteCodeCompiler::process(sanema::BlockOfCode &block_of_code, Funct
       auto scope_copy = scope;
 
       std::uint64_t function_address = byte_code.get_current_address();
-      std::cout << "Determining function address : " << function_address << "\n";
+//      std::cout << "Determining function address : " << function_address << "\n";
       std::ranges::for_each(function_call_sustitutions,
                             [&pending_function, function_address](FuctionCallSustitution &sustitution) {
                               if (sustitution.function_id == pending_function) {
                                 sustitution.function_code_addres = function_address;
-                                std::cout << "Setting address : " << function_address << "\n";
+//                                std::cout << "Setting address : " << function_address << "\n";
                               }
                             });
       scope_copy.scope_address.address = 0;
@@ -836,8 +834,8 @@ void sanema::ByteCodeCompiler::process(sanema::BlockOfCode &block_of_code, Funct
   }
   for (auto &sustition: function_call_sustitutions) {
     for(auto& caller_address:sustition.caller_addresses) {
-      std::cout << "function call sustitution: " << caller_address << "->" << sustition.function_code_addres
-                << "\n";
+//      std::cout << "function call sustitution: " << caller_address << "->" << sustition.function_code_addres
+//                << "\n";
       write_to_byte_code(byte_code.code_data,
                          caller_address,
                          sustition.function_code_addres);

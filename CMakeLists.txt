@@ -81,7 +81,7 @@ add_library(sanema
 target_include_directories(sanema PUBLIC  "./")
 add_executable(sanema_main   sanema_main.cpp)
 target_link_libraries (sanema_main PRIVATE sanema)
-target_link_options(sanema_main PRIVATE "-lprofiler")
+#target_link_options(sanema_main PRIVATE "-lprofiler")
 
 find_package(Catch2 3 REQUIRED)
 

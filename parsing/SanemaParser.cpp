@@ -72,13 +72,13 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
         if (current_context.instruction.has_value()) {
           match(current_context.instruction.value(),
                 [&](DefineFunction &define_function) {
-                  std::cout << "block ffinished define function\n";
+//                  std::cout << "block ffinished define function\n";
                   define_function.body = aux_context.current_block;
                   current_context.current_block.instructions.emplace_back(define_function);
                   current_context.instruction = {};
                 },
                 [&](IfStatement &if_statement) {
-                  std::cout << "block ffinished define function\n";
+//                  std::cout << "block ffinished define function\n";
                   switch (if_statement.state) {
                     case IfStatement::IfStatementState::TRUE_PATH:
                       if_statement.true_path = aux_context.current_block;
@@ -168,7 +168,7 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
               switch (define_function.state) {
                 case DefineFunction::IDENTIFIER: {
                   define_function.identifier = token.token;
-                  std::cout << "Function identifier: " << token.token << "\n";
+//                  std::cout << "Function identifier: " << token.token << "\n";
                   define_function.state = DefineFunction::FUNCTION_TYPE;
 
                 }
@@ -180,9 +180,9 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
                 }
                   break;
                 case DefineFunction::PARAMETER_MODIFIER: {
-                  std::cout << "function modifier token -" << token.token << "-\n";
+//                  std::cout << "function modifier token -" << token.token << "-\n";
                   if (token.token == std::string("") + code_block_begin) {
-                    std::cout << "stacking block for function body\n";
+//                    std::cout << "stacking block for function body\n";
                     define_function.state = DefineFunction::FUNCTION_BODY;
                     stack_context();
                   } else {
@@ -199,7 +199,7 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
                 }
                   break;
                 case DefineFunction::PARAMETER_TYPE: {
-                  std::cout << "Function parameter type: " << token.token << "\n";
+//                  std::cout << "Function parameter type: " << token.token << "\n";
                   define_function.parameters.back().type = parse_type(token.token);
                   define_function.state = DefineFunction::PARAMETER_MODIFIER;
                 }
@@ -241,7 +241,7 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
                       current_context.current_block.instructions.emplace_back(function_call);
                       current_context.instruction = {};
                     } else {
-                      std::cout << "unstacking function\n";
+//                      std::cout << "unstacking function\n";
                       auto previous_instruction = current_context.function_call_stack.top();
                       match(previous_instruction,
                             [&function_call, &current_context, &stack_context](IfStatement &previous_if_statement) {
@@ -265,7 +265,7 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
                     if (next_token_it != tokens.end()) {
                       auto &next_token = *next_token_it;
                       if (next_token.token == "(") {
-                        std::cout << "stacking function" << function_call.identifier << "\n";
+//                        std::cout << "stacking function" << function_call.identifier << "\n";
                         current_context.function_call_stack.emplace(function_call);
                         auto new_function_call = FunctionCall{};
                         new_function_call.identifier = token.token;

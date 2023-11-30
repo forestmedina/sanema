@@ -439,6 +439,8 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
         call_stack.pop_back();
         if (should_continue) {
           ip = call_stack.back().ip;
+        }else{
+          return;
         }
         break;
       }
