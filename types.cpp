@@ -62,19 +62,19 @@ std::optional<sanema::CompleteType> sanema::parse_type(const std::string &string
 std::uint64_t sanema::get_type_size(sanema::CompleteType const &type) {
   return match(type,
                [](Integer const &integer) -> std::uint64_t {
-                 return integer.size;
+                 return integer.size/8;
                },
                [](Float const &a_float) -> std::uint64_t {
-                 return 32;
+                 return 4;
                },
                [](Double const &a_double) -> std::uint64_t {
-                 return 64;
+                 return 8;
                },
                [](String const &a_double) -> std::uint64_t {
-                 return sizeof(sanema::StringReference) * 8;
+                 return sizeof(sanema::StringReference) ;
                },
                [](Boolean const &a_double) -> std::uint64_t {
-                 return 8;
+                 return 1;
                },
                [](Void const &a_double) -> std::uint64_t {
                  return 0;

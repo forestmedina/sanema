@@ -63,7 +63,6 @@ namespace sanema {
     std::vector<std::uint8_t> code_data;
     std::vector<std::string> string_literals;
 
-
     ByteCode() = default;
 
     ByteCode(ByteCode const &other) = delete;
@@ -76,13 +75,21 @@ namespace sanema {
 
     template<class T>
     std::uint64_t write(T const &t) {
-      return write_to_byte_code(code_data,
+      auto address =get_current_address();
+       write_to_byte_code(code_data,
                                 t);
+      return address;
+    };
+    template<class T>
+   void write_to_address(T const &t,std::uint64_t address) {
+      write_to_byte_code(code_data,address,t);
     };
 
     std::uint64_t get_current_address();
-
-
+    inline void remove_data(std::uint64_t address,size_t size) {
+      auto iter_begin=code_data.begin()+address;
+      code_data.erase(iter_begin,iter_begin+size);
+    };
     size_t add_string_literal(std::string &string_literal) {
       auto iter = std::find(string_literals.begin(),
                             string_literals.end(),
@@ -109,7 +116,7 @@ namespace sanema {
             break;
           case OPCODE::OP_RESERVE_STACK_SPACE: {
             auto size = read_from_bytecode<std::uint64_t>(ip);
-            std::cout << "reserving space =" << size;
+            std::cout << "   space =" << size;
           }
             break;
           case OPCODE::OP_TRUE: {
@@ -131,12 +138,13 @@ namespace sanema {
             break;
           case OPCODE::OP_CALL_EXTERNAL_FUNCTION: {
             auto function_id = read_from_bytecode<std::uint64_t>(ip);
-            std::cout << "id:" << function_id;
           }
             break;
           case OPCODE::OP_CALL: {
             auto function_address = read_from_bytecode<std::uint64_t>(ip);
             std::cout << "function address: " << function_address;
+            auto parameter_size = read_from_bytecode<std::uint32_t>(ip);
+            std::cout << "  parameters size:" << parameter_size;
           }
             break;
           case OPCODE::OP_PREPARE_PARAMETER: {

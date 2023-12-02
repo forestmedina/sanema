@@ -15,12 +15,12 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
   running_byte_code = &byte_code;
   operand_stack_pointer=operand_stack;
   IPType ip = byte_code.code_data.data();
-  call_stack.emplace_back(stack_memory.data());
+  call_stack.emplace_back(operand_stack_pointer);
   auto end_address = byte_code.code_data.data() + byte_code.code_data.size();
   bool should_continue = true;
   for (;;) {
     // std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << " ; ";
-    auto opcode = static_cast<OPCODE>(*ip);
+    const auto opcode = static_cast<OPCODE>(*ip);
     // std::cout << "Executing opcode: " << opcode_to_string(opcode) << "\n";
     ++ip;
     switch (opcode) {
@@ -29,10 +29,9 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_RESERVE_STACK_SPACE: {
-        auto size = read_from_bytecode<std::uint64_t>(ip);
-        sanema::ContextFrame &context_frame = call_stack.back();
-//        std::cout << "reserving space =" << size;
-        context_frame.reserve(size);
+        auto const size = read_from_bytecode<std::uint64_t>(ip);
+        // std::cout << "reserving space =" << size;
+        operand_stack_pointer+=size;
       }
         break;
       case OPCODE::OP_TRUE: {
@@ -410,10 +409,16 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
         break;
       case OPCODE::OP_CALL: {
         auto function_address = read_from_bytecode<std::uint64_t>(ip);
+        auto parameters_size = read_from_bytecode<std::uint32_t>(ip);
         IPType new_ip = byte_code.code_data.data() + function_address;
+        // std::cout<<"parameters size: "<<parameters_size<<"\n";
+        // std::cout<<"offset 1: "<<get_operand_pointer_offset()<<"\n";
+        //
+        // std::cout<<"offset 2: "<<get_operand_pointer_offset()<<"\n";
         auto &last_call_stack = call_stack.back();
         last_call_stack.ip = ip;
-        call_stack.emplace_back(last_call_stack.get_end_address());
+        // std::cout<<"calling "<<operand_stack_pointer-operand_stack<<"\n";
+        call_stack.emplace_back(operand_stack_pointer-parameters_size);
         ip = new_ip;
 //        std::cout<<"calling function "<<function_address<<"\n";
       }
@@ -438,16 +443,23 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
         break;
       case OPCODE::OP_RETURN: {
         should_continue = call_stack.size() > 1;
+        auto value=pop<std::uint64_t>();
+        operand_stack_pointer=call_stack.back().get_begin_address();
+        push(value);
+        // std::cout<<"returning "<<value<<"\n";
         call_stack.pop_back();
         if (should_continue) {
           ip = call_stack.back().ip;
+
+
+
         }else{
           return;
         }
         break;
       }
       case OPCODE::OP_PUSH_LOCAL_ADDRESS_AS_GLOBAL: {
-        auto local_address = read_from_bytecode<std::uint64_t>(ip);
+        auto local_address = read_from_bytecode<std::int64_t>(ip);
         auto global_address = call_stack.back().get_begin_address() + local_address;
         push(address_t{global_address});
       }
@@ -467,7 +479,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
         auto global_address = pop<address_t>();
         auto variable_address = pop<address_t>();
         address_t new_local_address{
-          global_address.address - (int64_t) (context_frame.get_begin_address() - stack_memory.data())};
+          global_address.address - (int64_t) (context_frame.get_begin_address() - operand_stack)};
       }
         break;
       case OPCODE::OP_NIL:
@@ -496,6 +508,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
         break;
       case OPCODE::OP_METHOD:
         break;
+
     }
   }
 }
@@ -503,8 +516,8 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
 
 sanema::VM::VM(int memory_size_mb) : running_byte_code(nullptr) {
   auto megabytes_to_bytes = [](std::uint64_t size) { return (size * 1024) * 1024; };
-  stack_memory.reserve(megabytes_to_bytes(memory_size_mb));
   operand_stack=new unsigned char[megabytes_to_bytes(memory_size_mb)];
+  call_stack.reserve(1000);
 
 }
 

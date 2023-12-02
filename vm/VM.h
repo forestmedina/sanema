@@ -5,6 +5,8 @@
 #ifndef UPDATE_SKELETON_PY_VM_H
 #define UPDATE_SKELETON_PY_VM_H
 
+#include <format>
+
 #include "ByteCode.h"
 #include "ContextFrame.h"
 #include <string>
@@ -79,7 +81,6 @@ namespace sanema {
     unsigned char* operand_stack_pointer{nullptr};
 
     std::vector<std::string> string_stack;
-    std::vector<std::uint8_t> stack_memory;
 
 
     template<class type>
@@ -100,7 +101,7 @@ namespace sanema {
     inline void push_local(IPType&ip) {
       auto address = pop<address_t>();
       auto value = read_local<type>(address);
-      // std::cout<<"Pushing address: "<<(uint64_t)address.address<<" value:"<<value<<"\n";
+      // std::cout<<"Pushing local: "<<(uint64_t)address.address<<" value:"<<value<<"\n";
       push(value);
     }
 
@@ -129,7 +130,9 @@ namespace sanema {
       //      std::cout << "constant value " << value << "\n";
       push(value);
     }
-
+  inline std::uint32_t get_operand_pointer_offset() {
+      return (operand_stack_pointer-operand_stack);
+    }
     template<class type>
     inline void push(type t) {
       *reinterpret_cast<type *>(operand_stack_pointer) = t;
@@ -151,20 +154,25 @@ namespace sanema {
 
     template<typename type>
     inline void add() {
-      auto value2 = pop<type>();
-      auto value1 = pop<type>();
-      auto result = value1 + value2;
-      // std::cout<<"adding "<<value1<<" + " <<value2<<"\n";
-      push(result);
+      // operand_stack_pointer-=sizeof(type);
+      //   type* typed_pointer= reinterpret_cast<type*>(operand_stack_pointer);
+      // // std::cout<<"adding ptrs"<<*(typed_pointer-1)<<"+"<<*(typed_pointer)<<"\n";
+      // (*(typed_pointer-1))+=*(typed_pointer);
+      auto value2 =pop<type>();
+      auto value1 =pop<type>();
+      push(value1+value2);
+      //  std::cout<<"adding normal"<<value1<<"+"<<value2<<"\n";
     }
 
     template<typename type>
     inline void subtract() {
-      auto value2 = pop<type>();
-      auto value1 = pop<type>();
-      auto result = value1 - value2;
-      // std::cout<<value1<<" - "<<value2<<"\n";
-      push(result);
+      // operand_stack_pointer-=sizeof(type);
+      // type* typed_pointer= reinterpret_cast<type*>(operand_stack_pointer);
+      // (*(typed_pointer-1))-=*(typed_pointer);
+      auto value2 =pop<type>();
+      auto value1 =pop<type>();
+      push(value1-value2);
+      ;
     }
 
     template<typename type>
@@ -195,6 +203,7 @@ namespace sanema {
       auto value2 = pop<type>();
       auto value1 = pop<type>();
       bool result = value1 < value2;
+      // std::cout<<std::format(" less : {} < {} ",value1,value2);
       push(result);
     }
 

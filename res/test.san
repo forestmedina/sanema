@@ -7,5 +7,6 @@ function fib int64
         end
     };
 
- print fib (35);
+
+ fib (35);
 

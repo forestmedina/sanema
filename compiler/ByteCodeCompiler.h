@@ -19,7 +19,7 @@ namespace sanema {
   public:
     struct VariableEntry {
       std::variant<DeclareVariable, FunctionParameter> declaration;
-      address_t address;
+      std::int64_t address;
     };
 
     struct Scope {
@@ -34,6 +34,7 @@ namespace sanema {
     struct FuctionCallSustitution {
       std::vector<std::uint64_t> caller_addresses;// The address where the functionn is called
       std::uint64_t function_code_addres;// Address poiting to the function body
+      std::uint32_t parameters_size{5};// Address poiting to the function body
       FunctionID function_id;
     };
     std::vector<FuctionCallSustitution> function_call_sustitutions{};
@@ -48,7 +49,7 @@ namespace sanema {
     };
 
     void process(BlockOfCode &block_of_code, FunctionCollection &built_in_functions,TypeCollection& external_types) override;
-    void generate_block(BlockOfCode &block_of_code, FunctionCollection &built_in_functions,TypeCollection& external_types) ;
+    std::uint32_t generate_block(BlockOfCode &block_of_code, FunctionCollection &built_in_functions,TypeCollection& external_types) ;
 
     GeneratorsMap function_bytecode_generators;
 
