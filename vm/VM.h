@@ -54,7 +54,7 @@ namespace sanema {
     template<class T>
     std::optional<T> get_value_stack() {
       if (operand_stack_pointer == nullptr) return {};
-      return pop<T>();
+      return (*(T *)operand_stack_pointer);
     }
 
     void prepare_function_parameters(std::uint32_t n);
@@ -99,10 +99,11 @@ namespace sanema {
 
     template<class type>
     inline void push_local(IPType&ip) {
-      auto address = pop<address_t>();
-      auto value = read_local<type>(address);
-      // std::cout<<"Pushing local: "<<(uint64_t)address.address<<" value:"<<value<<"\n";
-      push(value);
+      auto destiny_address = read_from_bytecode<std::uint64_t>(ip);
+      auto source_address = read_from_bytecode<std::uint64_t>(ip);
+      //std::cout<<"Pushing local: "<<(uint64_t )(source_address)<<" value:"<<*((type*)(operand_stack_pointer+source_address))<< " TO "<<destiny_address<<"\n";
+      *((type*)(operand_stack_pointer+destiny_address))= *((type*)(operand_stack_pointer+source_address));
+
     }
 
     template<class type>
@@ -117,7 +118,7 @@ namespace sanema {
       sanema::ContextFrame&context_frame = call_stack.back();
       auto value = pop<type>();
       auto address2 = pop<address_t>();
-      //      std::cout << "Setting local value=" << value << " address=" << address2 << "\n";
+      //      //std::cout << "Setting local value=" << value << " address=" << address2 << "\n";
       //      context_frame.write<type>(address2,
       //                                value);
       *((type *)address2.address) = value;
@@ -126,9 +127,10 @@ namespace sanema {
 
     template<class type>
     void push_const(IPType&ip) {
+      auto address = read_from_bytecode<std::uint64_t >(ip);
       auto value = read_from_bytecode<type>(ip);
-      //      std::cout << "constant value " << value << "\n";
-      push(value);
+      //std::cout<<"Pushing const: "<<value<<" To address: "<<address<<"\n";
+      *((type*)(operand_stack_pointer+address))= value;
     }
   inline std::uint32_t get_operand_pointer_offset() {
       return (operand_stack_pointer-operand_stack);
@@ -153,26 +155,32 @@ namespace sanema {
     }
 
     template<typename type>
-    inline void add() {
+    inline void add(IPType& ip) {
       // operand_stack_pointer-=sizeof(type);
       //   type* typed_pointer= reinterpret_cast<type*>(operand_stack_pointer);
-      // // std::cout<<"adding ptrs"<<*(typed_pointer-1)<<"+"<<*(typed_pointer)<<"\n";
+      // // //std::cout<<"adding ptrs"<<*(typed_pointer-1)<<"+"<<*(typed_pointer)<<"\n";
       // (*(typed_pointer-1))+=*(typed_pointer);
-      auto value2 =pop<type>();
-      auto value1 =pop<type>();
-      push(value1+value2);
-      //  std::cout<<"adding normal"<<value1<<"+"<<value2<<"\n";
+      auto address_result= read_from_bytecode<std::uint64_t >(ip);
+      auto address1= read_from_bytecode<std::uint64_t>(ip);
+      auto address2= read_from_bytecode<std::uint64_t>(ip);
+      //std::cout<<"adding  address_result: "<<address_result<<" address1: "<< address1<<" address2: "<<address2<<"\n";
+      *((type*)(operand_stack_pointer+address_result))= *((type*)(operand_stack_pointer+address1))+*((type*)(operand_stack_pointer+address2));
+     //std::cout<<*((type*)(operand_stack_pointer+address1))<<"+"<<*((type*)(operand_stack_pointer+address2))<<" = "<<*((type*)(operand_stack_pointer+address_result))<<"\n";
+      //  //std::cout<<"adding normal"<<value1<<"+"<<value2<<"\n";
     }
 
     template<typename type>
-    inline void subtract() {
+    inline void subtract(IPType& ip) {
       // operand_stack_pointer-=sizeof(type);
       // type* typed_pointer= reinterpret_cast<type*>(operand_stack_pointer);
       // (*(typed_pointer-1))-=*(typed_pointer);
-      auto value2 =pop<type>();
-      auto value1 =pop<type>();
-      push(value1-value2);
-      ;
+      auto address_result= read_from_bytecode<std::uint64_t >(ip);
+      auto address1= read_from_bytecode<std::uint64_t>(ip);
+      auto address2= read_from_bytecode<std::uint64_t>(ip);
+      *((type*)(operand_stack_pointer+address_result))= *((type*)(operand_stack_pointer+address1))-*((type*)(operand_stack_pointer+address2));
+      *((type*)(operand_stack_pointer+address_result))= *((type*)(operand_stack_pointer+address1))-*((type*)(operand_stack_pointer+address2));
+      //std::cout<<*((type*)(operand_stack_pointer+address1))<<"-"<<*((type*)(operand_stack_pointer+address2))<<" = "<<*((type*)(operand_stack_pointer+address_result))<<"\n";
+
     }
 
     template<typename type>
@@ -199,12 +207,14 @@ namespace sanema {
     }
 
     template<typename type>
-    inline void less() {
-      auto value2 = pop<type>();
-      auto value1 = pop<type>();
-      bool result = value1 < value2;
-      // std::cout<<std::format(" less : {} < {} ",value1,value2);
-      push(result);
+    inline void less(IPType& ip) {
+       auto address_result= read_from_bytecode<std::uint64_t >(ip);
+      auto address1= read_from_bytecode<std::uint64_t>(ip);
+      auto address2= read_from_bytecode<std::uint64_t>(ip);
+       *((bool*)(operand_stack_pointer+address_result))= *((type*)(operand_stack_pointer+address1))<*((type*)(operand_stack_pointer+address2));
+       //std::cout<<"less: ";
+       //std::cout<<" address1: "<<address1<<"; address2:"<<address2<<"\n";
+       //std::cout<<*((type*)(operand_stack_pointer+address1))<<"<"<<*((type*)(operand_stack_pointer+address2))<<"\n";
     }
 
     template<typename type>

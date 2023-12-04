@@ -8,15 +8,15 @@
 #include <optional>
 #include <parsing/SanemaParser.hpp>
 namespace sanema{
-  void generate_add(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition);
-  void generate_equal(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition);
-  void generate_less(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition);
-  void generate_greater(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition);
-  void generate_multiply(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition);
+  void generate_add(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,std::vector<sanema::address_t> addresses,address_t return_address);
+  void generate_equal(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,std::vector<sanema::address_t> addresses,address_t return_address);
+  void generate_less(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,std::vector<sanema::address_t> addresses,address_t return_address);
+  void generate_greater(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,std::vector<sanema::address_t> addresses,address_t return_address);
+  void generate_multiply(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,std::vector<sanema::address_t> addresses,address_t return_address);
 
 
 
-  void generate_divide(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition);
-  void generate_subtract(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition);
+  void generate_divide(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,std::vector<sanema::address_t> addresses,address_t return_address);
+  void generate_subtract(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,std::vector<sanema::address_t> addresses,address_t return_address);
 }
 #endif //SANEMA_GENERATORS_H

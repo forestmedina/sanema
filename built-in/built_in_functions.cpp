@@ -20,6 +20,7 @@ void add_built_in_arithmetic_functions(sanema::FunctionCollection &functions) {
             sanema::FunctionParameter{"b", sanema::FunctionParameter::Modifier::VALUE, type}
           },
         };
+      function_operation.is_operator=true;
        functions.add_function(function_operation);
 
     }
@@ -35,6 +36,7 @@ void add_built_in_arithmetic_functions(sanema::FunctionCollection &functions) {
             sanema::FunctionParameter{"b", sanema::FunctionParameter::Modifier::VALUE, type}
           },
         };
+    function_set.is_operator=true;
     functions.add_function(function_set);
   }
 
@@ -54,6 +56,7 @@ void add_built_in_boolean_functions(sanema::FunctionCollection &functions) {
             sanema::FunctionParameter{"b", sanema::FunctionParameter::Modifier::VALUE, type}
           },
         };
+      function_operation.is_operator=true;
        functions.add_function(function_operation);
 
     }
@@ -82,6 +85,7 @@ void add_built_in_return(sanema::FunctionCollection &functions,sanema::BindingCo
             sanema::FunctionParameter{"a", sanema::FunctionParameter::Modifier::VALUE, type}
           },
         };
+       function_operation.is_operator=true;
        functions.add_function(function_operation);
 
     }

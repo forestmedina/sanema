@@ -19,9 +19,9 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
   auto end_address = byte_code.code_data.data() + byte_code.code_data.size();
   bool should_continue = true;
   for (;;) {
-    // std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << " ; ";
+     //std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << " ; ";
     const auto opcode = static_cast<OPCODE>(*ip);
-    // std::cout << "Executing opcode: " << opcode_to_string(opcode) << "\n";
+     //std::cout << "Executing opcode: " << opcode_to_string(opcode) << "\n";
     ++ip;
     switch (opcode) {
       case OPCODE::OP_POP: {
@@ -30,7 +30,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
         break;
       case OPCODE::OP_RESERVE_STACK_SPACE: {
         auto const size = read_from_bytecode<std::uint64_t>(ip);
-        // std::cout << "reserving space =" << size;
+        // //std::cout << "reserving space =" << size;
         operand_stack_pointer+=size;
       }
         break;
@@ -44,7 +44,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
         break;
 
       case OPCODE::OP_ADD_SINT64: {
-        add<std::int64_t>();
+        add<std::int64_t>(ip);
       }
         break;
       case OPCODE::OP_MULTIPLY_SINT64: {
@@ -56,7 +56,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_SUBTRACT_SINT64: {
-        subtract<std::int64_t>();
+        subtract<std::int64_t>(ip);
       }
         break;
       case OPCODE::OP_NEGATE_SINT64: {
@@ -68,7 +68,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_LESS_SINT64: {
-        less<std::int64_t>();
+        less<std::int64_t>(ip);
       }
         break;
       case OPCODE::OP_GREATER_EQUAL_SINT64: {
@@ -100,7 +100,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_ADD_SINT32: {
-        add<std::int32_t>();
+        add<std::int32_t>(ip);
       }
         break;
       case OPCODE::OP_MULTIPLY_SINT32: {
@@ -112,7 +112,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_SUBTRACT_SINT32: {
-        subtract<std::int32_t>();
+        subtract<std::int32_t>(ip);
       }
         break;
       case OPCODE::OP_NEGATE_SINT32: {
@@ -124,7 +124,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_LESS_SINT32: {
-        less<std::int32_t>();
+        less<std::int32_t>(ip);
       }
         break;
       case OPCODE::OP_GREATER_EQUAL_SINT32: {
@@ -156,7 +156,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_ADD_SINT16: {
-        add<std::int16_t>();
+        add<std::int16_t>(ip);
       }
         break;
       case OPCODE::OP_MULTIPLY_SINT16: {
@@ -168,7 +168,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_SUBTRACT_SINT16: {
-        subtract<std::int16_t>();
+        subtract<std::int16_t>(ip);
       }
         break;
       case OPCODE::OP_NEGATE_SINT16: {
@@ -180,7 +180,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_LESS_SINT16: {
-        less<std::int16_t>();
+        less<std::int16_t>(ip);
       }
         break;
       case OPCODE::OP_GREATER_EQUAL_SINT16: {
@@ -212,7 +212,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_ADD_SINT8: {
-        add<std::int8_t>();
+        add<std::int8_t>(ip);
       }
         break;
       case OPCODE::OP_MULTIPLY_SINT8: {
@@ -224,7 +224,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_SUBTRACT_SINT8: {
-        subtract<std::int8_t>();
+        subtract<std::int8_t>(ip);
       }
         break;
       case OPCODE::OP_NEGATE_SINT8: {
@@ -236,7 +236,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_LESS_SINT8: {
-        less<std::int8_t>();
+        less<std::int8_t>(ip);
       }
         break;
       case OPCODE::OP_GREATER_EQUAL_SINT8: {
@@ -268,7 +268,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_ADD_FLOAT: {
-        add<float>();
+        add<float>(ip);
       }
         break;
       case OPCODE::OP_MULTIPLY_FLOAT: {
@@ -280,7 +280,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_SUBTRACT_FLOAT: {
-        subtract<float>();
+        subtract<float>(ip);
       }
         break;
       case OPCODE::OP_NEGATE_FLOAT: {
@@ -292,7 +292,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_LESS_FLOAT: {
-        less<float>();
+        less<float>(ip);
       }
         break;
       case OPCODE::OP_GREATER_EQUAL_FLOAT: {
@@ -324,7 +324,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_ADD_DOUBLE: {
-        add<double>();
+        add<double>(ip);
       }
         break;
       case OPCODE::OP_MULTIPLY_DOUBLE: {
@@ -336,7 +336,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_SUBTRACT_DOUBLE: {
-        subtract<double>();
+        subtract<double>(ip);
       }
         break;
       case OPCODE::OP_NEGATE_DOUBLE: {
@@ -348,7 +348,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_LESS_DOUBLE: {
-        less<double>();
+        less<double>(ip);
       }
         break;
       case OPCODE::OP_GREATER_EQUAL_DOUBLE: {
@@ -411,47 +411,45 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
         auto function_address = read_from_bytecode<std::uint64_t>(ip);
         auto parameters_size = read_from_bytecode<std::uint32_t>(ip);
         IPType new_ip = byte_code.code_data.data() + function_address;
-        // std::cout<<"parameters size: "<<parameters_size<<"\n";
-        // std::cout<<"offset 1: "<<get_operand_pointer_offset()<<"\n";
-        //
-        // std::cout<<"offset 2: "<<get_operand_pointer_offset()<<"\n";
+         //std::cout<<"parameters size: "<<parameters_size<<"\n";
+         //std::cout<<"offset 1: "<<get_operand_pointer_offset()<<"\n";
+        operand_stack_pointer+=parameters_size;
+         //std::cout<<"offset 2: "<<get_operand_pointer_offset()<<"\n";
         auto &last_call_stack = call_stack.back();
         last_call_stack.ip = ip;
-        // std::cout<<"calling "<<operand_stack_pointer-operand_stack<<"\n";
-        call_stack.emplace_back(operand_stack_pointer-parameters_size);
-        ip = new_ip;
-//        std::cout<<"calling function "<<function_address<<"\n";
-      }
-        break;
-      case OPCODE::OP_PREPARE_PARAMETER: {
-        auto address = read_from_bytecode<std::uint64_t>(ip);
-        std::uint8_t *global_address = call_stack.back().get_begin_address() + address;
-        auto value=pop<OperandType>();
-        push<address_t>(address_t{global_address});
-        push<OperandType>(value);
+        // //std::cout<<"calling "<<operand_stack_pointer-operand_stack<<"\n";
 
+        call_stack.emplace_back(operand_stack_pointer);
+        ip = new_ip;
+//        //std::cout<<"calling function "<<function_address<<"\n";
       }
         break;
+
       case OPCODE::OP_JUMP_IF_FALSE: {
         auto offset = read_from_bytecode<std::uint64_t>(ip);
-//        std::cout<<"offset: "<<offset<<"\n";
-        auto value = pop<bool>();
+        auto address_value= read_from_bytecode<std::uint64_t>(ip);
+//        //std::cout<<"offset: "<<offset<<"\n";
+        auto value = *((bool*)(operand_stack_pointer+address_value));
+        //std::cout<<(value?"true":"false")<<" ";
         if (!value) {
+          //std::cout<<"JUMPING\n";
           ip += offset;
         }
       }
         break;
       case OPCODE::OP_RETURN: {
         should_continue = call_stack.size() > 1;
-        auto value=pop<std::uint64_t>();
-        operand_stack_pointer=call_stack.back().get_begin_address();
-        push(value);
-        // std::cout<<"returning "<<value<<"\n";
+
+
+        // //std::cout<<"returning "<<value<<"\n";
         call_stack.pop_back();
         if (should_continue) {
           ip = call_stack.back().ip;
 
+          //std::cout<<"offset 1: "<<get_operand_pointer_offset()<<"\n";
 
+          operand_stack_pointer=call_stack.back().get_begin_address();
+           //std::cout<<"offset 2: "<<get_operand_pointer_offset()<<"\n";
 
         }else{
           return;
@@ -491,23 +489,6 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       case OPCODE::OP_SET_LOCAL_BOOL:
         break;
       case OPCODE::OP_NOT:
-        break;
-      case OPCODE::OP_PRINT:
-        break;
-      case OPCODE::OP_INVOKE:
-        break;
-      case OPCODE::OP_SUPER_INVOKE:
-        break;
-      case OPCODE::OP_CLOSURE:
-        break;
-      case OPCODE::OP_CLOSE_UPVALUE:
-        break;
-      case OPCODE::OP_CLASS:
-        break;
-      case OPCODE::OP_INHERIT:
-        break;
-      case OPCODE::OP_METHOD:
-        break;
 
     }
   }

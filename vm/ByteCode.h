@@ -13,6 +13,7 @@
 #include <string>
 #include <types.h>
 #include <vm/OperandType.h>
+#include <vm/OperandType.h>
 
 namespace sanema {
   using BYTECodeIPType = std::uint8_t const *;
@@ -60,7 +61,7 @@ namespace sanema {
   std::uint64_t write_to_byte_code(std::vector<std::uint8_t> &code_data, OPCODE const &t);
 
   struct ByteCode {
-    std::vector<std::uint8_t> code_data;
+    std::vector<VMIn> code_data;
     std::vector<std::string> string_literals;
 
     ByteCode() = default;

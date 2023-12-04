@@ -76,7 +76,10 @@ add_library(sanema
         vm/OperandType.h
         common/TypeCollection.cpp
         common/TypeCollection.h
-        common/TypeCollection.h)
+        common/TypeCollection.h
+        vm/VMInstruction.cpp
+        vm/VMInstruction.h
+        vm/VMInstruction.h)
 
 target_include_directories(sanema PUBLIC  "./")
 

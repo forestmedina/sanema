@@ -3,7 +3,10 @@
 //
 #include "generators.h"
 #include <util/lambda_visitor.hpp>
-void sanema::generate_equal(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition) {
+
+void
+sanema::generate_equal(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
+                       std::vector<sanema::address_t> addresses, address_t return_address) {
   OPCODE opcode = match(function_definition->parameters[0].type.value(),
                         [](sanema::Integer const &integer) {
                           switch (integer.size) {
@@ -29,9 +32,14 @@ void sanema::generate_equal(sanema::ByteCode &byte_code, std::optional<sanema::D
                           return OPCODE::OP_EQUAL_SINT64;
                         });
   byte_code.write(opcode);
+  byte_code.write(return_address);
+  byte_code.write(addresses[0]);
+  byte_code.write(addresses[1]);
 }
 
-void sanema::generate_less(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition) {
+void
+sanema::generate_less(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
+                      std::vector<sanema::address_t> addresses, address_t return_address) {
   OPCODE opcode = match(function_definition->parameters[0].type.value(),
                         [](sanema::Integer const &integer) {
                           switch (integer.size) {
@@ -57,8 +65,14 @@ void sanema::generate_less(sanema::ByteCode &byte_code, std::optional<sanema::De
                           return OPCODE::OP_LESS_SINT64;
                         });
   byte_code.write(opcode);
+  byte_code.write(return_address);
+  byte_code.write(addresses[0]);
+  byte_code.write(addresses[1]);
 }
-void sanema::generate_greater(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition) {
+
+void
+sanema::generate_greater(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
+                         std::vector<sanema::address_t> addresses, address_t return_address) {
   OPCODE opcode = match(function_definition->parameters[0].type.value(),
                         [](sanema::Integer const &integer) {
                           switch (integer.size) {
@@ -84,8 +98,13 @@ void sanema::generate_greater(sanema::ByteCode &byte_code, std::optional<sanema:
                           return OPCODE::OP_GREATER_SINT64;
                         });
   byte_code.write(opcode);
+  byte_code.write(return_address);
+  byte_code.write(addresses[0]);
+  byte_code.write(addresses[1]);
 }
-void sanema::generate_add(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition) {
+
+void sanema::generate_add(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
+                          std::vector<sanema::address_t> addresses, address_t return_address) {
   OPCODE opcode = match(function_definition.value().type,
                         [](sanema::Integer const &integer) {
                           switch (integer.size) {
@@ -111,8 +130,14 @@ void sanema::generate_add(sanema::ByteCode &byte_code, std::optional<sanema::Def
                           return OPCODE::OP_ADD_SINT64;
                         });
   byte_code.write(opcode);
+  byte_code.write(return_address);
+  byte_code.write(addresses[0]);
+  byte_code.write(addresses[1]);
 }
-void sanema::generate_subtract(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition) {
+
+void
+sanema::generate_subtract(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
+                          std::vector<sanema::address_t> addresses, address_t return_address) {
   OPCODE opcode = match(function_definition.value().type,
                         [](sanema::Integer const &integer) {
                           switch (integer.size) {
@@ -138,8 +163,14 @@ void sanema::generate_subtract(sanema::ByteCode &byte_code, std::optional<sanema
                           return OPCODE::OP_SUBTRACT_SINT64;
                         });
   byte_code.write(opcode);
+  byte_code.write(return_address);
+  byte_code.write(addresses[0]);
+  byte_code.write(addresses[1]);
 }
-void sanema::generate_multiply(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition) {
+
+void
+sanema::generate_multiply(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
+                          std::vector<sanema::address_t> addresses, address_t return_address) {
   OPCODE opcode = match(function_definition.value().type,
                         [](sanema::Integer const &integer) {
                           switch (integer.size) {
@@ -165,8 +196,14 @@ void sanema::generate_multiply(sanema::ByteCode &byte_code, std::optional<sanema
                           return OPCODE::OP_MULTIPLY_SINT64;
                         });
   byte_code.write(opcode);
+  byte_code.write(return_address);
+  byte_code.write(addresses[0]);
+  byte_code.write(addresses[1]);
 }
-void sanema::generate_divide(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition) {
+
+void
+sanema::generate_divide(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
+                        std::vector<sanema::address_t> addresses, address_t return_address) {
   OPCODE opcode = match(function_definition.value().type,
                         [](sanema::Integer const &integer) {
                           switch (integer.size) {
@@ -192,4 +229,7 @@ void sanema::generate_divide(sanema::ByteCode &byte_code, std::optional<sanema::
                           return OPCODE::OP_DIVIDE_SINT64;
                         });
   byte_code.write(opcode);
+  byte_code.write(return_address);
+  byte_code.write(addresses[0]);
+  byte_code.write(addresses[1]);
 }

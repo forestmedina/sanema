@@ -24,8 +24,6 @@ namespace sanema {
   };
 
 
-
-
   struct VariableEvaluation {
     std::string identifier;
   };
@@ -44,7 +42,6 @@ namespace sanema {
   };
 
 
-
   struct DeclareVariable {
     DeclareVariable();
 
@@ -57,6 +54,7 @@ namespace sanema {
       COMPLETE
     } state{DeclareVariableState::IDENTIFIER};
   };
+
   struct BlockInstruction;
   struct BlockOfCode {
     std::vector<BlockInstruction> instructions;
@@ -71,14 +69,16 @@ namespace sanema {
       FALSE_PATH
     } state{IfStatementState::EXPRESSION};
   };
-   struct DefineFunction {
+
+  struct DefineFunction {
     std::string identifier;
     CompleteType type;
     BlockOfCode body;
     std::vector<FunctionParameter> parameters;
-   std::uint64_t address{0};
-     std::uint64_t id;
-   std::optional<std::uint64_t> external_id{};
+    std::uint64_t address{0};
+    std::uint64_t id;
+    std::optional<std::uint64_t> external_id{};
+    bool is_operator{false};
     enum FunctionCallState {
       IDENTIFIER,
       FUNCTION_TYPE,
@@ -87,13 +87,16 @@ namespace sanema {
       PARAMETER_IDENTIFIER,
       FUNCTION_BODY
     } state{IDENTIFIER};
-    bool is_compatible(DefineFunction& other);
 
-     bool operator==(const DefineFunction &rhs) const;
+    bool is_compatible(DefineFunction &other);
 
-     bool operator!=(const DefineFunction &rhs) const;
-   };
-  using Instruction = std::variant<DefineStruct, DeclareVariable, DefineFunction, FunctionCall,BlockOfCode,IfStatement>;
+    bool operator==(const DefineFunction &rhs) const;
+
+    bool operator!=(const DefineFunction &rhs) const;
+  };
+
+  using Instruction = std::variant<DefineStruct, DeclareVariable, DefineFunction, FunctionCall, BlockOfCode, IfStatement>;
+
   struct BlockInstruction {
     explicit BlockInstruction(const Instruction &instruction_sum);
 
