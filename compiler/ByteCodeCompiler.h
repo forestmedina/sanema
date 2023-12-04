@@ -26,7 +26,7 @@ namespace sanema {
       std::unordered_map<std::string, VariableEntry> local_variables;
       FunctionCollection function_collection;
      TypeCollection types{};
-      address_t scope_address{0};
+      local_register_t scope_address{0};
 
       void reserve_space_for_type(CompleteType const &type);
     };
@@ -43,7 +43,7 @@ namespace sanema {
     ByteCode byte_code;
     struct GeneratorsMap;
     using GeneratorFunction = void(ByteCode &byte_code,
-                                   std::optional<sanema::DefineFunction> const &function_definition);
+                                   std::optional<sanema::DefineFunction> const &function_definition, std::vector<sanema::local_register_t>, local_register_t);
     struct GeneratorsMap {
       std::unordered_map<std::string, GeneratorFunction *> map;
     };

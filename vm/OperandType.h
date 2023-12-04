@@ -11,12 +11,13 @@
 
 namespace sanema {
 
-  struct address_t {
-    address_t();
+  struct local_register_t {
+    local_register_t()=default;
 
-    explicit address_t(uint8_t*  address);
+    explicit local_register_t(std::uint16_t  address);
 
-    uint8_t* address{0};
+    std::uint16_t address{0};
+    bool is_reference{0};
   };
 
   union OperandType {
@@ -31,7 +32,7 @@ namespace sanema {
     std::int16_t sint16_v;
     std::int32_t sint32_v;
     std::int64_t sint64_v;
-    address_t address;
+    local_register_t address;
     float float_v;
     double double_v;
     sanema::StringReference string_reference;
@@ -52,7 +53,7 @@ namespace sanema {
 
     explicit inline OperandType(std::int64_t value) : sint64_v(value) {}
 
-    explicit inline OperandType(address_t value) : address(value) {}
+    explicit inline OperandType(local_register_t value) : address(value) {}
 
     explicit inline OperandType(float value) : float_v(value) {}
 
@@ -74,7 +75,7 @@ namespace sanema {
     // Conversion operator for uint64_t
     explicit  inline operator std::uint64_t() const { return uint64_v; }
 
-    explicit inline  operator address_t() const { return address; }
+    explicit inline  operator local_register_t() const { return address; }
 
     // Conversion operator for int8_t
     explicit inline  operator std::int8_t() const { return boost::numeric_cast<std::int8_t>(sint64_v); }

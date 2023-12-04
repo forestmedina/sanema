@@ -4,15 +4,30 @@
 
 #ifndef SANEMA_VMINSTRUCTION_H
 #define SANEMA_VMINSTRUCTION_H
+
 #include "opcodes.h"
-namespace  sanema {
+#include <cstdint>
+
+namespace sanema {
+
+  struct Registers16 {
+    std::uint16_t r1;
+    std::uint16_t r2;
+  };
+  struct Register32 {
+    std::uint32_t r1;
+  };
   struct VMInstruction {
-      std::uint8_t opcode;
-      bool is_global_address2:1;
-      bool is_global_address3:1;
-      std::uint16_t  address1;
-      std::uint16_t  address2;
-      std::uint16_t  address3;
+    VMInstruction();
+
+    OPCODE opcode;
+    bool is_r1_reference: 1 ;
+    bool is_r2_reference: 1;
+    std::uint16_t r_result;
+    union {
+      Registers16 registers16;
+      Register32 register32;
+    };
   };
 }
 

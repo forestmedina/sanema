@@ -4,8 +4,8 @@
 
 #include "OperandType.h"
 
-sanema::address_t::address_t(uint8_t* address) : address(address) {}
+sanema::local_register_t::local_register_t(std::uint16_t address) : address(address) {}
 
-sanema::address_t::address_t() {}
+
 
 sanema::OperandType::OperandType():sint64_v{0} {}

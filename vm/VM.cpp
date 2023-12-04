@@ -13,411 +13,400 @@
 
 void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_collection) {
   running_byte_code = &byte_code;
-  operand_stack_pointer=operand_stack;
+  operand_stack_pointer = operand_stack;
   IPType ip = byte_code.code_data.data();
   call_stack.emplace_back(operand_stack_pointer);
   auto end_address = byte_code.code_data.data() + byte_code.code_data.size();
   bool should_continue = true;
   for (;;) {
-     //std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << " ; ";
-    const auto opcode = static_cast<OPCODE>(*ip);
-     //std::cout << "Executing opcode: " << opcode_to_string(opcode) << "\n";
+//    std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << " ; ";
+    IPType instruction = ip;
+
+//    std::cout << "Executing opcode: " << opcode_to_string(instruction->opcode) << "\n";
     ++ip;
-    switch (opcode) {
-      case OPCODE::OP_POP: {
-        pop<uint64_t>();
-      }
-        break;
+    switch (instruction->opcode) {
       case OPCODE::OP_RESERVE_STACK_SPACE: {
-        auto const size = read_from_bytecode<std::uint64_t>(ip);
-        // //std::cout << "reserving space =" << size;
-        operand_stack_pointer+=size;
+        //   TODO we may need to implement this, so we can check that the stack does not growth out of bound
+
       }
         break;
       case OPCODE::OP_TRUE: {
-        push<bool>(true);
       }
         break;
       case OPCODE::OP_FALSE: {
-        push<bool>(false);
       }
         break;
 
       case OPCODE::OP_ADD_SINT64: {
-        add<std::int64_t>(ip);
+        add<std::int64_t>(instruction);
       }
         break;
       case OPCODE::OP_MULTIPLY_SINT64: {
-        multiply<std::int64_t>();
+        multiply<std::int64_t>(instruction);
       }
         break;
       case OPCODE::OP_DIVIDE_SINT64: {
-        divide<std::int64_t>();
+        divide<std::int64_t>(instruction);
       }
         break;
       case OPCODE::OP_SUBTRACT_SINT64: {
-        subtract<std::int64_t>(ip);
+        subtract<std::int64_t>(instruction);
       }
         break;
       case OPCODE::OP_NEGATE_SINT64: {
-        negate<std::int64_t>();
+        negate<std::int64_t>(instruction);
       }
         break;
       case OPCODE::OP_GREATER_SINT64: {
-        greater<std::int64_t>();
+        greater<std::int64_t>(instruction);
       }
         break;
       case OPCODE::OP_LESS_SINT64: {
-        less<std::int64_t>(ip);
+        less<std::int64_t>(instruction);
       }
         break;
       case OPCODE::OP_GREATER_EQUAL_SINT64: {
-        greater_equal<std::int64_t>();
+        greater_equal<std::int64_t>(instruction);
       }
         break;
       case OPCODE::OP_LESS_EQUAL_SINT64: {
-        less_equal<std::int64_t>();
+        less_equal<std::int64_t>(instruction);
       }
         break;
       case OPCODE::OP_EQUAL_SINT64: {
-        equal<std::int64_t>();
+        equal<std::int64_t>(instruction);
       }
         break;
       case OPCODE::OP_PUSH_LOCAL_SINT64: {
-        push_local<std::int64_t>(ip);
+        push_local<std::int64_t>(instruction);
       }
         break;
       case OPCODE::OP_SET_EXTERNAL_SINT64: {
-        pop_to_local<std::int64_t>(ip);
+
       }
         break;
       case OPCODE::OP_SET_LOCAL_SINT64: {
-        set_local<std::int64_t>(ip);
+        set_local<std::int64_t>(instruction);
       }
         break;
       case OPCODE::OP_PUSH_SINT64_CONST: {
-        push_const<std::int64_t>(ip);
+        push_const<std::int64_t>(instruction,byte_code.const_pool.data());
       }
         break;
       case OPCODE::OP_ADD_SINT32: {
-        add<std::int32_t>(ip);
+        add<std::int32_t>(instruction);
       }
         break;
       case OPCODE::OP_MULTIPLY_SINT32: {
-        multiply<std::int32_t>();
+        multiply<std::int32_t>(instruction);
       }
         break;
       case OPCODE::OP_DIVIDE_SINT32: {
-        divide<std::int32_t>();
+        divide<std::int32_t>(instruction);
       }
         break;
       case OPCODE::OP_SUBTRACT_SINT32: {
-        subtract<std::int32_t>(ip);
+        subtract<std::int32_t>(instruction);
       }
         break;
       case OPCODE::OP_NEGATE_SINT32: {
-        negate<std::int32_t>();
+        negate<std::int32_t>(instruction);
       }
         break;
       case OPCODE::OP_GREATER_SINT32: {
-        greater<std::int32_t>();
+        greater<std::int32_t>(instruction);
       }
         break;
       case OPCODE::OP_LESS_SINT32: {
-        less<std::int32_t>(ip);
+        less<std::int32_t>(instruction);
       }
         break;
       case OPCODE::OP_GREATER_EQUAL_SINT32: {
-        greater_equal<std::int32_t>();
+        greater_equal<std::int32_t>(instruction);
       }
         break;
       case OPCODE::OP_LESS_EQUAL_SINT32: {
-        less_equal<std::int32_t>();
+        less_equal<std::int32_t>(instruction);
       }
         break;
       case OPCODE::OP_EQUAL_SINT32: {
-        equal<std::int32_t>();
+        equal<std::int32_t>(instruction);
       }
         break;
       case OPCODE::OP_PUSH_LOCAL_SINT32: {
-        push_local<std::int32_t>(ip);
+        push_local<std::int32_t>(instruction);
       }
         break;
       case OPCODE::OP_SET_EXTERNAL_SINT32: {
-        pop_to_local<std::int32_t>(ip);
+
       }
         break;
       case OPCODE::OP_SET_LOCAL_SINT32: {
-        set_local<std::int32_t>(ip);
+        set_local<std::int32_t>(instruction);
       }
         break;
       case OPCODE::OP_PUSH_SINT32_CONST: {
-        push_const<std::int32_t>(ip);
+        push_const<std::int32_t>(instruction,byte_code.const_pool.data());
       }
         break;
       case OPCODE::OP_ADD_SINT16: {
-        add<std::int16_t>(ip);
+        add<std::int16_t>(instruction);
       }
         break;
       case OPCODE::OP_MULTIPLY_SINT16: {
-        multiply<std::int16_t>();
+        multiply<std::int16_t>(instruction);
       }
         break;
       case OPCODE::OP_DIVIDE_SINT16: {
-        divide<std::int16_t>();
+        divide<std::int16_t>(instruction);
       }
         break;
       case OPCODE::OP_SUBTRACT_SINT16: {
-        subtract<std::int16_t>(ip);
+        subtract<std::int16_t>(instruction);
       }
         break;
       case OPCODE::OP_NEGATE_SINT16: {
-        negate<std::int16_t>();
+        negate<std::int16_t>(instruction);
       }
         break;
       case OPCODE::OP_GREATER_SINT16: {
-        greater<std::int16_t>();
+        greater<std::int16_t>(instruction);
       }
         break;
       case OPCODE::OP_LESS_SINT16: {
-        less<std::int16_t>(ip);
+        less<std::int16_t>(instruction);
       }
         break;
       case OPCODE::OP_GREATER_EQUAL_SINT16: {
-        greater_equal<std::int16_t>();
+        greater_equal<std::int16_t>(instruction);
       }
         break;
       case OPCODE::OP_LESS_EQUAL_SINT16: {
-        less_equal<std::int16_t>();
+        less_equal<std::int16_t>(instruction);
       }
         break;
       case OPCODE::OP_EQUAL_SINT16: {
-        equal<std::int16_t>();
+        equal<std::int16_t>(instruction);
       }
         break;
       case OPCODE::OP_PUSH_LOCAL_SINT16: {
-        push_local<std::int16_t>(ip);
+        push_local<std::int16_t>(instruction);
       }
         break;
       case OPCODE::OP_SET_EXTERNAL_SINT16: {
-        pop_to_local<std::int16_t>(ip);
       }
         break;
       case OPCODE::OP_SET_LOCAL_SINT16: {
-        set_local<std::int16_t>(ip);
+        set_local<std::int16_t>(instruction);
       }
         break;
       case OPCODE::OP_PUSH_SINT16_CONST: {
-        push_const<std::int16_t>(ip);
+        push_const<std::int16_t>(instruction,byte_code.const_pool.data());
       }
         break;
       case OPCODE::OP_ADD_SINT8: {
-        add<std::int8_t>(ip);
+        add<std::int8_t>(instruction);
       }
         break;
       case OPCODE::OP_MULTIPLY_SINT8: {
-        multiply<std::int8_t>();
+        multiply<std::int8_t>(instruction);
       }
         break;
       case OPCODE::OP_DIVIDE_SINT8: {
-        divide<std::int8_t>();
+        divide<std::int8_t>(instruction);
       }
         break;
       case OPCODE::OP_SUBTRACT_SINT8: {
-        subtract<std::int8_t>(ip);
+        subtract<std::int8_t>(instruction);
       }
         break;
       case OPCODE::OP_NEGATE_SINT8: {
-        negate<std::int8_t>();
+        negate<std::int8_t>(instruction);
       }
         break;
       case OPCODE::OP_GREATER_SINT8: {
-        greater<std::int8_t>();
+        greater<std::int8_t>(instruction);
       }
         break;
       case OPCODE::OP_LESS_SINT8: {
-        less<std::int8_t>(ip);
+        less<std::int8_t>(instruction);
       }
         break;
       case OPCODE::OP_GREATER_EQUAL_SINT8: {
-        greater_equal<std::int8_t>();
+        greater_equal<std::int8_t>(instruction);
       }
         break;
       case OPCODE::OP_LESS_EQUAL_SINT8: {
-        less_equal<std::int8_t>();
+        less_equal<std::int8_t>(instruction);
       }
         break;
       case OPCODE::OP_EQUAL_SINT8: {
-        equal<std::int8_t>();
+        equal<std::int8_t>(instruction);
       }
         break;
       case OPCODE::OP_PUSH_LOCAL_SINT8: {
-        push_local<std::int8_t>(ip);
+        push_local<std::int8_t>(instruction);
       }
         break;
       case OPCODE::OP_SET_EXTERNAL_SINT8: {
-        pop_to_local<std::int8_t>(ip);
       }
         break;
       case OPCODE::OP_SET_LOCAL_SINT8: {
-        set_local<std::int8_t>(ip);
+        set_local<std::int8_t>(instruction);
       }
         break;
       case OPCODE::OP_PUSH_SINT8_CONST: {
-        push_const<std::int8_t>(ip);
+        push_const<std::int8_t>(instruction,byte_code.const_pool.data());
       }
         break;
       case OPCODE::OP_ADD_FLOAT: {
-        add<float>(ip);
+        add<float>(instruction);
       }
         break;
       case OPCODE::OP_MULTIPLY_FLOAT: {
-        multiply<float>();
+        multiply<float>(instruction);
       }
         break;
       case OPCODE::OP_DIVIDE_FLOAT: {
-        divide<float>();
+        divide<float>(instruction);
       }
         break;
       case OPCODE::OP_SUBTRACT_FLOAT: {
-        subtract<float>(ip);
+        subtract<float>(instruction);
       }
         break;
       case OPCODE::OP_NEGATE_FLOAT: {
-        negate<float>();
+        negate<float>(instruction);
       }
         break;
       case OPCODE::OP_GREATER_FLOAT: {
-        greater<float>();
+        greater<float>(instruction);
       }
         break;
       case OPCODE::OP_LESS_FLOAT: {
-        less<float>(ip);
+        less<float>(instruction);
       }
         break;
       case OPCODE::OP_GREATER_EQUAL_FLOAT: {
-        greater_equal<float>();
+        greater_equal<float>(instruction);
       }
         break;
       case OPCODE::OP_LESS_EQUAL_FLOAT: {
-        less_equal<float>();
+        less_equal<float>(instruction);
       }
         break;
       case OPCODE::OP_EQUAL_FLOAT: {
-        equal<float>();
+        equal<float>(instruction);
       }
         break;
       case OPCODE::OP_PUSH_LOCAL_FLOAT: {
-        push_local<float>(ip);
+        push_local<float>(instruction);
       }
         break;
       case OPCODE::OP_SET_EXTERNAL_FLOAT: {
-        pop_to_local<float>(ip);
       }
         break;
       case OPCODE::OP_SET_LOCAL_FLOAT: {
-        set_local<float>(ip);
+        set_local<float>(instruction);
       }
         break;
       case OPCODE::OP_PUSH_FLOAT_CONST: {
-        push_const<float>(ip);
+        push_const<float>(instruction,byte_code.const_pool.data());
       }
         break;
       case OPCODE::OP_ADD_DOUBLE: {
-        add<double>(ip);
+        add<double>(instruction);
       }
         break;
       case OPCODE::OP_MULTIPLY_DOUBLE: {
-        multiply<double>();
+        multiply<double>(instruction);
       }
         break;
       case OPCODE::OP_DIVIDE_DOUBLE: {
-        divide<double>();
+        divide<double>(instruction);
       }
         break;
       case OPCODE::OP_SUBTRACT_DOUBLE: {
-        subtract<double>(ip);
+        subtract<double>(instruction);
       }
         break;
       case OPCODE::OP_NEGATE_DOUBLE: {
-        negate<double>();
+        negate<double>(instruction);
       }
         break;
       case OPCODE::OP_GREATER_DOUBLE: {
-        greater<double>();
+        greater<double>(instruction);
       }
         break;
       case OPCODE::OP_LESS_DOUBLE: {
-        less<double>(ip);
+        less<double>(instruction);
       }
         break;
       case OPCODE::OP_GREATER_EQUAL_DOUBLE: {
-        greater_equal<double>();
+        greater_equal<double>(instruction);
       }
         break;
       case OPCODE::OP_LESS_EQUAL_DOUBLE: {
-        less_equal<double>();
+        less_equal<double>(instruction);
       }
         break;
       case OPCODE::OP_EQUAL_DOUBLE: {
-        equal<double>();
+        equal<double>(instruction);
       }
         break;
       case OPCODE::OP_PUSH_LOCAL_DOUBLE: {
-        push_local<double>(ip);
+        push_local<double>(instruction);
       }
         break;
       case OPCODE::OP_SET_EXTERNAL_DOUBLE: {
-        pop_to_local<double>(ip);
       }
         break;
       case OPCODE::OP_SET_LOCAL_DOUBLE: {
-        set_local<double>(ip);
+        set_local<double>(instruction);
       }
         break;
       case OPCODE::OP_PUSH_DOUBLE_CONST: {
-        push_const<double>(ip);
+        push_const<double>(instruction,byte_code.const_pool.data());
       }
         break;
       case OPCODE::OP_PUSH_LOCAL_STRING: {
-        push_local<sanema::StringReference>(ip);
+        push_local<sanema::StringReference>(instruction);
       }
         break;
       case OPCODE::OP_SET_EXTERNAL_STRING: {
-        pop_to_local<sanema::StringReference>(ip);
       }
         break;
       case OPCODE::OP_SET_LOCAL_STRING: {
-        set_local<sanema::StringReference>(ip);
+        set_local<sanema::StringReference>(instruction);
       }
         break;
       case OPCODE::OP_PUSH_STRING_CONST: {
-        auto string_literal_index = read_from_bytecode<StringReference>(ip);
-        push(string_literal_index);
+        //TODO reimplement push_string const
       }
         break;
       case OPCODE::OP_JUMP: {
-        auto offset = read_from_bytecode<std::uint16_t>(ip);
+        auto offset = instruction->register32.r1;
         ip += offset;
       }
         break;
       case OPCODE::OP_CALL_EXTERNAL_FUNCTION: {
-        auto function_id = read_from_bytecode<std::uint64_t>(ip);
+        auto function_id = instruction->register32.r1;
         auto &function = binding_collection.get_function_by_id(function_id);
         function.call(*this);
       }
         break;
       case OPCODE::OP_CALL: {
-        auto function_address = read_from_bytecode<std::uint64_t>(ip);
-        auto parameters_size = read_from_bytecode<std::uint32_t>(ip);
+
+        auto function_address = instruction->register32.r1;
+        auto parameters_size = instruction->r_result;
         IPType new_ip = byte_code.code_data.data() + function_address;
-         //std::cout<<"parameters size: "<<parameters_size<<"\n";
-         //std::cout<<"offset 1: "<<get_operand_pointer_offset()<<"\n";
-        operand_stack_pointer+=parameters_size;
-         //std::cout<<"offset 2: "<<get_operand_pointer_offset()<<"\n";
+//        std::cout<<"parameters size: "<<parameters_size<<"\n";
+//        std::cout<<"offset 1: "<<get_operand_pointer_offset()<<"\n";
+        operand_stack_pointer += parameters_size;
+//        std::cout<<"offset 2: "<<get_operand_pointer_offset()<<"\n";
         auto &last_call_stack = call_stack.back();
         last_call_stack.ip = ip;
-        // //std::cout<<"calling "<<operand_stack_pointer-operand_stack<<"\n";
+         //std::cout<<"calling "<<operand_stack_pointer-operand_stack<<"\n";
 
         call_stack.emplace_back(operand_stack_pointer);
         ip = new_ip;
@@ -426,14 +415,12 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
         break;
 
       case OPCODE::OP_JUMP_IF_FALSE: {
-        auto offset = read_from_bytecode<std::uint64_t>(ip);
-        auto address_value= read_from_bytecode<std::uint64_t>(ip);
-//        //std::cout<<"offset: "<<offset<<"\n";
-        auto value = *((bool*)(operand_stack_pointer+address_value));
-        //std::cout<<(value?"true":"false")<<" ";
+        auto offset = instruction->registers16.r1;
+        auto value = read_register<bool, 2>(instruction);
+//        std::cout<<std::format(" offset: {} value: {} \n",offset,value);
         if (!value) {
-          //std::cout<<"JUMPING\n";
           ip += offset;
+//          std::cout<<"jumping\n";
         }
       }
         break;
@@ -441,55 +428,55 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
         should_continue = call_stack.size() > 1;
 
 
-        // //std::cout<<"returning "<<value<<"\n";
+//        std::cout<<"returning \n";
         call_stack.pop_back();
         if (should_continue) {
           ip = call_stack.back().ip;
 
-          //std::cout<<"offset 1: "<<get_operand_pointer_offset()<<"\n";
+//          std::cout<<"offset 1: "<<get_operand_pointer_offset()<<"\n";
 
-          operand_stack_pointer=call_stack.back().get_begin_address();
-           //std::cout<<"offset 2: "<<get_operand_pointer_offset()<<"\n";
+          operand_stack_pointer = call_stack.back().get_begin_address();
+//          std::cout<<"offset 2: "<<get_operand_pointer_offset()<<"\n";
 
-        }else{
+        } else {
           return;
         }
         break;
       }
       case OPCODE::OP_PUSH_LOCAL_ADDRESS_AS_GLOBAL: {
-        auto local_address = read_from_bytecode<std::int64_t>(ip);
+        auto local_address = instruction->registers16.r1;
         auto global_address = call_stack.back().get_begin_address() + local_address;
-        push(address_t{global_address});
+        save_result_register<std::uint8_t *>(instruction,
+                                             global_address);
       }
         break;
       case OPCODE::OP_PUSH_EXTERNAL_FIELD_ADDRESS: {
-        auto field_id = pop<std::uint64_t>();
-        auto type_id = pop<std::uint64_t>();
-        auto object_address = pop<address_t>();
-        auto &type = binding_collection.get_type_by_id(type_id);
-        auto field_pointer = type.get_field_address((void *) object_address.address,
-                                                    field_id);
-        push(address_t{(std::uint8_t *) field_pointer});
+        //TODO we need to reimplement external field access
+//        auto field_id = pop<std::uint64_t>();
+//        auto type_id = pop<std::uint64_t>();
+//        auto object_address = pop<local_register_t>();
+//        auto &type = binding_collection.get_type_by_id(type_id);
+//        auto field_pointer = type.get_field_address((void *) object_address.address,
+//                                                    field_id);
+//        push(local_register_t{(std::uint8_t *) field_pointer});
       }
         break;
-      case OPCODE::OP_POP_GLOBAL_ADDRESS_AS_LOCAL: {
-        sanema::ContextFrame &context_frame = call_stack.back();
-        auto global_address = pop<address_t>();
-        auto variable_address = pop<address_t>();
-        address_t new_local_address{
-          global_address.address - (int64_t) (context_frame.get_begin_address() - operand_stack)};
-      }
-        break;
-      case OPCODE::OP_NIL:
-        break;
-      case OPCODE::OP_PUSH_LOCAL_BOOL:
-        break;
-      case OPCODE::OP_SET_EXTERNAL_BOOL:
-        break;
-      case OPCODE::OP_SET_LOCAL_BOOL:
-        break;
-      case OPCODE::OP_NOT:
+      case OPCODE::OP_PUSH_LOCAL_BOOL: {
 
+      }
+        break;
+      case OPCODE::OP_SET_EXTERNAL_BOOL: {
+
+      }
+        break;
+      case OPCODE::OP_SET_LOCAL_BOOL: {
+
+      }
+        break;
+      case OPCODE::OP_NOT: {
+
+      }
+        break;
     }
   }
 }
@@ -497,7 +484,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
 
 sanema::VM::VM(int memory_size_mb) : running_byte_code(nullptr) {
   auto megabytes_to_bytes = [](std::uint64_t size) { return (size * 1024) * 1024; };
-  operand_stack=new unsigned char[megabytes_to_bytes(memory_size_mb)];
+  operand_stack = new unsigned char[megabytes_to_bytes(memory_size_mb)];
   call_stack.reserve(1000);
 
 }
@@ -509,7 +496,7 @@ sanema::VM::~VM() {
 void sanema::VM::prepare_function_parameters(std::uint32_t n) {
   external_function_parameters.clear();
   for (int i = 0; i < n; i++) {
-    external_function_parameters.emplace_back(pop<OperandType>());
+//    external_function_parameters.emplace_back(pop<OperandType>());
   }
 }
 
@@ -552,7 +539,7 @@ std::string sanema::get_function_parameter_from_vm<std::string>(VM &vm, size_t i
       break;
     case FunctionParameter::Modifier::MUTABLE:
     case FunctionParameter::Modifier::CONST:
-      auto address = static_cast<address_t>(value);
+      auto address = static_cast<local_register_t>(value);
       reference = vm.call_stack.back().read<StringReference>(address);
       break;
   }
@@ -570,7 +557,7 @@ std::string const &sanema::get_function_parameter_from_vm<std::string const &>(V
       break;
     case FunctionParameter::Modifier::CONST:
     case FunctionParameter::Modifier::MUTABLE:
-      auto address = static_cast<address_t>(value);
+      auto address = static_cast<local_register_t>(value);
       reference = *((StringReference *) address.address);
       break;
   }

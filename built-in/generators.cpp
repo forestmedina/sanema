@@ -6,7 +6,7 @@
 
 void
 sanema::generate_equal(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
-                       std::vector<sanema::address_t> addresses, address_t return_address) {
+                       std::vector<sanema::local_register_t> registers, local_register_t return_register) {
   OPCODE opcode = match(function_definition->parameters[0].type.value(),
                         [](sanema::Integer const &integer) {
                           switch (integer.size) {
@@ -18,9 +18,8 @@ sanema::generate_equal(sanema::ByteCode &byte_code, std::optional<sanema::Define
                               return OPCODE::OP_EQUAL_SINT32;
                             case 64:
                               return OPCODE::OP_EQUAL_SINT64;
-                            default:
-                              return OPCODE::OP_EQUAL_SINT64;
                           }
+                          return OPCODE::OP_EQUAL_SINT64;
                         },
                         [](sanema::Float const &integer) {
                           return OPCODE::OP_EQUAL_FLOAT;
@@ -31,15 +30,20 @@ sanema::generate_equal(sanema::ByteCode &byte_code, std::optional<sanema::Define
                         [](auto const &ignore) {
                           return OPCODE::OP_EQUAL_SINT64;
                         });
-  byte_code.write(opcode);
-  byte_code.write(return_address);
-  byte_code.write(addresses[0]);
-  byte_code.write(addresses[1]);
+  VMInstruction instruction{};
+  instruction.opcode = opcode;
+  instruction.r_result = return_register.address;
+  instruction.registers16.r1 = registers[0].address;
+  instruction.is_r1_reference = registers[0].is_reference;
+  instruction.registers16.r2 = registers[1].address;
+  instruction.is_r2_reference = registers[1].is_reference;
+  byte_code.write(instruction);
+
 }
 
 void
 sanema::generate_less(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
-                      std::vector<sanema::address_t> addresses, address_t return_address) {
+                      std::vector<sanema::local_register_t> registers, local_register_t return_register) {
   OPCODE opcode = match(function_definition->parameters[0].type.value(),
                         [](sanema::Integer const &integer) {
                           switch (integer.size) {
@@ -51,9 +55,8 @@ sanema::generate_less(sanema::ByteCode &byte_code, std::optional<sanema::DefineF
                               return OPCODE::OP_LESS_SINT32;
                             case 64:
                               return OPCODE::OP_LESS_SINT64;
-                            default:
-                              return OPCODE::OP_LESS_SINT64;
                           }
+                          return OPCODE::OP_LESS_SINT64;
                         },
                         [](sanema::Float const &integer) {
                           return OPCODE::OP_LESS_FLOAT;
@@ -64,15 +67,19 @@ sanema::generate_less(sanema::ByteCode &byte_code, std::optional<sanema::DefineF
                         [](auto const &ignore) {
                           return OPCODE::OP_LESS_SINT64;
                         });
-  byte_code.write(opcode);
-  byte_code.write(return_address);
-  byte_code.write(addresses[0]);
-  byte_code.write(addresses[1]);
+  VMInstruction instruction{};
+  instruction.opcode = opcode;
+  instruction.r_result = return_register.address;
+  instruction.registers16.r1 = registers[0].address;
+  instruction.is_r1_reference = registers[0].is_reference;
+  instruction.registers16.r2 = registers[1].address;
+  instruction.is_r2_reference = registers[1].is_reference;
+    byte_code.write(instruction);
 }
 
 void
 sanema::generate_greater(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
-                         std::vector<sanema::address_t> addresses, address_t return_address) {
+                         std::vector<sanema::local_register_t> registers, local_register_t return_register) {
   OPCODE opcode = match(function_definition->parameters[0].type.value(),
                         [](sanema::Integer const &integer) {
                           switch (integer.size) {
@@ -84,9 +91,8 @@ sanema::generate_greater(sanema::ByteCode &byte_code, std::optional<sanema::Defi
                               return OPCODE::OP_GREATER_SINT32;
                             case 64:
                               return OPCODE::OP_GREATER_SINT64;
-                            default:
-                              return OPCODE::OP_GREATER_SINT64;
                           }
+                          return OPCODE::OP_GREATER_SINT64;
                         },
                         [](sanema::Float const &integer) {
                           return OPCODE::OP_GREATER_FLOAT;
@@ -97,14 +103,18 @@ sanema::generate_greater(sanema::ByteCode &byte_code, std::optional<sanema::Defi
                         [](auto const &ignore) {
                           return OPCODE::OP_GREATER_SINT64;
                         });
-  byte_code.write(opcode);
-  byte_code.write(return_address);
-  byte_code.write(addresses[0]);
-  byte_code.write(addresses[1]);
+ VMInstruction instruction{};
+  instruction.opcode = opcode;
+  instruction.r_result = return_register.address;
+  instruction.registers16.r1 = registers[0].address;
+  instruction.is_r1_reference = registers[0].is_reference;
+  instruction.registers16.r2 = registers[1].address;
+  instruction.is_r2_reference = registers[1].is_reference;
+    byte_code.write(instruction);
 }
 
 void sanema::generate_add(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
-                          std::vector<sanema::address_t> addresses, address_t return_address) {
+                          std::vector<sanema::local_register_t> registers, local_register_t return_register) {
   OPCODE opcode = match(function_definition.value().type,
                         [](sanema::Integer const &integer) {
                           switch (integer.size) {
@@ -116,9 +126,8 @@ void sanema::generate_add(sanema::ByteCode &byte_code, std::optional<sanema::Def
                               return OPCODE::OP_ADD_SINT32;
                             case 64:
                               return OPCODE::OP_ADD_SINT64;
-                            default:
-                              return OPCODE::OP_ADD_SINT64;
                           }
+                          return OPCODE::OP_ADD_SINT64;
                         },
                         [](sanema::Float const &integer) {
                           return OPCODE::OP_ADD_FLOAT;
@@ -129,15 +138,19 @@ void sanema::generate_add(sanema::ByteCode &byte_code, std::optional<sanema::Def
                         [](auto const &ignore) {
                           return OPCODE::OP_ADD_SINT64;
                         });
-  byte_code.write(opcode);
-  byte_code.write(return_address);
-  byte_code.write(addresses[0]);
-  byte_code.write(addresses[1]);
+   VMInstruction instruction{};
+  instruction.opcode = opcode;
+  instruction.r_result = return_register.address;
+  instruction.registers16.r1 = registers[0].address;
+  instruction.is_r1_reference = registers[0].is_reference;
+  instruction.registers16.r2 = registers[1].address;
+  instruction.is_r2_reference = registers[1].is_reference;
+    byte_code.write(instruction);
 }
 
 void
 sanema::generate_subtract(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
-                          std::vector<sanema::address_t> addresses, address_t return_address) {
+                          std::vector<sanema::local_register_t> registers, local_register_t return_register) {
   OPCODE opcode = match(function_definition.value().type,
                         [](sanema::Integer const &integer) {
                           switch (integer.size) {
@@ -149,9 +162,8 @@ sanema::generate_subtract(sanema::ByteCode &byte_code, std::optional<sanema::Def
                               return OPCODE::OP_SUBTRACT_SINT32;
                             case 64:
                               return OPCODE::OP_SUBTRACT_SINT64;
-                            default:
-                              return OPCODE::OP_SUBTRACT_SINT64;
                           }
+                          return OPCODE::OP_SUBTRACT_SINT64;
                         },
                         [](sanema::Float const &integer) {
                           return OPCODE::OP_SUBTRACT_FLOAT;
@@ -162,15 +174,19 @@ sanema::generate_subtract(sanema::ByteCode &byte_code, std::optional<sanema::Def
                         [](auto const &ignore) {
                           return OPCODE::OP_SUBTRACT_SINT64;
                         });
-  byte_code.write(opcode);
-  byte_code.write(return_address);
-  byte_code.write(addresses[0]);
-  byte_code.write(addresses[1]);
+ VMInstruction instruction{};
+  instruction.opcode = opcode;
+  instruction.r_result = return_register.address;
+  instruction.registers16.r1 = registers[0].address;
+  instruction.is_r1_reference = registers[0].is_reference;
+  instruction.registers16.r2 = registers[1].address;
+  instruction.is_r2_reference = registers[1].is_reference;
+    byte_code.write(instruction);
 }
 
 void
 sanema::generate_multiply(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
-                          std::vector<sanema::address_t> addresses, address_t return_address) {
+                          std::vector<sanema::local_register_t> registers, local_register_t return_register) {
   OPCODE opcode = match(function_definition.value().type,
                         [](sanema::Integer const &integer) {
                           switch (integer.size) {
@@ -182,9 +198,8 @@ sanema::generate_multiply(sanema::ByteCode &byte_code, std::optional<sanema::Def
                               return OPCODE::OP_MULTIPLY_SINT32;
                             case 64:
                               return OPCODE::OP_MULTIPLY_SINT64;
-                            default:
-                              return OPCODE::OP_MULTIPLY_SINT64;
                           }
+                          return OPCODE::OP_MULTIPLY_SINT64;
                         },
                         [](sanema::Float const &integer) {
                           return OPCODE::OP_MULTIPLY_FLOAT;
@@ -195,15 +210,19 @@ sanema::generate_multiply(sanema::ByteCode &byte_code, std::optional<sanema::Def
                         [](auto const &ignore) {
                           return OPCODE::OP_MULTIPLY_SINT64;
                         });
-  byte_code.write(opcode);
-  byte_code.write(return_address);
-  byte_code.write(addresses[0]);
-  byte_code.write(addresses[1]);
+   VMInstruction instruction{};
+  instruction.opcode = opcode;
+  instruction.r_result = return_register.address;
+  instruction.registers16.r1 = registers[0].address;
+  instruction.is_r1_reference = registers[0].is_reference;
+  instruction.registers16.r2 = registers[1].address;
+  instruction.is_r2_reference = registers[1].is_reference;
+    byte_code.write(instruction);
 }
 
 void
 sanema::generate_divide(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
-                        std::vector<sanema::address_t> addresses, address_t return_address) {
+                        std::vector<sanema::local_register_t> registers, local_register_t return_register) {
   OPCODE opcode = match(function_definition.value().type,
                         [](sanema::Integer const &integer) {
                           switch (integer.size) {
@@ -215,9 +234,8 @@ sanema::generate_divide(sanema::ByteCode &byte_code, std::optional<sanema::Defin
                               return OPCODE::OP_DIVIDE_SINT32;
                             case 64:
                               return OPCODE::OP_DIVIDE_SINT64;
-                            default:
-                              return OPCODE::OP_DIVIDE_SINT64;
                           }
+                          return OPCODE::OP_DIVIDE_SINT64;
                         },
                         [](sanema::Float const &integer) {
                           return OPCODE::OP_DIVIDE_FLOAT;
@@ -228,8 +246,12 @@ sanema::generate_divide(sanema::ByteCode &byte_code, std::optional<sanema::Defin
                         [](auto const &ignore) {
                           return OPCODE::OP_DIVIDE_SINT64;
                         });
-  byte_code.write(opcode);
-  byte_code.write(return_address);
-  byte_code.write(addresses[0]);
-  byte_code.write(addresses[1]);
+  VMInstruction instruction{};
+  instruction.opcode = opcode;
+  instruction.r_result = return_register.address;
+  instruction.registers16.r1 = registers[0].address;
+  instruction.is_r1_reference = registers[0].is_reference;
+  instruction.registers16.r2 = registers[1].address;
+  instruction.is_r2_reference = registers[1].is_reference;
+    byte_code.write(instruction);
 }

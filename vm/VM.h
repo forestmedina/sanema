@@ -17,28 +17,7 @@
 #include "OperandType.h"
 
 namespace sanema {
-  using IPType = std::uint8_t const *;
-
-  enum class ExecuteResult {
-    OK,
-    END,
-    ERROR
-  };
-
-  enum class OperandTypeEnum : std::uint64_t {
-    Boolean = 1,
-    UINT8,
-    UINT16,
-    UINT32,
-    UINT64,
-    SINT8,
-    SINT16,
-    SINT32,
-    SINT64,
-    FLOAT,
-    DOUBLE,
-    STRING_REF
-  };
+  using IPType = VMInstruction const *;
 
 
   class BindingCollection;
@@ -49,24 +28,24 @@ namespace sanema {
 
     ~VM();
 
-    void run(ByteCode const&byte_code, BindingCollection&collection);
+    void run(ByteCode const &byte_code, BindingCollection &collection);
 
     template<class T>
     std::optional<T> get_value_stack() {
       if (operand_stack_pointer == nullptr) return {};
-      return (*(T *)operand_stack_pointer);
+      return (*(T *) operand_stack_pointer);
     }
 
     void prepare_function_parameters(std::uint32_t n);
 
     [[nodiscard]] sanema::OperandType get_external_function_parameter(size_t index) const;
 
-    std::string const& get_string(StringReference const&reference);
+    std::string const &get_string(StringReference const &reference);
 
-    ByteCode const* running_byte_code;
+    ByteCode const *running_byte_code;
 
 
-    void push_string(std::string const&string_value);
+    void push_string(std::string const &string_value);
 
     template<typename T>
     void push_function_return(T value) {
@@ -77,188 +56,128 @@ namespace sanema {
 
   private:
     std::vector<OperandType> external_function_parameters;
-    unsigned char* operand_stack;
-    unsigned char* operand_stack_pointer{nullptr};
+    unsigned char *operand_stack;
+    unsigned char *operand_stack_pointer{nullptr};
 
     std::vector<std::string> string_stack;
 
-
     template<class type>
-    inline type pop() {
-      operand_stack_pointer -= sizeof(type);
-      type t = (*(type *)operand_stack_pointer);
-
-      return t;
+    inline void save_result_register(VMInstruction const *instruction, type value) {
+      *((type *) (operand_stack_pointer + instruction->r_result)) = value;
     }
 
-    template<class type>
-    inline type read_local(address_t address) {
-      return *((type *)address.address);
+    template<class type, int index>
+    inline type read_register(VMInstruction const *instruction) {
+      static_assert(index == 1 || index == 2,
+                    "Index value must be 1 or 2");
+      if constexpr (index == 1) {
+        return *((type *) (operand_stack_pointer + instruction->registers16.r1));
+      } else if constexpr (index == 2) {
+        return *((type *) (operand_stack_pointer + instruction->registers16.r2));
+      }
+    }
+     template<class type>
+    inline type read_constant_pool(VMInstruction  const * instruction,OperandType const* constants_pool_pointer) {
+
+       return static_cast<type>(*(constants_pool_pointer + instruction->registers16.r1));
+
     }
 
 
     template<class type>
-    inline void push_local(IPType&ip) {
-      auto destiny_address = read_from_bytecode<std::uint64_t>(ip);
-      auto source_address = read_from_bytecode<std::uint64_t>(ip);
+    inline type read_local(local_register_t address) {
+      return *((type *) address.address);
+    }
+
+
+    template<class type>
+    inline void push_local(VMInstruction const* instruction) {
       //std::cout<<"Pushing local: "<<(uint64_t )(source_address)<<" value:"<<*((type*)(operand_stack_pointer+source_address))<< " TO "<<destiny_address<<"\n";
-      *((type*)(operand_stack_pointer+destiny_address))= *((type*)(operand_stack_pointer+source_address));
+      save_result_register(instruction, read_register<type,1>(instruction));
 
     }
 
-    template<class type>
-    inline void pop_to_local(IPType&ip) {
-      auto address = read_from_bytecode<address_t>(ip);
-      sanema::ContextFrame&context_frame = call_stack.back();
-      auto value = pop<type>();
-    }
+
 
     template<class type>
-    inline void set_local(IPType&ip) {
-      sanema::ContextFrame&context_frame = call_stack.back();
-      auto value = pop<type>();
-      auto address2 = pop<address_t>();
-      //      //std::cout << "Setting local value=" << value << " address=" << address2 << "\n";
-      //      context_frame.write<type>(address2,
-      //                                value);
-      *((type *)address2.address) = value;
+    inline void set_local(IPType instruction) {
+      save_result_register(instruction, read_register<type,1>(instruction));
     }
 
 
     template<class type>
-    void push_const(IPType&ip) {
-      auto address = read_from_bytecode<std::uint64_t >(ip);
-      auto value = read_from_bytecode<type>(ip);
-      //std::cout<<"Pushing const: "<<value<<" To address: "<<address<<"\n";
-      *((type*)(operand_stack_pointer+address))= value;
+    void push_const(IPType instruction,OperandType const* const_pool_pointer) {
+//      std::cout<<"push "<<read_constant_pool<type>(instruction,const_pool_pointer)<<" into "<<instruction->r_result<<"\n";
+      save_result_register(instruction, read_constant_pool<type>(instruction,const_pool_pointer));
     }
-  inline std::uint32_t get_operand_pointer_offset() {
-      return (operand_stack_pointer-operand_stack);
+
+    inline std::uint32_t get_operand_pointer_offset() {
+      return (operand_stack_pointer - operand_stack);
     }
+
     template<class type>
     inline void push(type t) {
       *reinterpret_cast<type *>(operand_stack_pointer) = t;
       operand_stack_pointer += sizeof(type);
     }
 
-    inline void swap_last_two() {
-      std::swap(*(OperandType *)operand_stack_pointer,
-                *(((OperandType *)operand_stack_pointer) - 1));
+
+    template<typename type>
+    inline void multiply(IPType instruction) {
+        save_result_register(instruction,read_register<type, 1>(instruction) * read_register<type, 2>(instruction));
     }
 
     template<typename type>
-    inline void multiply() {
-      auto value2 = pop<type>();
-      auto value1 = pop<type>();
-      auto result = value1 * value2;
-      push(result);
+    inline void add(VMInstruction const* instruction) {
+      save_result_register(instruction,read_register<type, 1>(instruction) + read_register<type, 2>(instruction));
     }
 
     template<typename type>
-    inline void add(IPType& ip) {
-      // operand_stack_pointer-=sizeof(type);
-      //   type* typed_pointer= reinterpret_cast<type*>(operand_stack_pointer);
-      // // //std::cout<<"adding ptrs"<<*(typed_pointer-1)<<"+"<<*(typed_pointer)<<"\n";
-      // (*(typed_pointer-1))+=*(typed_pointer);
-      auto address_result= read_from_bytecode<std::uint64_t >(ip);
-      auto address1= read_from_bytecode<std::uint64_t>(ip);
-      auto address2= read_from_bytecode<std::uint64_t>(ip);
-      //std::cout<<"adding  address_result: "<<address_result<<" address1: "<< address1<<" address2: "<<address2<<"\n";
-      *((type*)(operand_stack_pointer+address_result))= *((type*)(operand_stack_pointer+address1))+*((type*)(operand_stack_pointer+address2));
-     //std::cout<<*((type*)(operand_stack_pointer+address1))<<"+"<<*((type*)(operand_stack_pointer+address2))<<" = "<<*((type*)(operand_stack_pointer+address_result))<<"\n";
-      //  //std::cout<<"adding normal"<<value1<<"+"<<value2<<"\n";
-    }
-
-    template<typename type>
-    inline void subtract(IPType& ip) {
-      // operand_stack_pointer-=sizeof(type);
-      // type* typed_pointer= reinterpret_cast<type*>(operand_stack_pointer);
-      // (*(typed_pointer-1))-=*(typed_pointer);
-      auto address_result= read_from_bytecode<std::uint64_t >(ip);
-      auto address1= read_from_bytecode<std::uint64_t>(ip);
-      auto address2= read_from_bytecode<std::uint64_t>(ip);
-      *((type*)(operand_stack_pointer+address_result))= *((type*)(operand_stack_pointer+address1))-*((type*)(operand_stack_pointer+address2));
-      *((type*)(operand_stack_pointer+address_result))= *((type*)(operand_stack_pointer+address1))-*((type*)(operand_stack_pointer+address2));
-      //std::cout<<*((type*)(operand_stack_pointer+address1))<<"-"<<*((type*)(operand_stack_pointer+address2))<<" = "<<*((type*)(operand_stack_pointer+address_result))<<"\n";
+    inline void subtract(VMInstruction const* instruction) {
+      save_result_register(instruction,read_register<type, 1>(instruction) - read_register<type, 2>(instruction));
 
     }
 
     template<typename type>
-    inline void divide() {
-      auto value2 = pop_function_parameter_value<type>();
-      auto value1 = pop_function_parameter_value<type>();
-      auto result = value1 / value2;
-      push(result);
+    inline void divide(VMInstruction const* instruction) {
+      save_result_register(instruction,read_register<type, 1>(instruction) / read_register<type, 2>(instruction));
     }
 
     template<typename type>
-    inline void negate() {
-      auto value = pop_function_parameter_value<type>();
-      auto result = -value;
-      push(result);
+    inline void negate(VMInstruction const* instruction) {
+      save_result_register(instruction,-read_register<type,1>(instruction));
     }
 
     template<typename type>
-    inline void greater() {
-      auto value2 = pop_function_parameter_value<type>();
-      auto value1 = pop_function_parameter_value<type>();
-      bool result = value1 > value2;
-      push(result);
+    inline void greater(VMInstruction const* instruction) {
+      save_result_register<bool>(instruction,read_register<type, 1>(instruction) > read_register<type, 2>(instruction));
     }
 
     template<typename type>
-    inline void less(IPType& ip) {
-       auto address_result= read_from_bytecode<std::uint64_t >(ip);
-      auto address1= read_from_bytecode<std::uint64_t>(ip);
-      auto address2= read_from_bytecode<std::uint64_t>(ip);
-       *((bool*)(operand_stack_pointer+address_result))= *((type*)(operand_stack_pointer+address1))<*((type*)(operand_stack_pointer+address2));
-       //std::cout<<"less: ";
-       //std::cout<<" address1: "<<address1<<"; address2:"<<address2<<"\n";
-       //std::cout<<*((type*)(operand_stack_pointer+address1))<<"<"<<*((type*)(operand_stack_pointer+address2))<<"\n";
+    inline void less(VMInstruction const* instruction) {
+//      std::cout<<std::format(" {} < {} = {}\n",read_register<type, 1>(instruction),read_register<type, 2>(instruction),read_register<type, 1>(instruction) < read_register<type, 2>(instruction));
+      save_result_register<bool>(instruction,read_register<type, 1>(instruction) < read_register<type, 2>(instruction));
     }
 
     template<typename type>
-    inline void equal() {
-      auto value2 = pop<type>();
-      auto value1 = pop<type>();
-      bool result = value1 == value2;
-      push(result);
+    inline void equal(VMInstruction const* instruction) {
+      save_result_register<bool>(instruction,read_register<type, 1>(instruction) == read_register<type, 2>(instruction));
     }
 
     template<typename type>
-    inline void greater_equal() {
-      auto value2 = pop_function_parameter_value<type>();
-      auto value1 = pop_function_parameter_value<type>();
-      bool result = value1 >= value2;
-      push(result);
+    inline void greater_equal(VMInstruction const* instruction) {
+      save_result_register<bool>(instruction,read_register<type, 1>(instruction) >= read_register<type, 2>(instruction));
     }
 
-    template<class T>
-    inline T pop_function_parameter_value(FunctionParameter::Modifier modifier = FunctionParameter::Modifier::VALUE) {
-      switch (modifier) {
-        case FunctionParameter::Modifier::VALUE:
-          return pop<T>();
-          break;
-        case FunctionParameter::Modifier::MUTABLE:
-        case FunctionParameter::Modifier::CONST:
-          return read_local<T>(pop<address_t>());
-          break;
-      }
-      throw std::runtime_error("We reached the end of pop_function_parameter_value without returning something");
-      return T{};
-    }
 
     template<typename type>
-    inline void less_equal() {
-      auto value2 = pop_function_parameter_value<type>();
-      auto value1 = pop_function_parameter_value<type>();
-      bool result = value1 <= value2;
-      push(result);
+    inline void less_equal(VMInstruction const* instruction) {
+      save_result_register<bool>(instruction,read_register<type, 1>(instruction) <= read_register<type, 2>(instruction));
     }
   };
 
   template<typename T>
-  T get_function_parameter_from_vm(VM&vm, size_t index, sanema::FunctionParameter::Modifier modifier) {
+  T get_function_parameter_from_vm(VM &vm, size_t index, sanema::FunctionParameter::Modifier modifier) {
     auto value = vm.get_external_function_parameter(index);
     T final_value;
     switch (modifier) {
@@ -267,8 +186,8 @@ namespace sanema {
         break;
       case sanema::FunctionParameter::Modifier::MUTABLE:
       case sanema::FunctionParameter::Modifier::CONST:
-        auto address = static_cast<address_t>(value);
-        final_value = *((T *)address.address);
+        auto address = static_cast<local_register_t>(value);
+        final_value = *((T *) address.address);
         break;
     }
     return final_value;
@@ -276,33 +195,33 @@ namespace sanema {
 
   template<>
   std::string
-  get_function_parameter_from_vm<std::string>(VM&vm, size_t index, sanema::FunctionParameter::Modifier modifier);
+  get_function_parameter_from_vm<std::string>(VM &vm, size_t index, sanema::FunctionParameter::Modifier modifier);
 
   template<>
-  std::string const& get_function_parameter_from_vm<std::string const &>(VM&vm, size_t index,
+  std::string const &get_function_parameter_from_vm<std::string const &>(VM &vm, size_t index,
                                                                          sanema::FunctionParameter::Modifier modifier);
 
   template<>
-  std::string&
-  get_function_parameter_from_vm<std::string &>(VM&vm, size_t index, sanema::FunctionParameter::Modifier modifier);
+  std::string &
+  get_function_parameter_from_vm<std::string &>(VM &vm, size_t index, sanema::FunctionParameter::Modifier modifier);
 
   template<typename T>
-  void push_function_return_to_vm(VM&vm, T value) {
+  void push_function_return_to_vm(VM &vm, T value) {
     vm.push_function_return(value);
   }
 
   template<typename RETURN_TYPE, typename... ARGS>
-  RETURN_TYPE call_function(ByteCode const&byte_code, BindingCollection&collection, std::string identifier,
+  RETURN_TYPE call_function(ByteCode const &byte_code, BindingCollection &collection, std::string identifier,
                             ARGS... args) {
   }
 
   template<>
-  void push_function_return_to_vm<std::string>(VM&vm, std::string value);
+  void push_function_return_to_vm<std::string>(VM &vm, std::string value);
 
   template<>
-  void push_function_return_to_vm<std::string const &>(VM&vm, std::string const&value);
+  void push_function_return_to_vm<std::string const &>(VM &vm, std::string const &value);
 
   template<>
-  void push_function_return_to_vm<std::string &>(VM&vm, std::string&value);
+  void push_function_return_to_vm<std::string &>(VM &vm, std::string &value);
 }
 #endif //UPDATE_SKELETON_PY_VM_H

@@ -13,56 +13,41 @@
 #include <string>
 #include <types.h>
 #include <vm/OperandType.h>
-#include <vm/OperandType.h>
+#include <vm/VMInstruction.h>
+#include <format>
+#include <unordered_set>
 
 namespace sanema {
-  using BYTECodeIPType = std::uint8_t const *;
+  using BYTECodeIPType = VMInstruction const *;
 
-  template<typename T>
-  T read_from_bytecode(BYTECodeIPType &ip) {
-    constexpr std::uint64_t size = sizeof(T);
-    T value = *((T *) ip);
-    ip += size;
+
+  inline VMInstruction read_from_bytecode(BYTECodeIPType &ip) {
+    VMInstruction value = *((VMInstruction *) ip);
+    ++ip;
     return value;
   }
-  template<typename T,typename TDEST>
-  void read_from_bytecode_into(BYTECodeIPType &ip,TDEST* dest) {
-    constexpr std::uint64_t size = sizeof(T);
-    (*dest) = *((T *) ip);
-    ip += size;
-  }
 
-  template<>
-  std::uint64_t read_from_bytecode(BYTECodeIPType &ip);
 
-  template<class T>
-  std::uint64_t write_to_byte_code(std::vector<std::uint8_t> &code_data, std::uint64_t address, T const &t) {
-    std::uint8_t *pointer_uint8 = &code_data[address];
-    T *pointer_t = (T *) pointer_uint8;
-    (*pointer_t) = t;
+
+  inline std::uint64_t
+  write_to_byte_code(std::vector<VMInstruction> &code_data, std::uint64_t address, VMInstruction instruction) {
+    code_data[address] = instruction;
     return address;
   }
 
-  template<class T>
-  std::uint64_t write_to_byte_code(std::vector<std::uint8_t> &code_data, T const &t) {
-    auto length = sizeof(t) / sizeof(uint8_t);
+
+  inline std::uint64_t write_to_byte_code(std::vector<VMInstruction> &code_data, VMInstruction instruction) {
+
     auto address = code_data.size() - 1;
-    for (int i = 0; i < length; i++) {
-      code_data.emplace_back();
-    }
-    std::uint8_t *pointer_uint8 = &code_data[code_data.size() - length];
-
-    T *pointer_t = (T *) pointer_uint8;
-    (*pointer_t) = t;
+    code_data.emplace_back(instruction);
     return address;
   }
 
-  template<>
-  std::uint64_t write_to_byte_code(std::vector<std::uint8_t> &code_data, OPCODE const &t);
 
   struct ByteCode {
-    std::vector<VMIn> code_data;
+    std::vector<VMInstruction> code_data;
     std::vector<std::string> string_literals;
+    std::vector<OperandType> const_pool;
 
     ByteCode() = default;
 
@@ -74,23 +59,29 @@ namespace sanema {
 
     ByteCode &operator=(ByteCode &&other) = default;
 
-    template<class T>
-    std::uint64_t write(T const &t) {
-      auto address =get_current_address();
-       write_to_byte_code(code_data,
-                                t);
+
+    inline std::uint64_t write(VMInstruction instruction) {
+      auto address = get_current_address();
+      write_to_byte_code(code_data,
+                         instruction);
       return address;
     };
+    [[nodiscard]] size_t add_const(OperandType value){
+      const_pool.emplace_back(value);
+      return const_pool.size()-1;
+    }
+
     template<class T>
-   void write_to_address(T const &t,std::uint64_t address) {
-      write_to_byte_code(code_data,address,t);
+    void write_to_address(T const &t, std::uint64_t address) {
+      write_to_byte_code(code_data,
+                         address,
+                         t);
     };
 
     std::uint64_t get_current_address();
-    inline void remove_data(std::uint64_t address,size_t size) {
-      auto iter_begin=code_data.begin()+address;
-      code_data.erase(iter_begin,iter_begin+size);
-    };
+
+
+
     size_t add_string_literal(std::string &string_literal) {
       auto iter = std::find(string_literals.begin(),
                             string_literals.end(),
@@ -104,310 +95,20 @@ namespace sanema {
       }
     }
 
-    inline void print() {
+    [[maybe_unused]] inline void print() {
       BYTECodeIPType ip = code_data.data();
       std::cout << "byte code size =" << code_data.size() << "\n";
       while (ip < code_data.data() + code_data.size()) {
         auto offset = std::uint64_t(ip - code_data.data());
-        auto opcode = read_from_bytecode<OPCODE>(ip);
-        std::cout << offset << " : " << opcode_to_string(opcode);
-        switch (opcode) {
-          case OPCODE::OP_POP: {
-          }
-            break;
-          case OPCODE::OP_RESERVE_STACK_SPACE: {
-            auto size = read_from_bytecode<std::uint64_t>(ip);
-            std::cout << "   space =" << size;
-          }
-            break;
-          case OPCODE::OP_TRUE: {
-          }
-            break;
-          case OPCODE::OP_FALSE: {
-          }
-            break;
-
-          case OPCODE::OP_PUSH_STRING_CONST: {
-            auto string_literal_index = read_from_bytecode<sanema::StringReference>(ip);
-            std::cout << string_literal_index;
-          }
-            break;
-          case OPCODE::OP_JUMP: {
-            auto offset = read_from_bytecode<std::uint64_t>(ip);
-            std::cout<<" Offset: "<<offset<<"\n";
-          }
-            break;
-          case OPCODE::OP_CALL_EXTERNAL_FUNCTION: {
-            auto function_id = read_from_bytecode<std::uint64_t>(ip);
-          }
-            break;
-          case OPCODE::OP_CALL: {
-            auto function_address = read_from_bytecode<std::uint64_t>(ip);
-            std::cout << "function address: " << function_address;
-            auto parameter_size = read_from_bytecode<std::uint32_t>(ip);
-            std::cout << "  parameters size:" << parameter_size;
-          }
-            break;
-          case OPCODE::OP_PREPARE_PARAMETER: {
-            auto address = read_from_bytecode<std::uint64_t>(ip);
-            std::cout << " address: " << address;
-
-          }
-            break;
-          case OPCODE::OP_JUMP_IF_FALSE: {
-            auto offset = read_from_bytecode<std::uint64_t>(ip);
-            std::cout << " offset: " << offset;
-          }
-          case OPCODE::OP_RETURN:
-            break;
-          case OPCODE::OP_NIL:
-            break;
-
-          case OPCODE::OP_EQUAL_SINT64:
-            break;
-          case OPCODE::OP_GREATER_SINT64:
-            break;
-          case OPCODE::OP_LESS_SINT64:
-            break;
-          case OPCODE::OP_GREATER_EQUAL_SINT64:
-            break;
-          case OPCODE::OP_LESS_EQUAL_SINT64:
-            break;
-          case OPCODE::OP_PUSH_SINT64_CONST: {
-            auto value = read_from_bytecode<int64_t>(ip);
-            std::cout << " " << value;
-          }
-            break;
-          case OPCODE::OP_ADD_SINT64:
-            break;
-          case OPCODE::OP_SUBTRACT_SINT64:
-            break;
-          case OPCODE::OP_MULTIPLY_SINT64:
-            break;
-          case OPCODE::OP_DIVIDE_SINT64:
-            break;
-          case OPCODE::OP_NEGATE_SINT64:
-            break;
-          case OPCODE::OP_SET_LOCAL_SINT64:
-            break;
-          case OPCODE::OP_PUSH_LOCAL_SINT64: {
-          }
-            break;
-          case OPCODE::OP_SET_EXTERNAL_SINT64: {
-            auto value = read_from_bytecode<int64_t>(ip);
-            std::cout << " " << value;
-          }
-            break;
-          case OPCODE::OP_EQUAL_SINT32:
-            break;
-          case OPCODE::OP_GREATER_SINT32:
-            break;
-          case OPCODE::OP_LESS_SINT32:
-            break;
-          case OPCODE::OP_GREATER_EQUAL_SINT32:
-            break;
-          case OPCODE::OP_LESS_EQUAL_SINT32:
-            break;
-          case OPCODE::OP_PUSH_SINT32_CONST: {
-            auto value = read_from_bytecode<int32_t>(ip);
-            std::cout << " " << value;
-          }
-            break;
-          case OPCODE::OP_ADD_SINT32:
-            break;
-          case OPCODE::OP_SUBTRACT_SINT32:
-            break;
-          case OPCODE::OP_MULTIPLY_SINT32:
-            break;
-          case OPCODE::OP_DIVIDE_SINT32:
-            break;
-          case OPCODE::OP_NEGATE_SINT32:
-            break;
-          case OPCODE::OP_SET_LOCAL_SINT32:
-            break;
-          case OPCODE::OP_PUSH_LOCAL_SINT32: {
-          }
-            break;
-          case OPCODE::OP_SET_EXTERNAL_SINT32: {
-            auto value = read_from_bytecode<int64_t>(ip);
-            std::cout << " " << value;
-          }
-            break;
-          case OPCODE::OP_EQUAL_SINT16:
-            break;
-          case OPCODE::OP_GREATER_SINT16:
-            break;
-          case OPCODE::OP_LESS_SINT16:
-            break;
-          case OPCODE::OP_GREATER_EQUAL_SINT16:
-            break;
-          case OPCODE::OP_LESS_EQUAL_SINT16:
-            break;
-          case OPCODE::OP_PUSH_SINT16_CONST: {
-            auto value = read_from_bytecode<int16_t>(ip);
-            std::cout << " " << value;
-          }
-            break;
-          case OPCODE::OP_ADD_SINT16:
-            break;
-          case OPCODE::OP_SUBTRACT_SINT16:
-            break;
-          case OPCODE::OP_MULTIPLY_SINT16:
-            break;
-          case OPCODE::OP_DIVIDE_SINT16:
-            break;
-          case OPCODE::OP_NEGATE_SINT16:
-            break;
-          case OPCODE::OP_SET_LOCAL_SINT16:
-            break;
-          case OPCODE::OP_PUSH_LOCAL_SINT16: {
-          }
-            break;
-          case OPCODE::OP_SET_EXTERNAL_SINT16: {
-            auto value = read_from_bytecode<int64_t>(ip);
-            std::cout << " " << value;
-          }
-            break;
-          case OPCODE::OP_EQUAL_SINT8:
-            break;
-          case OPCODE::OP_GREATER_SINT8:
-            break;
-          case OPCODE::OP_LESS_SINT8:
-            break;
-          case OPCODE::OP_GREATER_EQUAL_SINT8:
-            break;
-          case OPCODE::OP_LESS_EQUAL_SINT8:
-            break;
-          case OPCODE::OP_PUSH_SINT8_CONST: {
-            auto value = read_from_bytecode<int8_t>(ip);
-            std::cout << " " << (int) value;
-          }
-            break;
-          case OPCODE::OP_ADD_SINT8:
-            break;
-          case OPCODE::OP_SUBTRACT_SINT8:
-            break;
-          case OPCODE::OP_MULTIPLY_SINT8:
-            break;
-          case OPCODE::OP_DIVIDE_SINT8:
-            break;
-          case OPCODE::OP_NEGATE_SINT8:
-            break;
-          case OPCODE::OP_SET_LOCAL_SINT8:
-            break;
-          case OPCODE::OP_PUSH_LOCAL_SINT8: {
-
-          }
-            break;
-          case OPCODE::OP_SET_EXTERNAL_SINT8: {
-            auto value = read_from_bytecode<int64_t>(ip);
-            std::cout << " " << value;
-          }
-            break;
-          case OPCODE::OP_EQUAL_FLOAT:
-            break;
-          case OPCODE::OP_GREATER_FLOAT:
-            break;
-          case OPCODE::OP_LESS_FLOAT:
-            break;
-          case OPCODE::OP_GREATER_EQUAL_FLOAT:
-            break;
-          case OPCODE::OP_LESS_EQUAL_FLOAT:
-            break;
-          case OPCODE::OP_PUSH_FLOAT_CONST: {
-            auto value = read_from_bytecode<float>(ip);
-            std::cout << " " << value;
-          }
-            break;
-          case OPCODE::OP_ADD_FLOAT:
-            break;
-          case OPCODE::OP_SUBTRACT_FLOAT:
-            break;
-          case OPCODE::OP_MULTIPLY_FLOAT:
-            break;
-          case OPCODE::OP_DIVIDE_FLOAT:
-            break;
-          case OPCODE::OP_NEGATE_FLOAT:
-            break;
-          case OPCODE::OP_PUSH_LOCAL_FLOAT: {
-
-          }
-            break;
-          case OPCODE::OP_SET_EXTERNAL_FLOAT:
-            break;
-          case OPCODE::OP_SET_LOCAL_FLOAT:
-            break;
-          case OPCODE::OP_EQUAL_DOUBLE:
-            break;
-          case OPCODE::OP_GREATER_DOUBLE:
-            break;
-          case OPCODE::OP_LESS_DOUBLE:
-            break;
-          case OPCODE::OP_GREATER_EQUAL_DOUBLE:
-            break;
-          case OPCODE::OP_LESS_EQUAL_DOUBLE:
-            break;
-          case OPCODE::OP_PUSH_DOUBLE_CONST: {
-            auto value = read_from_bytecode<double>(ip);
-            std::cout << " " << value;
-          }
-            break;
-          case OPCODE::OP_ADD_DOUBLE:
-            break;
-          case OPCODE::OP_SUBTRACT_DOUBLE:
-            break;
-          case OPCODE::OP_MULTIPLY_DOUBLE:
-            break;
-          case OPCODE::OP_DIVIDE_DOUBLE:
-            break;
-          case OPCODE::OP_NEGATE_DOUBLE:
-            break;
-          case OPCODE::OP_PUSH_LOCAL_DOUBLE: {
-          }
-            break;
-          case OPCODE::OP_SET_EXTERNAL_DOUBLE: {
-            auto value = read_from_bytecode<int64_t>(ip);
-            std::cout << " " << value;
-          }
-            break;
-          case OPCODE::OP_SET_LOCAL_DOUBLE:
-            break;
-          case OPCODE::OP_SET_LOCAL_STRING:
-            break;
-          case OPCODE::OP_PUSH_LOCAL_STRING: {
-          }
-            break;
-          case OPCODE::OP_SET_EXTERNAL_STRING: {
-            auto value = read_from_bytecode<int64_t>(ip);
-            std::cout << " " << value;
-          }
-            break;
-          case OPCODE::OP_NOT:
-            break;
-          case OPCODE::OP_PRINT:
-            break;
-          case OPCODE::OP_INVOKE:
-            break;
-          case OPCODE::OP_SUPER_INVOKE:
-            break;
-          case OPCODE::OP_CLOSURE:
-            break;
-          case OPCODE::OP_CLOSE_UPVALUE:
-            break;
-          case OPCODE::OP_CLASS:
-            break;
-          case OPCODE::OP_INHERIT:
-            break;
-          case OPCODE::OP_METHOD:
-            break;
-          case OPCODE::OP_PUSH_LOCAL_ADDRESS_AS_GLOBAL:
-            read_from_bytecode<sanema::address_t>(ip);
-            break;
-          case OPCODE::OP_PUSH_EXTERNAL_FIELD_ADDRESS:
-            break;
-          case OPCODE::OP_POP_GLOBAL_ADDRESS_AS_LOCAL:
-            break;
-        }
+        auto vmInstruction = read_from_bytecode(ip);
+        std::cout << std::format(" {}:{} R1:{}  R2:{}{} R3:{}{}   ",
+                                 offset,
+                                 opcode_to_string(vmInstruction.opcode),
+                                 vmInstruction.r_result,
+                                 vmInstruction.is_r2_reference ? "G" : "L",
+                                 vmInstruction.registers16.r1,
+                                 vmInstruction.is_r1_reference ? "G" : "L",
+                                 vmInstruction.registers16.r2);
         std::cout << "    |\n";
       }
     }
