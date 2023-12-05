@@ -24,10 +24,8 @@ std::tuple<std::string, std::string> split_identifier(std::string identifier_p) 
   std::string identifier;
   std::string field_identifier;
   if (is_field) {
-    identifier = identifier_p.substr(0,
-                                     pos);
-    field_identifier = identifier_p.substr(pos + 1,
-                                           identifier_p.size() - pos - 1);
+    identifier = identifier_p.substr(0, pos);
+    field_identifier = identifier_p.substr(pos + 1, identifier_p.size() - pos - 1);
   } else {
     identifier = identifier_p;
   }
@@ -230,7 +228,6 @@ void generate_push_temp_variable(sanema::ByteCode &byte_code,
           auto index = byte_code.add_string_literal(string.value);
           instruction.registers16.r1 = index;
           byte_code.write(instruction);
-          byte_code.write(instruction);
         }
        );
 }
@@ -348,54 +345,52 @@ generate_local_variable_access(sanema::ByteCode &byte_code, sanema::ByteCodeComp
 
 void
 generate_set(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
-             std::vector<sanema::local_register_t> addresses, sanema::local_register_t return_address) {
+             std::vector<sanema::local_register_t> addresses ,sanema::local_register_t return_address) {
   auto opcode = match(function_definition->type,
-                      [&byte_code](sanema::Integer const &integer) -> OPCODE {
+                      [](sanema::Integer const &integer) -> OPCODE {
                         switch (integer.size) {
                           case 8:
                             return OPCODE::OP_SET_LOCAL_SINT8;
-                            break;
                           case 16:
                             return OPCODE::OP_SET_LOCAL_SINT16;
-                            break;
                           case 32:
                             return OPCODE::OP_SET_LOCAL_SINT32;
-                            break;
                           case 64:
                             return OPCODE::OP_SET_LOCAL_SINT64;
-                            break;
-                        };
+                        }
                         return  OPCODE::OP_SET_LOCAL_SINT64;
                       },
-                      [&byte_code](sanema::Float const &a_float) -> OPCODE {
+                      [](sanema::Float const &a_float) -> OPCODE {
                         return OPCODE::OP_SET_LOCAL_FLOAT;
                       },
-                      [&byte_code](sanema::String const &integer) -> OPCODE  {
+                      [](sanema::String const &integer) -> OPCODE  {
                         return OPCODE::OP_SET_LOCAL_STRING;
                       },
                       [](sanema::Void const &a_void) -> OPCODE {
                         throw std::runtime_error("Void can't be set we should never reach this");
                       },
-                      [&byte_code](sanema::Double const &a_double) -> OPCODE {
+                      [](sanema::Double const &a_double) -> OPCODE {
                         return OPCODE::OP_SET_LOCAL_DOUBLE;
                       },
-                      [&byte_code](sanema::Boolean const &integer) -> OPCODE {
+                      [](sanema::Boolean const &integer) -> OPCODE {
                         return OPCODE::OP_SET_LOCAL_BOOL;
                       },
-                      [&byte_code](sanema::UserDefined const &integer) -> OPCODE {
+                      [](sanema::UserDefined const &integer) -> OPCODE {
                         throw std::runtime_error("User defined types can't be set we should never reach this");
                       }
                      );
   sanema::VMInstruction instruction;
   instruction.opcode = opcode;
+  instruction.is_rresult_reference=addresses[0].is_reference;
   instruction.r_result = addresses[0].address;
-  instruction.registers16.r2 = addresses[1].address;
+  instruction.is_r1_reference=addresses[1].is_reference;
+  instruction.registers16.r1 = addresses[1].address;
   byte_code.write(instruction);
 }
 
 void
 generate_return(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
-                std::vector<sanema::local_register_t> addresses, sanema::local_register_t return_address) {
+                [[maybe_unused]] std::vector<sanema::local_register_t> addresses , sanema::local_register_t return_address) {
   sanema::VMInstruction instruction;
   instruction.opcode = OPCODE::OP_RETURN;
   byte_code.write(instruction);
@@ -580,6 +575,7 @@ std::optional<sanema::DefineFunction> generate_operator_call(
                                                                  generator_map,
                                                                  function_call_sustitutions,
                                                                  (uint64_t) address_return.address);
+
             if (!definition) {
               //We should not reach this because the get_function_definition at the start of the function should validate this
               throw std::runtime_error(std::format(
@@ -596,8 +592,19 @@ std::optional<sanema::DefineFunction> generate_operator_call(
             }
             auto local_variable_entry = context_frame_aux.local_variables.at(variable_evaluation.identifier);
             sanema::local_register_t address_variable;
+            bool is_reference = match(local_variable_entry.declaration,
+                            [](sanema::DeclareVariable &variable) {
+                              return false;
+                            },
+                            [](sanema::FunctionParameter &parameter) {
+                              return parameter.modifier == sanema::FunctionParameter::Modifier::MUTABLE ||
+                                     parameter.modifier == sanema::FunctionParameter::Modifier::CONST;
+                            }
+                           );
+
 
             address_variable.address = local_variable_entry.address;
+            address_variable.is_reference=is_reference;
             if (function_call.identifier == "return") {
               sanema::VMInstruction instruction;
               instruction.opcode = OPCODE::OP_PUSH_LOCAL_SINT64;
@@ -628,7 +635,6 @@ generate_function_call(
   sanema::ByteCodeCompiler::GeneratorsMap &generator_map,
   std::vector<sanema::ByteCodeCompiler::FuctionCallSustitution> &function_call_sustitutions
 ) {
-  std::cout << "normal function call for: " << function_call.identifier << "\n";
   sanema::DefineFunction function_definition;
   function_definition.identifier = function_call.identifier;
   auto final_function_definition = get_function_definition(function_call,
@@ -638,14 +644,16 @@ generate_function_call(
   }
   auto return_address = context_frame_aux.scope_address;
   context_frame_aux.reserve_space_for_type(final_function_definition->type);
+  auto rollback_address=context_frame_aux.scope_address;
   for (int i = 0; i < final_function_definition.value().parameters.size(); i++) {
     auto &argument = function_call.arguments[i];
     auto &parameter = final_function_definition.value().parameters[i];
     match(argument.expression,
           [&](sanema::Literal literal) -> void {
             auto literal_type = sanema::get_literal_type(literal);
-            if (parameter.modifier == sanema::FunctionParameter::Modifier::MUTABLE) {
-              throw std::runtime_error("can't bind literal to a mutable reference");
+            if (parameter.modifier == sanema::FunctionParameter::Modifier::MUTABLE || parameter.modifier == sanema::FunctionParameter::Modifier::CONST) {
+              //TODO to allow binding of literals to references we need to properly implement temporaries or a method to flat out the call tree
+              throw std::runtime_error("can't bind literal to a a reference");
             }
 
 
@@ -659,8 +667,7 @@ generate_function_call(
                                         address);
           },
           [&](sanema::FunctionCall function_call_nested) -> void {
-            if (parameter.modifier == sanema::FunctionParameter::Modifier::MUTABLE ||
-                parameter.modifier == sanema::FunctionParameter::Modifier::CONST) {
+            if (parameter.modifier == sanema::FunctionParameter::Modifier::MUTABLE || parameter.modifier == sanema::FunctionParameter::Modifier::CONST) {
               throw std::runtime_error("can't bind temporary value  to a  reference");
             }
             auto return_address = context_frame_aux.scope_address;
@@ -702,11 +709,13 @@ generate_function_call(
                                            should_copy);
           });
   }
-
+  context_frame_aux.scope_address=rollback_address;
   if (final_function_definition->external_id) {
     sanema::VMInstruction instruction;
     instruction.opcode = OPCODE::OP_CALL_EXTERNAL_FUNCTION;
     instruction.register32.r1 = final_function_definition->external_id.value();
+    instruction.r_result = return_address.address;
+    byte_code.write(instruction);;
   } else {
     sanema::VMInstruction instruction;
     instruction.opcode = OPCODE::OP_CALL;

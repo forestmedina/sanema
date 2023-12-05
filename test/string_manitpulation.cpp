@@ -16,7 +16,7 @@ var a string;
 var b string;
 set a "hola, ";
 set b "mundo";
-concat a b;
+set a concat (a b);
 )--");
   auto result=run_and_get_stack_value<std::string>(code);
 //
@@ -29,12 +29,13 @@ TEST_CASE("ends_with",
           "[parser]") {
 
 std::string code(R"--(
+var result bool;
 var a string;
 var b string;
 set a "hola, ";
 set b "mundo";
 set a concat (a b);
-ends_with(a "mundo")
+set result ends_with(a "mundo");
 )--");
   auto result=run_and_get_stack_value<bool>(code);
 //
@@ -42,12 +43,13 @@ ends_with(a "mundo")
 
   REQUIRE(result.value());
   std::string code2(R"--(
+var result bool;
 var a string;
 var b string;
 set a "hola, ";
 set b "mundo";
 set a concat (a b);
-ends_with(a "cundo");
+set result ends_with(a "cundo");
 )--");
  auto result2=run_and_get_stack_value<bool>(code2);
 //

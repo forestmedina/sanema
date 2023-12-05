@@ -28,17 +28,26 @@ namespace sanema {
 
     ~VM();
 
+
     void run(ByteCode const &byte_code, BindingCollection &collection);
 
     template<class T>
     std::optional<T> get_value_stack() {
+
       if (operand_stack_pointer == nullptr) return {};
-      return (*(T *) operand_stack_pointer);
+      return *((T *) operand_stack_pointer);
     }
 
-    void prepare_function_parameters(std::uint32_t n);
 
-    [[nodiscard]] sanema::OperandType get_external_function_parameter(size_t index) const;
+
+    template<typename T>
+    [[nodiscard]] T get_external_function_parameter() {
+
+      T value = *((T *) external_function_parameters_addresss);
+      auto offset=external_function_parameters_addresss-operand_stack_pointer;
+      external_function_parameters_addresss += sizeof(T);
+      return value;
+    }
 
     std::string const &get_string(StringReference const &reference);
 
@@ -49,13 +58,14 @@ namespace sanema {
 
     template<typename T>
     void push_function_return(T value) {
-      push(value);
+      push_return(value);
     }
 
     std::vector<sanema::ContextFrame> call_stack;
 
   private:
-    std::vector<OperandType> external_function_parameters;
+    unsigned char *external_function_return_address{nullptr};
+    unsigned char *external_function_parameters_addresss{nullptr};
     unsigned char *operand_stack;
     unsigned char *operand_stack_pointer{nullptr};
 
@@ -63,7 +73,9 @@ namespace sanema {
 
     template<class type>
     inline void save_result_register(VMInstruction const *instruction, type value) {
-      *((type *) (operand_stack_pointer + instruction->r_result)) = value;
+      type *pointer = instruction->is_rresult_reference ? *(type **) (operand_stack_pointer + instruction->r_result)
+                                                        : (type *) (operand_stack_pointer + instruction->r_result);
+      *(pointer) = value;
     }
 
     template<class type, int index>
@@ -71,15 +83,23 @@ namespace sanema {
       static_assert(index == 1 || index == 2,
                     "Index value must be 1 or 2");
       if constexpr (index == 1) {
-        return *((type *) (operand_stack_pointer + instruction->registers16.r1));
+
+        return instruction->is_r1_reference ?
+               *(*((type **) (operand_stack_pointer + instruction->registers16.r1)))
+                                            :
+               *((type *) (operand_stack_pointer + instruction->registers16.r1));
       } else if constexpr (index == 2) {
-        return *((type *) (operand_stack_pointer + instruction->registers16.r2));
+        return instruction->is_r2_reference ?
+               *(*((type **) (operand_stack_pointer + instruction->registers16.r2)))
+                                            :
+               *((type *) (operand_stack_pointer + instruction->registers16.r2));
       }
     }
-     template<class type>
-    inline type read_constant_pool(VMInstruction  const * instruction,OperandType const* constants_pool_pointer) {
 
-       return static_cast<type>(*(constants_pool_pointer + instruction->registers16.r1));
+    template<class type>
+    inline type read_constant_pool(VMInstruction const *instruction, OperandType const *constants_pool_pointer) {
+
+      return static_cast<type>(*(constants_pool_pointer + instruction->registers16.r1));
 
     }
 
@@ -91,24 +111,26 @@ namespace sanema {
 
 
     template<class type>
-    inline void push_local(VMInstruction const* instruction) {
-      //std::cout<<"Pushing local: "<<(uint64_t )(source_address)<<" value:"<<*((type*)(operand_stack_pointer+source_address))<< " TO "<<destiny_address<<"\n";
-      save_result_register(instruction, read_register<type,1>(instruction));
+    inline void push_local(VMInstruction const *instruction) {
+      save_result_register(instruction,
+                           read_register<type, 1>(instruction));
 
     }
-
 
 
     template<class type>
     inline void set_local(IPType instruction) {
-      save_result_register(instruction, read_register<type,1>(instruction));
+      type value = read_register<type, 1>(instruction);
+      save_result_register(instruction,
+                           read_register<type, 1>(instruction));
     }
 
 
     template<class type>
-    void push_const(IPType instruction,OperandType const* const_pool_pointer) {
-//      std::cout<<"push "<<read_constant_pool<type>(instruction,const_pool_pointer)<<" into "<<instruction->r_result<<"\n";
-      save_result_register(instruction, read_constant_pool<type>(instruction,const_pool_pointer));
+    void push_const(IPType instruction, OperandType const *const_pool_pointer) {
+      save_result_register(instruction,
+                           read_constant_pool<type>(instruction,
+                                                    const_pool_pointer));
     }
 
     inline std::uint32_t get_operand_pointer_offset() {
@@ -116,78 +138,89 @@ namespace sanema {
     }
 
     template<class type>
-    inline void push(type t) {
-      *reinterpret_cast<type *>(operand_stack_pointer) = t;
-      operand_stack_pointer += sizeof(type);
+    inline void push_return(type t) {
+      *reinterpret_cast<type *>(external_function_return_address) = t;
     }
 
 
     template<typename type>
     inline void multiply(IPType instruction) {
-        save_result_register(instruction,read_register<type, 1>(instruction) * read_register<type, 2>(instruction));
+      save_result_register(instruction,
+                           read_register<type, 1>(instruction) * read_register<type, 2>(instruction));
     }
 
     template<typename type>
-    inline void add(VMInstruction const* instruction) {
-      save_result_register(instruction,read_register<type, 1>(instruction) + read_register<type, 2>(instruction));
+    inline void add(VMInstruction const *instruction) {
+      save_result_register(instruction,
+                           read_register<type, 1>(instruction) + read_register<type, 2>(instruction));
     }
 
     template<typename type>
-    inline void subtract(VMInstruction const* instruction) {
-      save_result_register(instruction,read_register<type, 1>(instruction) - read_register<type, 2>(instruction));
+    inline void subtract(VMInstruction const *instruction) {
+      save_result_register(instruction,
+                           read_register<type, 1>(instruction) - read_register<type, 2>(instruction));
 
     }
 
     template<typename type>
-    inline void divide(VMInstruction const* instruction) {
-      save_result_register(instruction,read_register<type, 1>(instruction) / read_register<type, 2>(instruction));
+    inline void divide(VMInstruction const *instruction) {
+      save_result_register(instruction,
+                           read_register<type, 1>(instruction) / read_register<type, 2>(instruction));
     }
 
     template<typename type>
-    inline void negate(VMInstruction const* instruction) {
-      save_result_register(instruction,-read_register<type,1>(instruction));
+    inline void negate(VMInstruction const *instruction) {
+      save_result_register(instruction,
+                           -read_register<type, 1>(instruction));
     }
 
     template<typename type>
-    inline void greater(VMInstruction const* instruction) {
-      save_result_register<bool>(instruction,read_register<type, 1>(instruction) > read_register<type, 2>(instruction));
+    inline void greater(VMInstruction const *instruction) {
+      save_result_register<bool>(instruction,
+                                 read_register<type, 1>(instruction) > read_register<type, 2>(instruction));
     }
 
     template<typename type>
-    inline void less(VMInstruction const* instruction) {
-//      std::cout<<std::format(" {} < {} = {}\n",read_register<type, 1>(instruction),read_register<type, 2>(instruction),read_register<type, 1>(instruction) < read_register<type, 2>(instruction));
-      save_result_register<bool>(instruction,read_register<type, 1>(instruction) < read_register<type, 2>(instruction));
+    inline void less(VMInstruction const *instruction) {
+      save_result_register<bool>(instruction,
+                                 read_register<type, 1>(instruction) < read_register<type, 2>(instruction));
     }
 
     template<typename type>
-    inline void equal(VMInstruction const* instruction) {
-      save_result_register<bool>(instruction,read_register<type, 1>(instruction) == read_register<type, 2>(instruction));
+    inline void equal(VMInstruction const *instruction) {
+      save_result_register<bool>(instruction,
+                                 read_register<type, 1>(instruction) == read_register<type, 2>(instruction));
     }
 
     template<typename type>
-    inline void greater_equal(VMInstruction const* instruction) {
-      save_result_register<bool>(instruction,read_register<type, 1>(instruction) >= read_register<type, 2>(instruction));
+    inline void greater_equal(VMInstruction const *instruction) {
+      save_result_register<bool>(instruction,
+                                 read_register<type, 1>(instruction) >= read_register<type, 2>(instruction));
     }
 
 
     template<typename type>
-    inline void less_equal(VMInstruction const* instruction) {
-      save_result_register<bool>(instruction,read_register<type, 1>(instruction) <= read_register<type, 2>(instruction));
+    inline void less_equal(VMInstruction const *instruction) {
+      save_result_register<bool>(instruction,
+                                 read_register<type, 1>(instruction) <= read_register<type, 2>(instruction));
     }
   };
 
+
   template<typename T>
-  T get_function_parameter_from_vm(VM &vm, size_t index, sanema::FunctionParameter::Modifier modifier) {
-    auto value = vm.get_external_function_parameter(index);
+  T get_function_parameter_from_vm(VM &vm, sanema::FunctionParameter::Modifier modifier) {
     T final_value;
     switch (modifier) {
-      case sanema::FunctionParameter::Modifier::VALUE:
+      case sanema::FunctionParameter::Modifier::VALUE: {
+        auto value = vm.get_external_function_parameter<T>();
+
         final_value = static_cast<T>(value);
+      }
         break;
       case sanema::FunctionParameter::Modifier::MUTABLE:
       case sanema::FunctionParameter::Modifier::CONST:
-        auto address = static_cast<local_register_t>(value);
-        final_value = *((T *) address.address);
+        auto pointer = vm.get_external_function_parameter<T*>();;
+        final_value = *(pointer);
         break;
     }
     return final_value;
@@ -195,15 +228,13 @@ namespace sanema {
 
   template<>
   std::string
-  get_function_parameter_from_vm<std::string>(VM &vm, size_t index, sanema::FunctionParameter::Modifier modifier);
+  get_function_parameter_from_vm<std::string>(VM &vm, sanema::FunctionParameter::Modifier modifier);
 
   template<>
-  std::string const &get_function_parameter_from_vm<std::string const &>(VM &vm, size_t index,
+  std::string const &get_function_parameter_from_vm<std::string const &>(VM &vm,
                                                                          sanema::FunctionParameter::Modifier modifier);
 
-  template<>
-  std::string &
-  get_function_parameter_from_vm<std::string &>(VM &vm, size_t index, sanema::FunctionParameter::Modifier modifier);
+
 
   template<typename T>
   void push_function_return_to_vm(VM &vm, T value) {

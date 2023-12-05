@@ -4,4 +4,4 @@
 
 #include "VMInstruction.h"
 
-sanema::VMInstruction::VMInstruction():is_r1_reference{false},is_r2_reference{false} {}
+sanema::VMInstruction::VMInstruction():is_r1_reference{false},is_r2_reference{false},is_rresult_reference{false} {}

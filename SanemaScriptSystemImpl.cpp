@@ -87,6 +87,7 @@ void sanema::SanemaScriptSystemImpl::get_return_value(std::uint64_t &value) {
 
 void sanema::SanemaScriptSystemImpl::get_return_value(std::string &value) {
   auto reference = vm.get_value_stack<StringReference>();
+  std::cout <<"getting string : "<<reference.value().ref<<" location: "<<(reference.value().location==StringLocation::LiteralPool?"literal":"stack")<<"\n";
   if (reference.has_value()) {
     value = vm.get_string(reference.value());
   } else {

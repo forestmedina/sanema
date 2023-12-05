@@ -26,7 +26,7 @@ void add_built_in_arithmetic_functions(sanema::FunctionCollection &functions) {
     }
   }
   std::vector<sanema::CompleteType> const primitive_types{sanema::Integer(8), sanema::Integer(16), sanema::Integer(32),
-                                          sanema::Integer(64), sanema::Float{}, sanema::Double{},sanema::String{}};
+                                          sanema::Integer(64), sanema::Float{}, sanema::Double{},sanema::String{},sanema::Boolean{}};
   for (auto &type: primitive_types) {
     sanema::DefineFunction function_set{
           "set",
@@ -43,25 +43,26 @@ void add_built_in_arithmetic_functions(sanema::FunctionCollection &functions) {
 
 }
 void add_built_in_boolean_functions(sanema::FunctionCollection &functions) {
-  std::vector<std::string> const function_names = {"equal", "greater", "less","equal_greater","equal_less"};
+  std::vector<std::string> const function_names = {"equal", "greater", "less", "equal_greater", "equal_less"};
   std::vector<sanema::CompleteType> arithmetic_types{sanema::Integer(8), sanema::Integer(16), sanema::Integer(32),
-                                          sanema::Integer(64), sanema::Float{}, sanema::Double{}};
-  for (auto const&function_name: function_names) {
+                                                     sanema::Integer(64), sanema::Float{}, sanema::Double{}};
+  for (auto const &function_name: function_names) {
     for (auto &type: arithmetic_types) {
       sanema::DefineFunction function_operation{
-          function_name,
-          sanema::Boolean{}, {},
-          {
-            sanema::FunctionParameter{"a", sanema::FunctionParameter::Modifier::VALUE, type},
-            sanema::FunctionParameter{"b", sanema::FunctionParameter::Modifier::VALUE, type}
-          },
-        };
-      function_operation.is_operator=true;
-       functions.add_function(function_operation);
+        function_name,
+        sanema::Boolean{}, {},
+        {
+          sanema::FunctionParameter{"a", sanema::FunctionParameter::Modifier::VALUE, type},
+          sanema::FunctionParameter{"b", sanema::FunctionParameter::Modifier::VALUE, type}
+        },
+      };
+      function_operation.is_operator = true;
+      functions.add_function(function_operation);
 
     }
   }
 }
+
 void add_built_in_string_functions(sanema::FunctionCollection &functions,sanema::BindingCollection& binding_collection){
   binding_collection.add_function_binding("replace_first",sanema::replace_first);
   binding_collection.add_function_binding("replace_all",sanema::replace_all);

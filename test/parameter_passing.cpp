@@ -8,12 +8,13 @@
 #include <sstream>
 #include <test/helpers.h>
 
-TEST_CASE("passing function and literal  return as const reference",
+TEST_CASE("passing literal and  return values  as const reference",
           "[parser]") {
 
 std::string code(R"--(
+var result string;
 var string_a string;
-concat ( concat("hola" ", ") "mundo" );
+set result concat ( concat("hola" ", ") "mundo" );
 )--");
  auto result=run_and_get_stack_value<std::string>(code);
 //

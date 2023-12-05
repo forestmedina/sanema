@@ -188,9 +188,9 @@ int main(int argc, char *argv[]) {
     scriptSystem.run_script(id);
     auto second = clock.now();
     std::cout << "\n duration:" << std::chrono::duration_cast<std::chrono::milliseconds>(second - first) << "\n";
-    std::uint64_t return_value;
+    bool return_value;
     scriptSystem.get_return_value(return_value);
-    std::cout<<"result:"<<return_value<<"\n";
+    std::cout<<"result:"<<(return_value?"true":"false")<<"\n";
     asIScriptEngine *engine = asCreateScriptEngine();
     const char *fibonacciScript =
       "int fibonacci(int n) {"

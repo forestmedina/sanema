@@ -14,6 +14,7 @@
 #include <variant>
 #include <utility>
 #include "common/FunctionCollection.h"
+#include <iostream>
 namespace sanema {
 
 
@@ -31,18 +32,29 @@ namespace sanema {
      auto modifier=std::is_reference_v<T>? (std::is_const_v<std::remove_reference_t<T>>?FunctionParameter::Modifier::CONST:FunctionParameter::Modifier::MUTABLE ):FunctionParameter::Modifier::VALUE;
     return modifier;
   }
+
+
+
+
+
   template<typename RET_TYPE,typename FTYPE, typename ...ARGS, std::size_t... Ns>
   std::enable_if_t<std::negation_v<std::is_void<RET_TYPE>>>
     call_function_impl(VM& vm,FTYPE function_pointer, std::index_sequence<Ns...> is) {
-      vm.prepare_function_parameters(is.size());
-      auto return_value=(function_pointer)(get_function_parameter_from_vm<ARGS>(vm,Ns,get_parameter_modifier<ARGS>())...);
-      push_function_return_to_vm(vm,return_value);
+      auto ignore=get_function_parameter_from_vm<RET_TYPE>(vm,FunctionParameter::Modifier::VALUE);//this is done to move the address to the first parameter
+//      std::cout<<" parameter : ";
+//      ((std::cout <<get_function_parameter_from_vm<ARGS>(vm,get_parameter_modifier<ARGS>())<< Ns << ' '),...);
+//      std::cout<<"\n ";
+     std::tuple<ARGS...> paramsTuple{
+       get_function_parameter_from_vm<ARGS>(vm,
+                                            get_parameter_modifier<ARGS>())...
+     };
+      auto return_value=std::apply(function_pointer, paramsTuple);
+    push_function_return_to_vm(vm,return_value);
 
   }
   template<typename RET_TYPE,typename FTYPE, typename ...ARGS, std::size_t... Ns>
   std::enable_if_t<std::is_void_v<RET_TYPE>> call_function_impl(VM& vm,FTYPE function_pointer, std::index_sequence<Ns...> is) {
-    vm.prepare_function_parameters(is.size());
-    (function_pointer)(get_function_parameter_from_vm<ARGS>(vm,Ns,get_parameter_modifier<ARGS>())...);
+    function_pointer(get_function_parameter_from_vm<ARGS>(vm,get_parameter_modifier<ARGS>())...);
   }
 
 

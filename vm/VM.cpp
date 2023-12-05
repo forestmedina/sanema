@@ -14,6 +14,8 @@
 void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_collection) {
   running_byte_code = &byte_code;
   operand_stack_pointer = operand_stack;
+  external_function_return_address = operand_stack;
+  external_function_parameters_addresss = operand_stack;
   IPType ip = byte_code.code_data.data();
   call_stack.emplace_back(operand_stack_pointer);
   auto end_address = byte_code.code_data.data() + byte_code.code_data.size();
@@ -90,7 +92,8 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_PUSH_SINT64_CONST: {
-        push_const<std::int64_t>(instruction,byte_code.const_pool.data());
+        push_const<std::int64_t>(instruction,
+                                 byte_code.const_pool.data());
       }
         break;
       case OPCODE::OP_ADD_SINT32: {
@@ -146,7 +149,8 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_PUSH_SINT32_CONST: {
-        push_const<std::int32_t>(instruction,byte_code.const_pool.data());
+        push_const<std::int32_t>(instruction,
+                                 byte_code.const_pool.data());
       }
         break;
       case OPCODE::OP_ADD_SINT16: {
@@ -201,7 +205,8 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_PUSH_SINT16_CONST: {
-        push_const<std::int16_t>(instruction,byte_code.const_pool.data());
+        push_const<std::int16_t>(instruction,
+                                 byte_code.const_pool.data());
       }
         break;
       case OPCODE::OP_ADD_SINT8: {
@@ -256,7 +261,8 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_PUSH_SINT8_CONST: {
-        push_const<std::int8_t>(instruction,byte_code.const_pool.data());
+        push_const<std::int8_t>(instruction,
+                                byte_code.const_pool.data());
       }
         break;
       case OPCODE::OP_ADD_FLOAT: {
@@ -311,7 +317,8 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_PUSH_FLOAT_CONST: {
-        push_const<float>(instruction,byte_code.const_pool.data());
+        push_const<float>(instruction,
+                          byte_code.const_pool.data());
       }
         break;
       case OPCODE::OP_ADD_DOUBLE: {
@@ -366,7 +373,8 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_PUSH_DOUBLE_CONST: {
-        push_const<double>(instruction,byte_code.const_pool.data());
+        push_const<double>(instruction,
+                           byte_code.const_pool.data());
       }
         break;
       case OPCODE::OP_PUSH_LOCAL_STRING: {
@@ -381,7 +389,10 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_PUSH_STRING_CONST: {
-        //TODO reimplement push_string const
+        auto id_string = instruction->registers16.r1;
+        save_result_register(instruction,
+                             StringReference(StringLocation::LiteralPool,
+                                             id_string));
       }
         break;
       case OPCODE::OP_JUMP: {
@@ -392,52 +403,37 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       case OPCODE::OP_CALL_EXTERNAL_FUNCTION: {
         auto function_id = instruction->register32.r1;
         auto &function = binding_collection.get_function_by_id(function_id);
+        external_function_return_address = operand_stack_pointer + instruction->r_result;
+        external_function_parameters_addresss = operand_stack_pointer + instruction->r_result;
         function.call(*this);
       }
         break;
       case OPCODE::OP_CALL: {
-
         auto function_address = instruction->register32.r1;
         auto parameters_size = instruction->r_result;
         IPType new_ip = byte_code.code_data.data() + function_address;
-//        std::cout<<"parameters size: "<<parameters_size<<"\n";
-//        std::cout<<"offset 1: "<<get_operand_pointer_offset()<<"\n";
         operand_stack_pointer += parameters_size;
-//        std::cout<<"offset 2: "<<get_operand_pointer_offset()<<"\n";
         auto &last_call_stack = call_stack.back();
         last_call_stack.ip = ip;
-         //std::cout<<"calling "<<operand_stack_pointer-operand_stack<<"\n";
-
         call_stack.emplace_back(operand_stack_pointer);
         ip = new_ip;
-//        //std::cout<<"calling function "<<function_address<<"\n";
       }
         break;
 
       case OPCODE::OP_JUMP_IF_FALSE: {
         auto offset = instruction->registers16.r1;
         auto value = read_register<bool, 2>(instruction);
-//        std::cout<<std::format(" offset: {} value: {} \n",offset,value);
         if (!value) {
           ip += offset;
-//          std::cout<<"jumping\n";
         }
       }
         break;
       case OPCODE::OP_RETURN: {
         should_continue = call_stack.size() > 1;
-
-
-//        std::cout<<"returning \n";
         call_stack.pop_back();
         if (should_continue) {
           ip = call_stack.back().ip;
-
-//          std::cout<<"offset 1: "<<get_operand_pointer_offset()<<"\n";
-
           operand_stack_pointer = call_stack.back().get_begin_address();
-//          std::cout<<"offset 2: "<<get_operand_pointer_offset()<<"\n";
-
         } else {
           return;
         }
@@ -462,7 +458,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_PUSH_LOCAL_BOOL: {
-
+        push_local<bool>(instruction);
       }
         break;
       case OPCODE::OP_SET_EXTERNAL_BOOL: {
@@ -470,7 +466,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_SET_LOCAL_BOOL: {
-
+        set_local<std::int64_t>(instruction);
       }
         break;
       case OPCODE::OP_NOT: {
@@ -493,17 +489,6 @@ sanema::VM::~VM() {
   delete operand_stack;
 }
 
-void sanema::VM::prepare_function_parameters(std::uint32_t n) {
-  external_function_parameters.clear();
-  for (int i = 0; i < n; i++) {
-//    external_function_parameters.emplace_back(pop<OperandType>());
-  }
-}
-
-sanema::OperandType
-sanema::VM::get_external_function_parameter(size_t index) const {
-  return external_function_parameters[external_function_parameters.size() - 1 - index];
-}
 
 std::string const &sanema::VM::get_string(const sanema::StringReference &reference) {
   switch (reference.location) {
@@ -522,45 +507,24 @@ std::string const &sanema::VM::get_string(const sanema::StringReference &referen
 
 void sanema::VM::push_string(std::string const &string_value) {
   string_stack.emplace_back(string_value);
-
   StringReference reference{StringLocation::LocalStack, boost::numeric_cast<std::uint32_t>(string_stack.size() - 1)};
-  push(reference);
+  push_return(reference);
 }
 
 
 template<>
-std::string sanema::get_function_parameter_from_vm<std::string>(VM &vm, size_t index,
+std::string sanema::get_function_parameter_from_vm<std::string>(VM &vm,
                                                                 sanema::FunctionParameter::Modifier modifier) {
-  auto value = vm.get_external_function_parameter(index);
-  StringReference reference;
-  switch (modifier) {
-    case FunctionParameter::Modifier::VALUE:
-      reference = static_cast<StringReference>(value);
-      break;
-    case FunctionParameter::Modifier::MUTABLE:
-    case FunctionParameter::Modifier::CONST:
-      auto address = static_cast<local_register_t>(value);
-      reference = vm.call_stack.back().read<StringReference>(address);
-      break;
-  }
+  auto reference = get_function_parameter_from_vm<StringReference>(vm,
+                                                                   modifier);
   return vm.get_string(reference);
 }
 
 template<>
-std::string const &sanema::get_function_parameter_from_vm<std::string const &>(VM &vm, size_t index,
+std::string const &sanema::get_function_parameter_from_vm<std::string const &>(VM &vm,
                                                                                sanema::FunctionParameter::Modifier modifier) {
-  auto value = vm.get_external_function_parameter(index);
-  StringReference reference;
-  switch (modifier) {
-    case FunctionParameter::Modifier::VALUE:
-      reference = static_cast<StringReference>(value);
-      break;
-    case FunctionParameter::Modifier::CONST:
-    case FunctionParameter::Modifier::MUTABLE:
-      auto address = static_cast<local_register_t>(value);
-      reference = *((StringReference *) address.address);
-      break;
-  }
+  auto reference = get_function_parameter_from_vm<StringReference>(vm,
+                                                                   modifier);
   return vm.get_string(reference);
 }
 

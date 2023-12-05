@@ -27,7 +27,8 @@ var number1 int64;
 var number2 int64;
 set number1 10;
 set number2 15;
-add number1 number2;
+set number1 add (number1 number2);
+
 )--");
   auto result=run_and_get_stack_value<std::uint64_t >(code);
   auto success=result.has_value() && result.value()==25;
@@ -43,7 +44,7 @@ var number1 int64;
 var number2 int16;
 set number1 10;
 set number2 15;
-add number1 number2;
+set number1 add (number1 number2);
 )--");
   auto result=run_and_get_stack_value<std::int64_t >(code);
 //
@@ -60,7 +61,7 @@ var number1 float;
 var number2 float;
 set number1 10.33;
 set number2 15.65;
-add number1 number2;
+set number1 add (number1 number2);
 )--");
   auto result=run_and_get_stack_value<float >(code);
 
@@ -78,7 +79,7 @@ var number1 float;
 var number2 float;
 set number1 10.33;
 set number2 15.65;
-add number1 number2;
+set number1 add (number1 number2);
 )--");
   auto result=run_and_get_stack_value<float >(code);
 
@@ -94,7 +95,7 @@ std::string code(R"--(
 var number1 double;
 var number2 double;
 set number1 10.33d;
-add number1 10d;
+set number1 add (number1 10d);
 )--");
   auto result=run_and_get_stack_value<double >(code);
 

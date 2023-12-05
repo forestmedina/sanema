@@ -32,6 +32,7 @@ sanema::generate_equal(sanema::ByteCode &byte_code, std::optional<sanema::Define
                         });
   VMInstruction instruction{};
   instruction.opcode = opcode;
+  instruction.is_rresult_reference=return_register.is_reference;
   instruction.r_result = return_register.address;
   instruction.registers16.r1 = registers[0].address;
   instruction.is_r1_reference = registers[0].is_reference;
@@ -69,6 +70,7 @@ sanema::generate_less(sanema::ByteCode &byte_code, std::optional<sanema::DefineF
                         });
   VMInstruction instruction{};
   instruction.opcode = opcode;
+  instruction.is_rresult_reference=return_register.is_reference;
   instruction.r_result = return_register.address;
   instruction.registers16.r1 = registers[0].address;
   instruction.is_r1_reference = registers[0].is_reference;
@@ -105,6 +107,7 @@ sanema::generate_greater(sanema::ByteCode &byte_code, std::optional<sanema::Defi
                         });
  VMInstruction instruction{};
   instruction.opcode = opcode;
+  instruction.is_rresult_reference=return_register.is_reference;
   instruction.r_result = return_register.address;
   instruction.registers16.r1 = registers[0].address;
   instruction.is_r1_reference = registers[0].is_reference;
@@ -140,6 +143,7 @@ void sanema::generate_add(sanema::ByteCode &byte_code, std::optional<sanema::Def
                         });
    VMInstruction instruction{};
   instruction.opcode = opcode;
+  instruction.is_rresult_reference=return_register.is_reference;
   instruction.r_result = return_register.address;
   instruction.registers16.r1 = registers[0].address;
   instruction.is_r1_reference = registers[0].is_reference;
@@ -176,6 +180,7 @@ sanema::generate_subtract(sanema::ByteCode &byte_code, std::optional<sanema::Def
                         });
  VMInstruction instruction{};
   instruction.opcode = opcode;
+  instruction.is_rresult_reference=return_register.is_reference;
   instruction.r_result = return_register.address;
   instruction.registers16.r1 = registers[0].address;
   instruction.is_r1_reference = registers[0].is_reference;
@@ -212,6 +217,7 @@ sanema::generate_multiply(sanema::ByteCode &byte_code, std::optional<sanema::Def
                         });
    VMInstruction instruction{};
   instruction.opcode = opcode;
+  instruction.is_rresult_reference=return_register.is_reference;
   instruction.r_result = return_register.address;
   instruction.registers16.r1 = registers[0].address;
   instruction.is_r1_reference = registers[0].is_reference;
@@ -248,6 +254,7 @@ sanema::generate_divide(sanema::ByteCode &byte_code, std::optional<sanema::Defin
                         });
   VMInstruction instruction{};
   instruction.opcode = opcode;
+  instruction.is_rresult_reference=return_register.is_reference;
   instruction.r_result = return_register.address;
   instruction.registers16.r1 = registers[0].address;
   instruction.is_r1_reference = registers[0].is_reference;

@@ -17,7 +17,7 @@ namespace sanema {
     explicit local_register_t(std::uint16_t  address);
 
     std::uint16_t address{0};
-    bool is_reference{0};
+    bool is_reference{false};
   };
 
   union OperandType {
