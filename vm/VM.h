@@ -14,6 +14,7 @@
 #include <optional>
 #include <types.h>
 #include <functions.h>
+#include <interfacing/Argument.h>
 #include "OperandType.h"
 
 namespace sanema {
@@ -29,8 +30,10 @@ namespace sanema {
     ~VM();
 
 
+    void run(ByteCode const &byte_code, BindingCollection &collection,IPType initial_ip);
     void run(ByteCode const &byte_code, BindingCollection &collection);
-
+    IPType setup_run(ByteCode const &byte_code, BindingCollection &collection,std::optional<DefineFunction> define_function);
+    void add_external_argument(Argument const &args);
     template<class T>
     std::optional<T> get_value_stack() {
 
@@ -61,6 +64,11 @@ namespace sanema {
       push_return(value);
     }
 
+    template<class T>
+    void push_argument(T value) {
+
+    }
+
     std::vector<sanema::ContextFrame> call_stack;
 
   private:
@@ -68,13 +76,15 @@ namespace sanema {
     unsigned char *external_function_parameters_addresss{nullptr};
     unsigned char *operand_stack;
     unsigned char *operand_stack_pointer{nullptr};
-
+    unsigned char *next_argument_address{nullptr};
     std::vector<std::string> string_stack;
 
     template<class type>
     inline void save_result_register(VMInstruction const *instruction, type value) {
+
       type *pointer = instruction->is_rresult_reference ? *(type **) (operand_stack_pointer + instruction->r_result)
                                                         : (type *) (operand_stack_pointer + instruction->r_result);
+
       *(pointer) = value;
     }
 

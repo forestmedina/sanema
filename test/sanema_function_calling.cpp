@@ -16,9 +16,9 @@ TEST_CASE("calling  function by value",
     var result int64;
     function add_five int64
     var input int64
-    {
+    begin
         return add ( input 5);
-    }
+    end
     var number int64;
     set number 10;
     set result add_five(number);
@@ -38,9 +38,9 @@ TEST_CASE("calling  function by mutable reference",
     function increase void
     mut value int64
     var increment int64
-    {
+    begin
         set value add (value increment);
-    };
+    end
 
     set number 10;
     increase(number 3);

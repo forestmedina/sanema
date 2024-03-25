@@ -62,9 +62,9 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
         current_context.instruction = DefineStruct{};
       } else if (token.token == if_word) {
         current_context.instruction = IfStatement{};
-      } else if (token.token == "{") {
+      } else if (token.token == code_block_begin) {
         stack_context();
-      } else if (token.token == "}" || token.token == if_else_word || token.token == if_ending_word) {
+      } else if (token.token == code_block_end || token.token == if_else_word || token.token == if_ending_word) {
         auto aux_context = current_context;
         current_context = context_stack.top();
         context_stack.pop();
@@ -360,8 +360,8 @@ sanema::SanemaParser::SanemaParser() {
                     terminators.end());
   delimiters.insert(string_delimiters.begin(),
                     string_delimiters.end());
-  delimiters.insert(code_block_delimiters.begin(),
-                    code_block_delimiters.end());
+//  delimiters.insert(code_block_delimiters.begin(),
+//                    code_block_delimiters.end());
   delimiters.insert(field_separator.begin(),
                     field_separator.end());
 }

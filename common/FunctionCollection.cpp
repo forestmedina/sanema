@@ -5,7 +5,7 @@
 #include "FunctionCollection.h"
 #include <algorithm>
 
-std::optional<sanema::DefineFunction> sanema::FunctionCollection::find_function(sanema::DefineFunction&function) {
+std::optional<sanema::DefineFunction> sanema::FunctionCollection::find_function(sanema::DefineFunction&function) const{
   if (functions_per_name_and_type.count(function.identifier) == 0) {
     return {};
   }
@@ -13,11 +13,11 @@ std::optional<sanema::DefineFunction> sanema::FunctionCollection::find_function(
   auto function_found_iter = std::find_if(function_overloads.overloads.begin(),
                                           function_overloads.overloads.end(),
                                           [&function,this](auto&function_id) {
-                                            auto current_function = function_collection[function_id];
+                                            auto current_function = function_collection.at(function_id);
                                             return function.is_compatible(current_function);
                                           });
   if (function_found_iter != function_overloads.overloads.end()) {
-    return function_collection[*function_found_iter];
+    return function_collection.at(*function_found_iter);
   }
   return {};
 }

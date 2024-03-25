@@ -12,7 +12,7 @@
 #include <vm/VM.h>
 #include <ScriptID.h>
 #include <ScriptEntry.h>
-
+#include <interfacing/Argument.h>
 namespace sanema {
   class SanemaScriptSystemImpl {
   public:
@@ -23,6 +23,9 @@ namespace sanema {
     ScriptID add_script(std::istream &stream);
 
     void run_script(ScriptID id);
+    void add_argument(ScriptID id,Argument const &args);
+    void setup_run(ScriptID id,DefineFunction& define_function);
+    void execute_run_function(sanema::ScriptID id);
     void get_return_value(std::int8_t& value);
     void get_return_value(std::int16_t& value);
     void get_return_value(std::int32_t& value);
@@ -53,7 +56,7 @@ namespace sanema {
 
     size_t next_id();
     ScriptEntry & get_script(ScriptID id);
-
+    IPType initial_ip;
 
 
     size_t current_id = 0;

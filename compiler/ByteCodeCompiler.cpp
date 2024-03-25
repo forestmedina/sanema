@@ -922,9 +922,11 @@ void sanema::ByteCodeCompiler::process(sanema::BlockOfCode &block_of_code, Funct
 
       // ReSharper disable once CppDFANullDereference
       next_block = function->body;
+      std::uint64_t function_address = byte_code.get_current_address();
+      function->address= function_address;
       auto scope_copy = scope;
 
-      std::uint64_t function_address = byte_code.get_current_address();
+
       //      std::cout << "Determining function address : " << function_address << "\n";
 
       scope_copy.scope_address.address = 0;
@@ -966,4 +968,5 @@ void sanema::ByteCodeCompiler::process(sanema::BlockOfCode &block_of_code, Funct
       byte_code.code_data[caller_address].register32.r1 = sustition.function_code_addres;
     }
   }
+  byte_code.function_collection=scope_stack.back().function_collection;
 }

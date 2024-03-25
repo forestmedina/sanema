@@ -21,9 +21,9 @@ sanema::ScriptID sanema::SanemaScriptSystemImpl::add_script(std::istream &stream
                    general_functions,
                    external_types);
   auto id = ScriptID{next_id()};
-  std::cout << "BYTECODE BEGIN*******************************\n\n";
-  compiler.byte_code.print();
-  std::cout << "\n\nBYTECODE END*******************************\n\n";
+//  std::cout << "BYTECODE BEGIN*******************************\n\n";
+//  compiler.byte_code.print();
+//  std::cout << "\n\nBYTECODE END*******************************\n\n";
 
   script_collection[id.id] = ScriptEntry{id, std::move(compiler.byte_code)};
   return id;
@@ -109,4 +109,20 @@ void sanema::SanemaScriptSystemImpl::get_return_value(bool &value) {
 
 sanema::BindingCollection &sanema::SanemaScriptSystemImpl::get_binding_collection() {
   return binding_collection;
+}
+
+void sanema::SanemaScriptSystemImpl::add_argument(sanema::ScriptID id, const sanema::Argument &args) {
+    vm.add_external_argument(args);
+}
+
+void sanema::SanemaScriptSystemImpl::execute_run_function(sanema::ScriptID id) {
+  auto &script = get_script(id);
+  vm.run(script.bytecode,binding_collection,initial_ip);
+}
+
+void sanema::SanemaScriptSystemImpl::setup_run(sanema::ScriptID id, DefineFunction& define_function) {
+  auto &script = get_script(id);
+  initial_ip=vm.setup_run(script.bytecode,
+               binding_collection,
+               define_function);
 }

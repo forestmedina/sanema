@@ -22,4 +22,11 @@ std::optional<T> run_and_get_stack_value(std::string code) {
   sanema_script_system.get_return_value(value);
   return value;
 };
+template<class T, class ... ARGS>
+std::optional<T> run_function_and_get_stack_value(std::string& code,std::string const& function_name,ARGS&&... args) {
+  sanema::SanemaScriptSystem sanema_script_system;
+  auto script_id=sanema_script_system.add_script(code);
+  T value=sanema_script_system.run_function<T>(script_id,function_name,std::forward<ARGS>(args)...);
+  return value;
+};
 #endif //SANEMA_HELPERS_H

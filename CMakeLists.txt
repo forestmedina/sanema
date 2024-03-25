@@ -79,7 +79,9 @@ add_library(sanema
         common/TypeCollection.h
         vm/VMInstruction.cpp
         vm/VMInstruction.h
-        vm/VMInstruction.h)
+        vm/VMInstruction.h
+        interfacing/Argument.cpp
+        interfacing/Argument.h)
 
 target_include_directories(sanema PUBLIC  "./")
 
@@ -105,7 +107,9 @@ add_executable(sanema_tests test/test.cpp
         test/divide_tests.cpp
         test/parameter_passing.cpp
         test/sanema_function_calling.cpp
-        test/benchmarks.cpp)
+        test/benchmarks.cpp
+        test/execute_function_from_native.cpp
+)
 target_link_libraries(sanema_tests PRIVATE Catch2::Catch2WithMain)
 target_link_libraries (sanema_tests PRIVATE sanema)
 

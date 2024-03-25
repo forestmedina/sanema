@@ -42,8 +42,8 @@ namespace sanema {
 
     Literal get_literal_from_string(std::string token);
 
-    char code_block_begin = '{';
-    char code_block_end = '}';
+    std::string code_block_begin = "begin";
+    std::string code_block_end = "end";
     std::string variable_declaring_word = "var";
     std::string function_declaring_word = "function";
     std::string struct_declaring_word = "struct";
@@ -57,7 +57,7 @@ namespace sanema {
     std::set<char> terminators = {';'};
     std::set<char> field_separator = {','};
     std::set<char> string_delimiters = {'"'};
-    std::set<char> code_block_delimiters = {code_block_begin, code_block_end};
+//    std::set<char> code_block_delimiters = {code_block_begin, code_block_end};
     std::set<char> line_ending_character = {'\n'};
     std::set<char> ignored_characters = {'\r'};
     std::set<char> delimiters;

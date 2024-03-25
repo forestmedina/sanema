@@ -11,20 +11,52 @@
 #define GENERATE_OPERATION(OP_TYPE, type, OPERATIONENUM, OPERATION_FUNCTION)  case OPCODE::OP_##OPERATIONENUM##OP_TYPE: {OPERATION_FUNCTION<type>();}break;
 #define GENERATE_PUSH(OPTYPE, type)  case OPCODE::OP_PUSH_##OPTYPE##_CONST: {push_const<type>(ip);}break;
 
-void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_collection) {
+sanema::IPType  sanema::VM::setup_run(const sanema::ByteCode &byte_code, sanema::BindingCollection &collection,std::optional<DefineFunction> define_function) {
   running_byte_code = &byte_code;
   operand_stack_pointer = operand_stack;
   external_function_return_address = operand_stack;
   external_function_parameters_addresss = operand_stack;
   IPType ip = byte_code.code_data.data();
+  if(define_function.has_value()){
+    auto final_function=byte_code.function_collection.find_function(define_function.value());
+
+    if(final_function.has_value()) {
+      auto function_address = final_function->address;
+      auto size=get_type_size(final_function.value().type);
+      next_argument_address = operand_stack_pointer + size;
+      ip = byte_code.code_data.data() + function_address;
+    }else{
+        std::cout<<define_function->identifier<<"\n";
+        for(auto&parameter:define_function->parameters){
+          std::cout<<"  "<<type_to_string(parameter.type.value())<<"\n";
+        }
+    }
+  }
   call_stack.emplace_back(operand_stack_pointer);
   auto end_address = byte_code.code_data.data() + byte_code.code_data.size();
+  return ip;
+}
+void sanema::VM::add_external_argument(const sanema::Argument &arg) {
+  match(arg.value,
+        [this](auto value) {
+          auto offset=sizeof (value);
+          *((decltype(value)*)next_argument_address)=value;
+          next_argument_address += offset;
+        });
+}
+void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_collection,IPType initial_ip) {
+  IPType ip = initial_ip;
   bool should_continue = true;
   for (;;) {
-//    std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << " ; ";
-    IPType instruction = ip;
 
+    IPType instruction = ip;
+//    std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << " ; ";
 //    std::cout << "Executing opcode: " << opcode_to_string(instruction->opcode) << "\n";
+//    std::cout << "  R1: " << instruction->registers16.r1 << "\n";
+//    std::cout << "  R2: " << instruction->registers16.r2 << "\n";
+//    std::cout << "  RESULT: " << instruction->r_result << "\n";
+
+
     ++ip;
     switch (instruction->opcode) {
       case OPCODE::OP_RESERVE_STACK_SPACE: {
@@ -510,6 +542,12 @@ void sanema::VM::push_string(std::string const &string_value) {
   StringReference reference{StringLocation::LocalStack, boost::numeric_cast<std::uint32_t>(string_stack.size() - 1)};
   push_return(reference);
 }
+
+void sanema::VM::run(const sanema::ByteCode &byte_code, sanema::BindingCollection &collection) {
+  run(byte_code, collection, setup_run(byte_code,collection,std::nullopt));
+}
+
+
 
 
 template<>

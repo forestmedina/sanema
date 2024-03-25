@@ -16,6 +16,7 @@
 #include <vm/VMInstruction.h>
 #include <format>
 #include <unordered_set>
+#include <common/FunctionCollection.h>
 
 namespace sanema {
   using BYTECodeIPType = VMInstruction const *;
@@ -48,7 +49,7 @@ namespace sanema {
     std::vector<VMInstruction> code_data;
     std::vector<std::string> string_literals;
     std::vector<OperandType> const_pool;
-
+    sanema::FunctionCollection function_collection;
     ByteCode() = default;
 
     ByteCode(ByteCode const &other) = delete;

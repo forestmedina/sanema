@@ -20,7 +20,7 @@ namespace sanema {
   struct FunctionCollection {
 
 
-    std::optional<sanema::DefineFunction> find_function(sanema::DefineFunction &function);
+    std::optional<sanema::DefineFunction> find_function(sanema::DefineFunction &function) const;
 
     sanema::FunctionID add_function(sanema::DefineFunction&function);
     sanema::DefineFunction*  get_function_by_id(FunctionID id);

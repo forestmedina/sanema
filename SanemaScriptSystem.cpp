@@ -78,3 +78,15 @@ sanema::BindingCollection &sanema::SanemaScriptSystem::get_binding_collection() 
   return impl->get_binding_collection();
 }
 
+void sanema::SanemaScriptSystem::add_argument(sanema::ScriptID id, const sanema::Argument &args) {
+  impl->add_argument(id,args);
+}
+
+void sanema::SanemaScriptSystem::setup_run(sanema::ScriptID id, DefineFunction& define_function) {
+  impl->setup_run(id,define_function);
+}
+
+void sanema::SanemaScriptSystem::execute_run_function(sanema::ScriptID id) {
+  impl->execute_run_function(id);
+}
+
