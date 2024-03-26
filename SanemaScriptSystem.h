@@ -31,7 +31,7 @@ namespace sanema {
       function.identifier=function_name;
       (emplace_parameter<ARGs>(function),...);
       setup_run(id,function);
-      add_argument(id,Argument{"",std::forward<ARGs>(args)}...);
+      (add_argument(id,Argument{"",std::forward<ARGs>(args)}),...);
       execute_run_function(id);
       T return_value;
       get_return_value(return_value);
