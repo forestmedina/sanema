@@ -8,24 +8,14 @@
 #include <binding/FunctionBinding.h>
 #include <built-in/built_in_functions.h>
 
-sanema::ScriptID sanema::SanemaScriptSystemImpl::add_script(std::string &string) {
+sanema::ScriptID sanema::SanemaScriptSystemImpl::add_script(std::string const &string) {
   std::stringstream string_stream(string);
   return add_script(string_stream);
 }
 
 sanema::ScriptID sanema::SanemaScriptSystemImpl::add_script(std::istream &stream) {
-  binding_collection.register_bindings(general_functions,external_types);
-  auto tokens = parser.tokenize(stream);
-  auto block_of_code = parser.parse(tokens);
-  compiler.process(block_of_code,
-                   general_functions,
-                   external_types);
   auto id = ScriptID{next_id()};
-//  std::cout << "BYTECODE BEGIN*******************************\n\n";
-//  compiler.byte_code.print();
-//  std::cout << "\n\nBYTECODE END*******************************\n\n";
-
-  script_collection[id.id] = ScriptEntry{id, std::move(compiler.byte_code)};
+  replace_script(id,stream);
   return id;
 }
 
@@ -125,4 +115,23 @@ void sanema::SanemaScriptSystemImpl::setup_run(sanema::ScriptID id, DefineFuncti
   initial_ip=vm.setup_run(script.bytecode,
                binding_collection,
                define_function);
+}
+
+void sanema::SanemaScriptSystemImpl::replace_script(sanema::ScriptID id, std::string const&string) {
+  std::stringstream string_stream(string);
+  replace_script(id,string_stream);
+}
+
+void sanema::SanemaScriptSystemImpl::replace_script(sanema::ScriptID id, std::istream &stream) {
+  binding_collection.register_bindings(general_functions,external_types);
+  auto tokens = parser.tokenize(stream);
+  auto block_of_code = parser.parse(tokens);
+  compiler.process(block_of_code,
+                   general_functions,
+                   external_types);
+//  std::cout << "BYTECODE BEGIN*******************************\n\n";
+//  compiler.byte_code.print();
+//  std::cout << "\n\nBYTECODE END*******************************\n\n";
+
+  script_collection[id.id] = ScriptEntry{id, std::move(compiler.byte_code)};
 }

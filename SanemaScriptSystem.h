@@ -10,11 +10,14 @@
 #include <memory>
 #include <binding/BindingCollection.h>
 #include <interfacing/Argument.h>
+#include <filesystem>
 namespace sanema {
   class SanemaScriptSystemImpl;
   class SanemaScriptSystem {
   public:
-    ScriptID add_script(std::string  & string);
+    ScriptID add_script(std::string  const& string);
+    void replace_script(ScriptID script_id,std::string  const& string);
+    void replace_script(ScriptID script_id,std::istream & stream);
     ScriptID add_script(std::istream & stream);
 
     void run_script(ScriptID id);

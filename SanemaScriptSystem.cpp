@@ -90,3 +90,11 @@ void sanema::SanemaScriptSystem::execute_run_function(sanema::ScriptID id) {
   impl->execute_run_function(id);
 }
 
+void sanema::SanemaScriptSystem::replace_script(sanema::ScriptID script_id, std::string const&string) {
+  impl->replace_script(script_id,string);
+}
+
+void sanema::SanemaScriptSystem::replace_script(sanema::ScriptID script_id, std::istream &stream) {
+impl->replace_script(script_id,stream);
+}
+

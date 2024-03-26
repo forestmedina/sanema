@@ -18,8 +18,9 @@ namespace sanema {
   public:
     SanemaScriptSystemImpl();
 
-    ScriptID add_script(std::string &string);
-
+    ScriptID add_script(std::string const&string);
+    void replace_script(ScriptID id,std::string const&string);
+    void replace_script(ScriptID id,std::istream &stream);
     ScriptID add_script(std::istream &stream);
 
     void run_script(ScriptID id);
