@@ -9,7 +9,7 @@ sanema::ScriptID sanema::SanemaScriptSystem::add_script(std::istream &stream) {
   return impl->add_script(stream);
 }
 
-sanema::ScriptID sanema::SanemaScriptSystem::add_script(std::string &string) {
+sanema::ScriptID sanema::SanemaScriptSystem::add_script(std::string const &string) {
   return impl->add_script(string);
 }
 
