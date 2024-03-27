@@ -1,17 +1,15 @@
-function fib int64
-    var n int64
+
+function test_less_float int64
+    var n float
 begin
-        if less ( n 2)
-            return n
+        if less ( n generate_float(2.0))
+            print("less\n");
+            return 0;
         else
-          return  add(fib(subtract(n  1))  fib(subtract(n  2)))
+            print("not less\n");
+            return  1;
         end
 end
-
-print
-    add  5 add  5 4))
-    add 5 7) )
-print (add (3 4))
-fib (35)
-add  5 add  5 4 add 4  add 1 2));
-add  (5 add ( 5 4))
+print("****");
+print test_less_float(5.0);
+print("****\n");

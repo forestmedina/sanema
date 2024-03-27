@@ -527,7 +527,8 @@ std::optional<sanema::DefineFunction> generate_operator_call(
     throw std::runtime_error("can't generate function " + function_call.identifier);
   }
   auto return_address = context_frame_aux.scope_address;
-  context_frame_aux.reserve_space_for_type(final_function_definition->type);
+//  context_frame_aux.reserve_space_for_type(final_function_definition->type);
+  sanema::ByteCodeCompiler::Scope context_frame_aux_copy=context_frame_aux;
   std::vector<sanema::local_register_t> parameter_addresses;
   parameter_addresses.reserve(function_call.arguments.size());
   for (int i = 0; i < final_function_definition.value().parameters.size(); i++) {
@@ -562,7 +563,7 @@ std::optional<sanema::DefineFunction> generate_operator_call(
 
             parameter_addresses.emplace_back(address_return);
 //            context_frame_aux.reserve_space_for_type(parameter.type.value());
-            sanema::ByteCodeCompiler::Scope context_frame_aux_copy=context_frame_aux;
+
             auto definition = generate_function_or_operator_call(byte_code,
                                                                  function_call_nested,
                                                                  context_frame_aux_copy,
@@ -638,6 +639,7 @@ generate_function_call(
   }
   auto return_address = context_frame_aux.scope_address;
   context_frame_aux.reserve_space_for_type(final_function_definition->type);
+  auto contex_frame_aux_copy=context_frame_aux;
   auto rollback_address=context_frame_aux.scope_address;
   for (int i = 0; i < final_function_definition.value().parameters.size(); i++) {
     auto &argument = function_call.arguments[i];
@@ -651,11 +653,11 @@ generate_function_call(
             }
 
 
-            auto address = context_frame_aux.scope_address;
-            context_frame_aux.reserve_space_for_type(parameter.type.value());
+            auto address = contex_frame_aux_copy.scope_address;
+            contex_frame_aux_copy.reserve_space_for_type(parameter.type.value());
             generate_push_temp_variable(byte_code,
                                         literal,
-                                        context_frame_aux,
+                                        contex_frame_aux_copy,
                                         generator_map,
                                         literal_type,
                                         address);
@@ -664,9 +666,7 @@ generate_function_call(
             if (parameter.modifier == sanema::FunctionParameter::Modifier::MUTABLE || parameter.modifier == sanema::FunctionParameter::Modifier::CONST) {
               throw std::runtime_error("can't bind temporary value  to a  reference");
             }
-            auto return_address = context_frame_aux.scope_address;
-            context_frame_aux.reserve_space_for_type(parameter.type.value());
-            auto contex_frame_aux_copy=context_frame_aux;
+            auto return_address = contex_frame_aux_copy.scope_address;
             auto definition = generate_function_or_operator_call(byte_code,
                                                                  function_call_nested,
                                                                  contex_frame_aux_copy,
@@ -682,7 +682,7 @@ generate_function_call(
           },
           [&](sanema::VariableEvaluation variable_evaluation) -> void {
             auto variable_type = get_variable_type(variable_evaluation,
-                                                   context_frame_aux);
+                                                   contex_frame_aux_copy);
             if (!variable_type.has_value()) {
               throw std::runtime_error(std::format("variable  {} not found ",
                                                    variable_evaluation.identifier));
@@ -700,7 +700,7 @@ generate_function_call(
                 break;
             }
             generate_local_variable_access(byte_code,
-                                           context_frame_aux,
+                                           contex_frame_aux_copy,
                                            variable_evaluation.identifier,
                                            should_copy);
           });
@@ -860,6 +860,8 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
           },
           [this](FunctionCall &function_call) {
             auto address = scope_stack.back().scope_address;
+
+
             generate_function_or_operator_call(byte_code,
                                                function_call,
                                                scope_stack.back(),

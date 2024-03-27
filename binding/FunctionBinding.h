@@ -44,10 +44,12 @@ namespace sanema {
 //      std::cout<<" parameter : ";
 //      ((std::cout <<get_function_parameter_from_vm<ARGS>(vm,get_parameter_modifier<ARGS>())<< Ns << ' '),...);
 //      std::cout<<"\n ";
+    std::cout<<"getting parameters\n";
      std::tuple<ARGS...> paramsTuple{
        get_function_parameter_from_vm<ARGS>(vm,
                                             get_parameter_modifier<ARGS>())...
      };
+       std::cout<<"finished gettin paprameters\n";
       auto return_value=std::apply(function_pointer, paramsTuple);
     push_function_return_to_vm(vm,return_value);
 

@@ -30,7 +30,7 @@ namespace sanema {
   }
     template<typename T,class ...ARGs>
     T run_function(ScriptID id,std::string const &function_name,ARGs&&... args){
-       auto function_id=get_function_id(id,function_name,std::forward<ARGs>(args)...).value();
+       auto function_id=get_function_id<T>(id,function_name,std::forward<ARGs>(args)...).value();
       if(function_id) {
         setup_run(id, function_id);
         (add_argument(id, Argument{"", std::forward<ARGs>(args)}), ...);

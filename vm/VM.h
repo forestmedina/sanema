@@ -36,7 +36,8 @@ namespace sanema {
     void add_external_argument(Argument const &args);
     template<class T>
     std::optional<T> get_value_stack() {
-
+//      std::cout<<"operand_stack_pointer="<<(void*)operand_stack_pointer<<"\n";
+//      std::cout<<"offset:"<<operand_stack_pointer-operand_stack<<"\n";
       if (operand_stack_pointer == nullptr) return {};
       return *((T *) operand_stack_pointer);
     }
@@ -49,6 +50,7 @@ namespace sanema {
       T value = *((T *) external_function_parameters_addresss);
       auto offset=external_function_parameters_addresss-operand_stack_pointer;
       external_function_parameters_addresss += sizeof(T);
+      std::cout<<"getting parameter offset:"<<offset<<"\n";
       return value;
     }
 
@@ -122,6 +124,7 @@ namespace sanema {
 
     template<class type>
     inline void push_local(VMInstruction const *instruction) {
+      std::cout<<"pushing local:"<<read_register<type, 1>(instruction)<<", to:"<<instruction->r_result<<"\n";
       save_result_register(instruction,
                            read_register<type, 1>(instruction));
 
@@ -130,6 +133,7 @@ namespace sanema {
 
     template<class type>
     inline void set_local(IPType instruction) {
+      std::cout<<"setting local:"<<read_register<type, 1>(instruction)<<", to:"<<instruction->r_result<<"\n";
       type value = read_register<type, 1>(instruction);
       save_result_register(instruction,
                            read_register<type, 1>(instruction));
@@ -138,6 +142,8 @@ namespace sanema {
 
     template<class type>
     void push_const(IPType instruction, OperandType const *const_pool_pointer) {
+      std::cout<<"pushing constant:"<<read_constant_pool<type>(instruction,
+                                                              const_pool_pointer)<<", to:"<<instruction->r_result<<"\n";
       save_result_register(instruction,
                            read_constant_pool<type>(instruction,
                                                     const_pool_pointer));
@@ -155,8 +161,8 @@ namespace sanema {
 
     template<typename type>
     inline void multiply(IPType instruction) {
-      std::cout<<"multiplying "<<read_register<type, 1>(instruction)<<" and "<<read_register<type, 2>(instruction)<<"\n";
-      std::cout<<"  ="<<(read_register<type, 1>(instruction) * read_register<type, 2>(instruction))<<"\n";
+//      std::cout<<"multiplying "<<read_register<type, 1>(instruction)<<" and "<<read_register<type, 2>(instruction)<<"\n";
+//      std::cout<<"  ="<<(read_register<type, 1>(instruction) * read_register<type, 2>(instruction))<<"\n";
       save_result_register(instruction,
                            read_register<type, 1>(instruction) * read_register<type, 2>(instruction));
     }
