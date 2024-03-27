@@ -110,11 +110,11 @@ void sanema::SanemaScriptSystemImpl::execute_run_function(sanema::ScriptID id) {
   vm.run(script.bytecode,binding_collection,initial_ip);
 }
 
-void sanema::SanemaScriptSystemImpl::setup_run(sanema::ScriptID id, DefineFunction& define_function) {
+void sanema::SanemaScriptSystemImpl::setup_run(sanema::ScriptID id, FunctionID& fuction_id) {
   auto &script = get_script(id);
   initial_ip=vm.setup_run(script.bytecode,
                binding_collection,
-               define_function);
+               fuction_id);
 }
 
 void sanema::SanemaScriptSystemImpl::replace_script(sanema::ScriptID id, std::string const&string) {
@@ -134,4 +134,12 @@ void sanema::SanemaScriptSystemImpl::replace_script(sanema::ScriptID id, std::is
 //  std::cout << "\n\nBYTECODE END*******************************\n\n";
 
   script_collection[id.id] = ScriptEntry{id, std::move(compiler.byte_code)};
+}
+
+std::optional<sanema::FunctionID> sanema::SanemaScriptSystemImpl::get_function_id(ScriptID id,sanema::DefineFunction &define_function) {
+  auto function = get_script(id).bytecode.function_collection.find_function(define_function);
+  if (function.has_value()) {
+    return function->id;
+  }
+  return std::nullopt;
 }

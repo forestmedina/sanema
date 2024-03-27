@@ -30,10 +30,31 @@ namespace sanema {
   }
     template<typename T,class ...ARGs>
     T run_function(ScriptID id,std::string const &function_name,ARGs&&... args){
+       auto function_id=get_function_id(id,function_name,std::forward<ARGs>(args)...).value();
+      if(function_id) {
+        setup_run(id, function_id);
+        (add_argument(id, Argument{"", std::forward<ARGs>(args)}), ...);
+        execute_run_function(id);
+        T return_value;
+        get_return_value(return_value);
+         return return_value;
+      }
+      return T{};
+
+    }
+
+    template<typename T,class ...ARGs>
+    std::optional<FunctionID> get_function_id(ScriptID id,std::string const &function_name,ARGs&&... args){
       DefineFunction function;
       function.identifier=function_name;
+      function.type= type_from_cpptype<T>();
       (emplace_parameter<ARGs>(function),...);
-      setup_run(id,function);
+      return get_function_id(id,function);
+    }
+   std::optional<FunctionID>  get_function_id(ScriptID id,DefineFunction& define_function);
+    template<typename T,class ...ARGs>
+    T run_function(ScriptID id,FunctionID function_id,ARGs&&... args){
+      setup_run(id,function_id);
       (add_argument(id,Argument{"",std::forward<ARGs>(args)}),...);
       execute_run_function(id);
       T return_value;
@@ -42,12 +63,12 @@ namespace sanema {
     }
     template<class ...ARGs>
     void run_function_no_return(ScriptID id,std::string const &function_name,ARGs&&... args){
-      DefineFunction function;
-      function.identifier=function_name;
-      (emplace_parameter<ARGs>(function),...);
-      setup_run(id,function);
-      add_argument(id,Argument{"",std::forward<ARGs>(args)}...);
-      execute_run_function(id);
+      auto function_id=get_function_id(id,function_name,std::forward<ARGs>(args)...).value();
+      if(function_id) {
+        setup_run(id, function_id);
+        add_argument(id, Argument{"", std::forward<ARGs>(args)}...);
+        execute_run_function(id);
+      }
     }
 
     void get_return_value(std::int8_t& );
@@ -77,7 +98,7 @@ namespace sanema {
 
   private:
     void add_argument(ScriptID id,Argument const &args);
-    void setup_run(ScriptID id,DefineFunction& define_function);
+    void setup_run(ScriptID id,FunctionID function_id);
     void execute_run_function(sanema::ScriptID id);
     BindingCollection  &get_binding_collection() ;
     std::unique_ptr<SanemaScriptSystemImpl> impl{};

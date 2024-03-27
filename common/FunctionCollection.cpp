@@ -38,7 +38,13 @@ std::uint64_t sanema::FunctionCollection::next_id() {
   return current_function_id;
 }
 
-sanema::DefineFunction* sanema::FunctionCollection::get_function_by_id(sanema::FunctionID id) {
+sanema::DefineFunction const* sanema::FunctionCollection::get_function_by_id(sanema::FunctionID id) const {
+  if (function_collection.contains(id)) {
+    return &function_collection.at(id);
+  }
+  return nullptr;
+}
+sanema::DefineFunction* sanema::FunctionCollection::get_function_by_id(sanema::FunctionID id)  {
   if (function_collection.contains(id)) {
     return &function_collection.at(id);
   }

@@ -11,25 +11,20 @@
 #define GENERATE_OPERATION(OP_TYPE, type, OPERATIONENUM, OPERATION_FUNCTION)  case OPCODE::OP_##OPERATIONENUM##OP_TYPE: {OPERATION_FUNCTION<type>();}break;
 #define GENERATE_PUSH(OPTYPE, type)  case OPCODE::OP_PUSH_##OPTYPE##_CONST: {push_const<type>(ip);}break;
 
-sanema::IPType  sanema::VM::setup_run(const sanema::ByteCode &byte_code, sanema::BindingCollection &collection,std::optional<DefineFunction> define_function) {
+sanema::IPType  sanema::VM::setup_run(const sanema::ByteCode &byte_code, sanema::BindingCollection &collection,std::optional<FunctionID> function_id) {
   running_byte_code = &byte_code;
   operand_stack_pointer = operand_stack;
   external_function_return_address = operand_stack;
   external_function_parameters_addresss = operand_stack;
   IPType ip = byte_code.code_data.data();
-  if(define_function.has_value()){
-    auto final_function=byte_code.function_collection.find_function(define_function.value());
+  if(function_id.has_value()){
+    auto final_function=byte_code.function_collection.get_function_by_id(function_id.value());
 
-    if(final_function.has_value()) {
+    if(final_function!= nullptr) {
       auto function_address = final_function->address;
-      auto size=get_type_size(final_function.value().type);
+      auto size=get_type_size(final_function->type);
       next_argument_address = operand_stack_pointer + size;
       ip = byte_code.code_data.data() + function_address;
-    }else{
-        std::cout<<define_function->identifier<<"\n";
-        for(auto&parameter:define_function->parameters){
-          std::cout<<"  "<<type_to_string(parameter.type.value())<<"\n";
-        }
     }
   }
   call_stack.emplace_back(operand_stack_pointer);

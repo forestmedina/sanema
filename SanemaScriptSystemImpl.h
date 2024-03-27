@@ -13,6 +13,7 @@
 #include <ScriptID.h>
 #include <ScriptEntry.h>
 #include <interfacing/Argument.h>
+#include <common/FunctionCollection.h>
 namespace sanema {
   class SanemaScriptSystemImpl {
   public:
@@ -25,7 +26,8 @@ namespace sanema {
 
     void run_script(ScriptID id);
     void add_argument(ScriptID id,Argument const &args);
-    void setup_run(ScriptID id,DefineFunction& define_function);
+    void setup_run(ScriptID id,FunctionID& define_function);
+    std::optional<FunctionID> get_function_id(ScriptID id, DefineFunction& define_function);
     void execute_run_function(sanema::ScriptID id);
     void get_return_value(std::int8_t& value);
     void get_return_value(std::int16_t& value);

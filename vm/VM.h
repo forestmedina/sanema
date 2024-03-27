@@ -32,7 +32,7 @@ namespace sanema {
 
     void run(ByteCode const &byte_code, BindingCollection &collection,IPType initial_ip);
     void run(ByteCode const &byte_code, BindingCollection &collection);
-    IPType setup_run(ByteCode const &byte_code, BindingCollection &collection,std::optional<DefineFunction> define_function);
+    IPType setup_run(ByteCode const &byte_code, BindingCollection &collection,std::optional<FunctionID> define_function);
     void add_external_argument(Argument const &args);
     template<class T>
     std::optional<T> get_value_stack() {
@@ -155,6 +155,8 @@ namespace sanema {
 
     template<typename type>
     inline void multiply(IPType instruction) {
+      std::cout<<"multiplying "<<read_register<type, 1>(instruction)<<" and "<<read_register<type, 2>(instruction)<<"\n";
+      std::cout<<"  ="<<(read_register<type, 1>(instruction) * read_register<type, 2>(instruction))<<"\n";
       save_result_register(instruction,
                            read_register<type, 1>(instruction) * read_register<type, 2>(instruction));
     }

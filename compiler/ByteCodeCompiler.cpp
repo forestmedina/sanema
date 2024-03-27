@@ -94,16 +94,8 @@ get_expression_type(sanema::Expression &expression, sanema::ByteCodeCompiler::Sc
                  if (function_definition_nested.has_value()) {
                    return function_definition_nested.value().type;
                  } else {
-                   std::string message = std::format("function {}  (",
+                   std::string message = std::format("function {}  not found",
                                                      function_call_nested.identifier);
-                   std::string separator;
-                   for (auto &parameters: function_definition_nested->parameters) {
-                     message += std::format("{} {}",
-                                            separator,
-                                            sanema::type_to_string(parameters.type.value()));
-                     separator = ",";
-                   }
-                   message += ") not found";
                    throw std::runtime_error(message);
                  }
                },
@@ -569,9 +561,11 @@ std::optional<sanema::DefineFunction> generate_operator_call(
             }
 
             parameter_addresses.emplace_back(address_return);
+//            context_frame_aux.reserve_space_for_type(parameter.type.value());
+            sanema::ByteCodeCompiler::Scope context_frame_aux_copy=context_frame_aux;
             auto definition = generate_function_or_operator_call(byte_code,
                                                                  function_call_nested,
-                                                                 context_frame_aux,
+                                                                 context_frame_aux_copy,
                                                                  generator_map,
                                                                  function_call_sustitutions,
                                                                  (uint64_t) address_return.address);
@@ -671,9 +665,11 @@ generate_function_call(
               throw std::runtime_error("can't bind temporary value  to a  reference");
             }
             auto return_address = context_frame_aux.scope_address;
+            context_frame_aux.reserve_space_for_type(parameter.type.value());
+            auto contex_frame_aux_copy=context_frame_aux;
             auto definition = generate_function_or_operator_call(byte_code,
                                                                  function_call_nested,
-                                                                 context_frame_aux,
+                                                                 contex_frame_aux_copy,
                                                                  generator_map,
                                                                  function_call_sustitutions,
                                                                  std::uint64_t(return_address.address));

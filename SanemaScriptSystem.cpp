@@ -82,8 +82,8 @@ void sanema::SanemaScriptSystem::add_argument(sanema::ScriptID id, const sanema:
   impl->add_argument(id,args);
 }
 
-void sanema::SanemaScriptSystem::setup_run(sanema::ScriptID id, DefineFunction& define_function) {
-  impl->setup_run(id,define_function);
+void sanema::SanemaScriptSystem::setup_run(sanema::ScriptID id, FunctionID  function_id) {
+  impl->setup_run(id,function_id);
 }
 
 void sanema::SanemaScriptSystem::execute_run_function(sanema::ScriptID id) {
@@ -96,5 +96,9 @@ void sanema::SanemaScriptSystem::replace_script(sanema::ScriptID script_id, std:
 
 void sanema::SanemaScriptSystem::replace_script(sanema::ScriptID script_id, std::istream &stream) {
 impl->replace_script(script_id,stream);
+}
+
+std::optional<sanema::FunctionID> sanema::SanemaScriptSystem::get_function_id(ScriptID id,sanema::DefineFunction &define_function) {
+  return impl->get_function_id(id,define_function);
 }
 
