@@ -39,9 +39,8 @@ void add_built_in_arithmetic_functions(sanema::FunctionCollection &functions) {
     function_set.is_operator=true;
     functions.add_function(function_set);
   }
-
-
 }
+
 void add_built_in_boolean_functions(sanema::FunctionCollection &functions) {
   std::vector<std::string> const function_names = {"equal", "greater", "less", "equal_greater", "equal_less"};
   std::vector<sanema::CompleteType> arithmetic_types{sanema::Integer(8), sanema::Integer(16), sanema::Integer(32),
@@ -91,10 +90,48 @@ void add_built_in_return(sanema::FunctionCollection &functions,sanema::BindingCo
 
     }
 }
+float mod_float(float x , float y){
+  return x - y * floor(x / y);
+}
+std::int64_t mod_int64(std::int64_t  x, std::int64_t y){
+  return x%y;
+}
+std::int32_t mod_int32(std::int32_t  x, std::int32_t y){
+  return x%y;
+}
+std::int16_t mod_int16(std::int16_t  x, std::int16_t y){
+  return x%y;
+}
+std::int8_t mod_int8(std::int8_t  x, std::int8_t y){
+  return x%y;
+}
+float floor_float(float x ){
+  return floor(x);
+}
+
+void add_built_in_mod(sanema::FunctionCollection &functions,sanema::BindingCollection& binding_collection){
+  binding_collection.add_function_binding("mod", mod_float);
+  binding_collection.add_function_binding("mod", mod_int64);
+  binding_collection.add_function_binding("mod", mod_int32);
+  binding_collection.add_function_binding("mod", mod_int16);
+  binding_collection.add_function_binding("mod", mod_int8);
+}
+void add_built_in_floor(sanema::FunctionCollection &functions,sanema::BindingCollection& binding_collection){
+  binding_collection.add_function_binding("floor", floor_float);
+}
+float sqrt_float(float x ){
+  return sqrt(x);
+}
+void add_built_in_sqrt(sanema::FunctionCollection &functions,sanema::BindingCollection& binding_collection){
+  binding_collection.add_function_binding("sqrt", sqrt_float);
+}
 void sanema::add_built_in_functions(sanema::FunctionCollection &functions,BindingCollection& binding_collection) {
   add_built_in_arithmetic_functions(functions);
   add_built_in_boolean_functions(functions);
   add_built_in_string_functions(functions,binding_collection);
   add_built_in_return(functions,binding_collection);
+  add_built_in_mod(functions,binding_collection);
+  add_built_in_floor(functions,binding_collection);
+  add_built_in_sqrt(functions,binding_collection);
 
 }
