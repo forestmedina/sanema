@@ -55,16 +55,16 @@ function fib int64
 var result int64;
 fib (30);
 )--");
-  sanema::SanemaScriptSystem sanema_script_system;
+  sanema::SanemaScriptSystem sanema_script_system{1,10};
   auto script_20_id = sanema_script_system.add_script(code_fibonacci_20);
   auto script_90_id = sanema_script_system.add_script(code_fibonacci_90);
-  sanema_script_system.run_script(script_20_id);
+  sanema_script_system.run_script(script_20_id,0);
   std::uint64_t fibonacci_20_result;
-  sanema_script_system.run_script(script_20_id);
-  sanema_script_system.get_return_value(fibonacci_20_result);
+  sanema_script_system.run_script(script_20_id,0);
+  sanema_script_system.get_return_value(fibonacci_20_result,0);
   std::uint64_t fibonacci_90_result;
-  sanema_script_system.run_script(script_90_id);
-  sanema_script_system.get_return_value(fibonacci_90_result);
+  sanema_script_system.run_script(script_90_id,0);
+  sanema_script_system.get_return_value(fibonacci_90_result,0);
   CHECK(fibonacci_90_result == 832040);
   // some more asserts..
   CHECK(fibonacci_20_result == 6765);
@@ -72,11 +72,11 @@ fib (30);
 
   // now let's benchmark:
   BENCHMARK("Fibonacci 20") {
-                              sanema_script_system.run_script(script_20_id);
+                              sanema_script_system.run_script(script_20_id,0);
                             };
 
   BENCHMARK("Fibonacci 90") {
-                              sanema_script_system.run_script(script_90_id);
+                              sanema_script_system.run_script(script_90_id,0);
                             };
 
   BENCHMARK("Fibonacci CPP 20") {

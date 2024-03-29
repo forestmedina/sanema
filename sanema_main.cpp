@@ -176,7 +176,7 @@ int main(int argc, char *argv[]) {
     std::cerr << "file not found \n";
   }
   try {
-    sanema::SanemaScriptSystem scriptSystem;
+    sanema::SanemaScriptSystem scriptSystem{1, 10};
     scriptSystem.add_type<vec3>("vec3")
       ->with_field("x",
                    &vec3::x)
@@ -190,11 +190,11 @@ int main(int argc, char *argv[]) {
     std::chrono::high_resolution_clock clock;
     std::cout << "\n started\n";
     auto first = clock.now();
-    scriptSystem.run_script(id);
+    scriptSystem.run_script(id,0);
     auto second = clock.now();
     std::cout << "\n duration:" << std::chrono::duration_cast<std::chrono::milliseconds>(second - first) << "\n";
     bool return_value;
-    scriptSystem.get_return_value(return_value);
+    scriptSystem.get_return_value(return_value,0);
     std::cout<<"result:"<<(return_value?"true":"false")<<"\n";
 //    asIScriptEngine *engine = asCreateScriptEngine();
 //    const char *fibonacciScript =

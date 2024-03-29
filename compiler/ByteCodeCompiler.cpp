@@ -526,8 +526,7 @@ std::optional<sanema::DefineFunction> generate_operator_call(
   if (!final_function_definition.has_value()) {
     throw std::runtime_error("can't generate function " + function_call.identifier);
   }
-  auto return_address = context_frame_aux.scope_address;
-//  context_frame_aux.reserve_space_for_type(final_function_definition->type);
+  context_frame_aux.reserve_space_for_type(final_function_definition->type);
   sanema::ByteCodeCompiler::Scope context_frame_aux_copy=context_frame_aux;
   std::vector<sanema::local_register_t> parameter_addresses;
   parameter_addresses.reserve(function_call.arguments.size());
@@ -540,12 +539,12 @@ std::optional<sanema::DefineFunction> generate_operator_call(
             if (parameter.modifier == sanema::FunctionParameter::Modifier::MUTABLE) {
               throw std::runtime_error("can't bind literal to a mutable reference");
             }
-            auto address_temporal = context_frame_aux.scope_address;
+            auto address_temporal = context_frame_aux_copy.scope_address;
             parameter_addresses.emplace_back(address_temporal);
-            context_frame_aux.reserve_space_for_type(parameter.type.value());
+            context_frame_aux_copy.reserve_space_for_type(parameter.type.value());
             generate_push_temp_variable(byte_code,
                                         literal,
-                                        context_frame_aux,
+                                        context_frame_aux_copy,
                                         generator_map,
                                         literal_type,
                                         address_temporal);
@@ -556,7 +555,7 @@ std::optional<sanema::DefineFunction> generate_operator_call(
                 parameter.modifier == sanema::FunctionParameter::Modifier::CONST) {
               throw std::runtime_error("can't bind temporary value  to a  reference");
             }
-            auto address_return = context_frame_aux.scope_address;
+            auto address_return = context_frame_aux_copy.scope_address;
             if (function_call.identifier == "return") {
               address_return.address = 0;
             }
@@ -580,12 +579,12 @@ std::optional<sanema::DefineFunction> generate_operator_call(
           },
           [&](sanema::VariableEvaluation variable_evaluation) -> void {
             auto variable_type = get_variable_type(variable_evaluation,
-                                                   context_frame_aux);
+                                                   context_frame_aux_copy);
             if (!variable_type.has_value()) {
               throw std::runtime_error(std::format("variable  {} not found ",
                                                    variable_evaluation.identifier));
             }
-            auto local_variable_entry = context_frame_aux.local_variables.at(variable_evaluation.identifier);
+            auto local_variable_entry = context_frame_aux_copy.local_variables.at(variable_evaluation.identifier);
             sanema::local_register_t address_variable;
             bool is_reference = match(local_variable_entry.declaration,
                             [](sanema::DeclareVariable &variable) {

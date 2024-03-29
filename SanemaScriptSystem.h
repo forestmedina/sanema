@@ -32,11 +32,11 @@ namespace sanema {
     T run_function(ScriptID id,std::string const &function_name,std::uint32_t vm_index,ARGs&&... args){
        auto function_id=get_function_id<T>(id,function_name,std::forward<ARGs>(args)...).value();
       if(function_id) {
-        setup_run(id, function_id);
+        setup_run(id, function_id,vm_index);
         (add_argument(id, Argument{"", std::forward<ARGs>(args)}, vm_index), ...);
         execute_run_function(id, vm_index);
         T return_value;
-        get_return_value(return_value);
+        get_return_value(return_value,vm_index);
          return return_value;
       }
       return T{};

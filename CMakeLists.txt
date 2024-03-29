@@ -109,6 +109,7 @@ add_executable(sanema_tests test/test.cpp
         test/sanema_function_calling.cpp
         test/benchmarks.cpp
         test/execute_function_from_native.cpp
+        test/chained_operators.cpp
 )
 target_link_libraries(sanema_tests PRIVATE Catch2::Catch2WithMain)
 target_link_libraries (sanema_tests PRIVATE sanema)
