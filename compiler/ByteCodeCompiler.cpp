@@ -540,6 +540,9 @@ std::optional<sanema::DefineFunction> generate_operator_call(
               throw std::runtime_error("can't bind literal to a mutable reference");
             }
             auto address_temporal = context_frame_aux_copy.scope_address;
+            if (function_call.identifier == "return") {
+              address_temporal.address = 0;
+            }
             parameter_addresses.emplace_back(address_temporal);
             context_frame_aux_copy.reserve_space_for_type(parameter.type.value());
             generate_push_temp_variable(byte_code,
@@ -556,9 +559,7 @@ std::optional<sanema::DefineFunction> generate_operator_call(
               throw std::runtime_error("can't bind temporary value  to a  reference");
             }
             auto address_return = context_frame_aux_copy.scope_address;
-            if (function_call.identifier == "return") {
-              address_return.address = 0;
-            }
+
 
             parameter_addresses.emplace_back(address_return);
 //            context_frame_aux.reserve_space_for_type(parameter.type.value());
@@ -569,6 +570,14 @@ std::optional<sanema::DefineFunction> generate_operator_call(
                                                                  generator_map,
                                                                  function_call_sustitutions,
                                                                  (uint64_t) address_return.address);
+
+             if (function_call.identifier == "return") {
+              sanema::VMInstruction instruction;
+              instruction.opcode = OPCODE::OP_PUSH_LOCAL_SINT64;
+              instruction.r_result = 0;
+              instruction.registers16.r1 = address_return.address;
+              byte_code.write(instruction);
+            }
 
             if (!definition) {
               //We should not reach this because the get_function_definition at the start of the function should validate this
@@ -636,7 +645,7 @@ generate_function_call(
   if (!final_function_definition.has_value()) {
     throw std::runtime_error("can't generate function " + function_call.identifier);
   }
-  auto return_address = context_frame_aux.scope_address;
+  auto call_offset_address = context_frame_aux.scope_address;
   context_frame_aux.reserve_space_for_type(final_function_definition->type);
   auto contex_frame_aux_copy=context_frame_aux;
   auto rollback_address=context_frame_aux.scope_address;
@@ -709,12 +718,12 @@ generate_function_call(
     sanema::VMInstruction instruction;
     instruction.opcode = OPCODE::OP_CALL_EXTERNAL_FUNCTION;
     instruction.register32.r1 = final_function_definition->external_id.value();
-    instruction.r_result = return_address.address;
+    instruction.r_result = call_offset_address.address;
     byte_code.write(instruction);;
   } else {
     sanema::VMInstruction instruction;
     instruction.opcode = OPCODE::OP_CALL;
-    instruction.r_result = return_address.address;
+    instruction.r_result = call_offset_address.address;
     auto address = byte_code.write(instruction);;
     auto sustitution_iter = std::find_if(function_call_sustitutions.begin(),
                                          function_call_sustitutions.end(),
@@ -963,6 +972,7 @@ void sanema::ByteCodeCompiler::process(sanema::BlockOfCode &block_of_code, Funct
   for (auto &sustition: function_call_sustitutions) {
     for (auto &caller_address: sustition.caller_addresses) {
       byte_code.code_data[caller_address].register32.r1 = sustition.function_code_addres;
+//      byte_code.code_data[caller_address].r_result = sustition.parameters_size;
     }
   }
   byte_code.function_collection=scope_stack.back().function_collection;
