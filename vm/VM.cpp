@@ -45,13 +45,13 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
   for (;;) {
 
     IPType instruction = ip;
-    std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << " ; ";
-    std::cout << "Executing opcode: " << opcode_to_string(instruction->opcode) << "\n";
-    std::cout << "  R32: " << instruction->register32.r1 << "\n";
-    std::cout << "  R1: " << instruction->registers16.r1 << "\n";
-    std::cout << "  R2: " << instruction->registers16.r2 << "\n";
-    std::cout << "  RESULT: " << instruction->r_result << "\n";
-
+//    std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << " ; ";
+//    std::cout << "Executing opcode: " << opcode_to_string(instruction->opcode) << "\n";
+//    std::cout << "  R32: " << instruction->register32.r1 << "\n";
+//    std::cout << "  R1: " << instruction->registers16.r1 << "\n";
+//    std::cout << "  R2: " << instruction->registers16.r2 << "\n";
+//    std::cout << "  RESULT: " << instruction->r_result << "\n";
+//
 
     ++ip;
     switch (instruction->opcode) {
@@ -418,10 +418,10 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
         break;
       case OPCODE::OP_PUSH_STRING_CONST: {
         auto id_string = instruction->registers16.r1;
-        std::cout<<"pushing string:"<<StringReference(StringLocation::LiteralPool,
-                                             id_string)<<", to:"<<instruction->r_result<<"\n";
-        std::cout<<get_string(StringReference(StringLocation::LiteralPool,
-                                             id_string))<<"\n";
+//        std::cout<<"pushing string:"<<StringReference(StringLocation::LiteralPool,
+//                                             id_string)<<", to:"<<instruction->r_result<<"\n";
+//        std::cout<<get_string(StringReference(StringLocation::LiteralPool,
+//                                             id_string))<<"\n";
         save_result_register(instruction,
                              StringReference(StringLocation::LiteralPool,
                                              id_string));
@@ -510,7 +510,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
 }
 
 
-sanema::VM::VM(int memory_size_mb) : running_byte_code(nullptr) {
+sanema::VM::VM(unsigned int  memory_size_mb) : running_byte_code(nullptr) {
   auto megabytes_to_bytes = [](std::uint64_t size) { return (size * 1024) * 1024; };
   operand_stack = new unsigned char[megabytes_to_bytes(memory_size_mb)];
   call_stack.reserve(1000);

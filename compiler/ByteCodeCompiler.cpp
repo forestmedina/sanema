@@ -745,8 +745,7 @@ void sanema::ByteCodeCompiler::Scope::reserve_space_for_type(CompleteType const 
 std::uint32_t
 sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, FunctionCollection &built_in_functions,
                                          TypeCollection &external_types) {
-  std::int64_t total_variable_space = 0;
-
+  std::int64_t total_variable_space = scope_stack.back().scope_address.address;
   for (auto &instruction: block_of_code.instructions) {
     match(instruction.instruction_sum,
           [this](DefineStruct &define_struct) {
@@ -805,6 +804,7 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
               throw std::runtime_error("variable " + declare_variable.identifier + " already defined");
             }
 
+            std::cout<<"generating variable: "<<declare_variable.identifier<<" "<<total_variable_space<<"\n";
             current_scope.local_variables.emplace(declare_variable.identifier,
                                                   VariableEntry{declare_variable, total_variable_space});
             current_scope.reserve_space_for_type(declare_variable.type_identifier);

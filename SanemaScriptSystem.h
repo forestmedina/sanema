@@ -20,7 +20,7 @@ namespace sanema {
     void replace_script(ScriptID script_id,std::istream & stream);
     ScriptID add_script(std::istream & stream);
 
-    void run_script(ScriptID id);
+    void run_script(ScriptID id,std::uint32_t vm_index);
 
   template <class T>
   void emplace_parameter(DefineFunction& function) {
@@ -29,12 +29,12 @@ namespace sanema {
     function.parameters.emplace_back(parameter);
   }
     template<typename T,class ...ARGs>
-    T run_function(ScriptID id,std::string const &function_name,ARGs&&... args){
+    T run_function(ScriptID id,std::string const &function_name,std::uint32_t vm_index,ARGs&&... args){
        auto function_id=get_function_id<T>(id,function_name,std::forward<ARGs>(args)...).value();
       if(function_id) {
         setup_run(id, function_id);
-        (add_argument(id, Argument{"", std::forward<ARGs>(args)}), ...);
-        execute_run_function(id);
+        (add_argument(id, Argument{"", std::forward<ARGs>(args)}, vm_index), ...);
+        execute_run_function(id, vm_index);
         T return_value;
         get_return_value(return_value);
          return return_value;
@@ -53,12 +53,12 @@ namespace sanema {
     }
    std::optional<FunctionID>  get_function_id(ScriptID id,DefineFunction& define_function);
     template<typename T,class ...ARGs>
-    T run_function(ScriptID id,FunctionID function_id,ARGs&&... args){
-      setup_run(id,function_id);
-      (add_argument(id,Argument{"",std::forward<ARGs>(args)}),...);
-      execute_run_function(id);
+    T run_function(ScriptID id,FunctionID function_id,std::uint32_t vm_index,ARGs&&... args){
+      setup_run(id,function_id,vm_index);
+      (add_argument(id,Argument{"",std::forward<ARGs>(args)},vm_index),...);
+      execute_run_function(id, vm_index);
       T return_value;
-      get_return_value(return_value);
+      get_return_value(return_value,vm_index);
       return return_value;
     }
     template<class ...ARGs>
@@ -67,22 +67,22 @@ namespace sanema {
       if(function_id) {
         setup_run(id, function_id);
         add_argument(id, Argument{"", std::forward<ARGs>(args)}...);
-        execute_run_function(id);
+        execute_run_function(id,0);
       }
     }
 
-    void get_return_value(std::int8_t& );
-    void get_return_value(std::int16_t& );
-    void get_return_value(std::int32_t& );
-    void get_return_value(std::int64_t& );
-    void get_return_value(std::string& );
-    void get_return_value(std::uint8_t& );
-    void get_return_value(std::uint16_t& );
-    void get_return_value(std::uint32_t& );
-    void get_return_value(std::uint64_t& );
-    void get_return_value(float& );
-    void get_return_value(double& );
-    void get_return_value(bool& );
+    void get_return_value(std::int8_t& ,std::uint32_t vm_index);
+    void get_return_value(std::int16_t& ,std::uint32_t vm_index);
+    void get_return_value(std::int32_t& ,std::uint32_t vm_index);
+    void get_return_value(std::int64_t& ,std::uint32_t vm_index);
+    void get_return_value(std::string& ,std::uint32_t vm_index);
+    void get_return_value(std::uint8_t& ,std::uint32_t vm_index);
+    void get_return_value(std::uint16_t& ,std::uint32_t vm_index);
+    void get_return_value(std::uint32_t& ,std::uint32_t vm_index);
+    void get_return_value(std::uint64_t& ,std::uint32_t vm_index);
+    void get_return_value(float& ,std::uint32_t vm_index);
+    void get_return_value(double& ,std::uint32_t vm_index);
+    void get_return_value(bool& ,std::uint32_t vm_index);
 
 
     template<class F>
@@ -93,13 +93,13 @@ namespace sanema {
       TypeBindingPointer* add_type(std::string const &identifier){
         return get_binding_collection().add_type_binding<T>(identifier);
       }
-    SanemaScriptSystem();
+    SanemaScriptSystem(unsigned int number_of_vms,unsigned int mb_per_vm);
     virtual ~SanemaScriptSystem();
 
   private:
-    void add_argument(ScriptID id,Argument const &args);
-    void setup_run(ScriptID id,FunctionID function_id);
-    void execute_run_function(sanema::ScriptID id);
+    void add_argument(ScriptID id,Argument const &args,std::uint32_t vm_index);
+    void setup_run(ScriptID id,FunctionID function_id,std::uint32_t vm_index);
+    void execute_run_function(sanema::ScriptID id, std::uint32_t vm_index);
     BindingCollection  &get_binding_collection() ;
     std::unique_ptr<SanemaScriptSystemImpl> impl{};
 

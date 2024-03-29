@@ -15,7 +15,7 @@ std::string sanema::replace_all(std::string input,  std::string search,  std::st
                                                 replace);
 }
 std::string sanema::concat(std::string  a, std::string  b) {
-  std::cout<<"concat: "<<a<<" "<<b<<std::endl;
+//  std::cout<<"concat: "<<a<<" "<<b<<std::endl;
    return a+b;
 }
 

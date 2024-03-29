@@ -15,16 +15,16 @@
 
 template<class T>
 std::optional<T> run_and_get_stack_value(std::string code) {
-  sanema::SanemaScriptSystem sanema_script_system;
+  sanema::SanemaScriptSystem sanema_script_system{1,10};
   auto script_id=sanema_script_system.add_script(code);
-  sanema_script_system.run_script(script_id);
+  sanema_script_system.run_script(script_id,0);
   T value{};
-  sanema_script_system.get_return_value(value);
+  sanema_script_system.get_return_value(value,0);
   return value;
 };
 template<class T, class ... ARGS>
 std::optional<T> run_function_and_get_stack_value(std::string& code,std::string const& function_name,ARGS&&... args) {
-  sanema::SanemaScriptSystem sanema_script_system;
+  sanema::SanemaScriptSystem sanema_script_system{1,10};
   auto script_id=sanema_script_system.add_script(code);
   T value=sanema_script_system.run_function<T>(script_id,function_name,std::forward<ARGS>(args)...);
   return value;

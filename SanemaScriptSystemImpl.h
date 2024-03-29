@@ -17,30 +17,30 @@
 namespace sanema {
   class SanemaScriptSystemImpl {
   public:
-    SanemaScriptSystemImpl();
+    SanemaScriptSystemImpl(unsigned int number_of_vms,unsigned int mb_per_vm);
 
     ScriptID add_script(std::string const&string);
     void replace_script(ScriptID id,std::string const&string);
     void replace_script(ScriptID id,std::istream &stream);
     ScriptID add_script(std::istream &stream);
 
-    void run_script(ScriptID id);
-    void add_argument(ScriptID id,Argument const &args);
-    void setup_run(ScriptID id,FunctionID& define_function);
+    void run_script(sanema::ScriptID id, std::uint32_t vm_index);
+    void add_argument(sanema::ScriptID id, const sanema::Argument &args, std::uint32_t vm_index);
+    void setup_run(sanema::ScriptID id, FunctionID &define_function, std::uint32_t vm_index);
     std::optional<FunctionID> get_function_id(ScriptID id, DefineFunction& define_function);
-    void execute_run_function(sanema::ScriptID id);
-    void get_return_value(std::int8_t& value);
-    void get_return_value(std::int16_t& value);
-    void get_return_value(std::int32_t& value);
-    void get_return_value(std::int64_t& value);
-    void get_return_value(std::uint8_t& value);
-    void get_return_value(std::uint16_t& value);
-    void get_return_value(std::uint32_t& value);
-    void get_return_value(std::uint64_t& value);
-    void get_return_value(std::string& value);
-    void get_return_value(float& value);
-    void get_return_value(double& value);
-    void get_return_value(bool& value);
+    void execute_run_function(sanema::ScriptID id, std::uint32_t vm_index);
+    void get_return_value(std::int8_t &value, std::uint32_t vm_index);
+    void get_return_value(std::int16_t &value, std::uint32_t vm_index);
+    void get_return_value(std::int32_t &value, std::uint32_t vm_index);
+    void get_return_value(std::int64_t &value, unsigned int vm_index);
+    void get_return_value(std::uint8_t &value, std::uint32_t vm_index);
+    void get_return_value(std::uint16_t &value, std::uint32_t vm_index);
+    void get_return_value(std::uint32_t &value, std::uint32_t vm_index);
+    void get_return_value(std::uint64_t &value, std::uint32_t vm_index);
+    void get_return_value(std::string &value, std::uint32_t vm_index);
+    void get_return_value(float &value, std::uint32_t vm_index);
+    void get_return_value(double &value, std::uint32_t vm_index);
+    void get_return_value(bool &value, std::uint32_t vm_index);
 
     BindingCollection  &get_binding_collection() ;
 
@@ -48,7 +48,7 @@ namespace sanema {
   private:
     SanemaParser parser;
     ByteCodeCompiler compiler;
-    VM vm;
+    std::vector<VM> vms;
 
     BindingCollection binding_collection;
     FunctionCollection general_functions;
