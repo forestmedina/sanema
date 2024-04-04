@@ -108,6 +108,12 @@ std::int8_t mod_int8(std::int8_t  x, std::int8_t y){
 float floor_float(float x ){
   return floor(x);
 }
+float ceil_float(float x ){
+  return ceil(x);
+}
+float round_float(float x ){
+  return round(x);
+}
 
 void add_built_in_mod(sanema::FunctionCollection &functions,sanema::BindingCollection& binding_collection){
   binding_collection.add_function_binding("mod", mod_float);
@@ -116,8 +122,10 @@ void add_built_in_mod(sanema::FunctionCollection &functions,sanema::BindingColle
   binding_collection.add_function_binding("mod", mod_int16);
   binding_collection.add_function_binding("mod", mod_int8);
 }
-void add_built_in_floor(sanema::FunctionCollection &functions,sanema::BindingCollection& binding_collection){
+void add_built_in_rounding(sanema::FunctionCollection &functions, sanema::BindingCollection& binding_collection){
   binding_collection.add_function_binding("floor", floor_float);
+  binding_collection.add_function_binding("ceil", ceil_float);
+  binding_collection.add_function_binding("round", round_float);
 }
 float sqrt_float(float x ){
   return sqrt(x);
@@ -131,7 +139,7 @@ void sanema::add_built_in_functions(sanema::FunctionCollection &functions,Bindin
   add_built_in_string_functions(functions,binding_collection);
   add_built_in_return(functions,binding_collection);
   add_built_in_mod(functions,binding_collection);
-  add_built_in_floor(functions,binding_collection);
+  add_built_in_rounding(functions, binding_collection);
   add_built_in_sqrt(functions,binding_collection);
 
 }

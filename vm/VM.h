@@ -26,8 +26,12 @@ namespace sanema {
   class VM {
   public:
     explicit VM(unsigned int memory_size_mb = 5);
+    VM(VM const&)=delete;
+    VM const& operator=(VM const&)=delete;
+    VM(VM &&)=default;
+    VM & operator=(VM &&)=default;
 
-    ~VM();
+    ~VM()=default;
 
 
     void run(ByteCode const &byte_code, BindingCollection &collection,IPType initial_ip);
@@ -43,7 +47,6 @@ namespace sanema {
     }
 
 
-
     template<typename T>
     [[nodiscard]] T get_external_function_parameter() {
 
@@ -56,7 +59,7 @@ namespace sanema {
 
     std::string const &get_string(StringReference const &reference);
 
-    ByteCode const *running_byte_code;
+
 
 
     void push_string(std::string const &string_value);
@@ -72,11 +75,12 @@ namespace sanema {
     }
 
     std::vector<sanema::ContextFrame> call_stack;
-
+    ByteCode const *running_byte_code;
   private:
     unsigned char *external_function_return_address{nullptr};
     unsigned char *external_function_parameters_addresss{nullptr};
     unsigned char *operand_stack;
+    std::vector<unsigned char> operand_stack_vector;
     unsigned char *operand_stack_pointer{nullptr};
     unsigned char *next_argument_address{nullptr};
     std::vector<std::string> string_stack;

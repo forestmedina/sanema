@@ -892,6 +892,11 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
 void sanema::ByteCodeCompiler::process(sanema::BlockOfCode &block_of_code, FunctionCollection &built_in_functions,
                                        TypeCollection &external_types) {
   std::vector<BlockOfCode> blocks_stack;
+  byte_code=ByteCode();
+  pendind_to_generate_functions={};
+  function_call_sustitutions={};
+  scope_stack={};
+  function_call_sustitutions.clear();
   scope_stack.emplace_back();
   function_bytecode_generators.map["add"] = generate_add;
   function_bytecode_generators.map["subtract"] = generate_subtract;

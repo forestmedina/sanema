@@ -16,6 +16,9 @@ sanema::IPType  sanema::VM::setup_run(const sanema::ByteCode &byte_code, sanema:
   operand_stack_pointer = operand_stack;
   external_function_return_address = operand_stack;
   external_function_parameters_addresss = operand_stack;
+  next_argument_address = operand_stack_pointer ;
+  string_stack.clear();
+  call_stack.clear();
   IPType ip = byte_code.code_data.data();
   if(function_id.has_value()){
     auto final_function=byte_code.function_collection.get_function_by_id(function_id.value());
@@ -512,14 +515,12 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
 
 sanema::VM::VM(unsigned int  memory_size_mb) : running_byte_code(nullptr) {
   auto megabytes_to_bytes = [](std::uint64_t size) { return (size * 1024) * 1024; };
-  operand_stack = new unsigned char[megabytes_to_bytes(memory_size_mb)];
+  operand_stack_vector.resize(megabytes_to_bytes(memory_size_mb));
+  operand_stack = operand_stack_vector.data();
   call_stack.reserve(1000);
 
 }
 
-sanema::VM::~VM() {
-  delete operand_stack;
-}
 
 
 std::string const &sanema::VM::get_string(const sanema::StringReference &reference) {

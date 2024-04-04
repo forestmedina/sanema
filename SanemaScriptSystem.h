@@ -51,7 +51,10 @@ namespace sanema {
       (emplace_parameter<ARGs>(function),...);
       return get_function_id(id,function);
     }
+
    std::optional<FunctionID>  get_function_id(ScriptID id,DefineFunction& define_function);
+
+
     template<typename T,class ...ARGs>
     T run_function(ScriptID id,FunctionID function_id,std::uint32_t vm_index,ARGs&&... args){
       setup_run(id,function_id,vm_index);

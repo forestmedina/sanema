@@ -39,7 +39,6 @@ sanema::SanemaScriptSystemImpl::SanemaScriptSystemImpl(unsigned int number_of_vm
   add_built_in_functions(general_functions,
                          binding_collection);
   binding_collection.register_bindings(general_functions,external_types);
-  vms.reserve(number_of_vms);
   for(int i=0;i<number_of_vms;++i) {
     vms.emplace_back(mb_per_vm);
   }
