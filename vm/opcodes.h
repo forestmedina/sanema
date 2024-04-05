@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <unordered_map>
 #include <string>
-enum class OPCODE : std::uint8_t {
+enum class OPCODE : std::uint32_t {
   OP_TRUE,
   OP_FALSE,
   OP_RESERVE_STACK_SPACE,

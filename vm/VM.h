@@ -84,6 +84,7 @@ namespace sanema {
     unsigned char *operand_stack_pointer{nullptr};
     unsigned char *next_argument_address{nullptr};
     std::vector<std::string> string_stack;
+    std::vector<IPType> ip_history;
 
     template<class type>
     inline void save_result_register(VMInstruction const *instruction, type value) {

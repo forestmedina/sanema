@@ -146,9 +146,9 @@ void sanema::SanemaScriptSystemImpl::replace_script(sanema::ScriptID id, std::is
   compiler.process(block_of_code,
                    general_functions,
                    external_types);
-//  std::cout << "BYTECODE BEGIN*******************************\n\n";
-//  compiler.byte_code.print();
-//  std::cout << "\n\nBYTECODE END*******************************\n\n";
+  std::cout << "BYTECODE BEGIN*******************************\n\n";
+  compiler.byte_code.print();
+  std::cout << "\n\nBYTECODE END*******************************\n\n";
 
   script_collection[id.id] = ScriptEntry{id, std::move(compiler.byte_code)};
 }

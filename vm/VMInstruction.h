@@ -20,7 +20,7 @@ namespace sanema {
   struct VMInstruction {
     VMInstruction();
 
-    OPCODE opcode:7;
+    OPCODE opcode;
     bool is_rresult_reference: 1 ;
     bool is_r1_reference: 1 ;
     bool is_r2_reference: 1;

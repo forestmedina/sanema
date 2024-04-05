@@ -44,17 +44,21 @@ void sanema::VM::add_external_argument(const sanema::Argument &arg) {
 }
 void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_collection,IPType initial_ip) {
   IPType ip = initial_ip;
+
+  ip_history.reserve(1000);
+  ip_history.clear();
   bool should_continue = true;
   for (;;) {
 
     IPType instruction = ip;
-//    std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << " ; ";
-//    std::cout << "Executing opcode: " << opcode_to_string(instruction->opcode) << "\n";
-//    std::cout << "  R32: " << instruction->register32.r1 << "\n";
-//    std::cout << "  R1: " << instruction->registers16.r1 << "\n";
-//    std::cout << "  R2: " << instruction->registers16.r2 << "\n";
-//    std::cout << "  RESULT: " << instruction->r_result << "\n";
-//
+    ip_history.emplace_back(ip);
+    // std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << " ; ";
+    // std::cout << "Executing opcode: " << opcode_to_string(instruction->opcode) << "\n";
+    // std::cout << "  R32: " << instruction->register32.r1 << "\n";
+    // std::cout << "  R1: " << instruction->registers16.r1 << "\n";
+    // std::cout << "  R2: " << instruction->registers16.r2 << "\n";
+    // std::cout << "  RESULT: " << instruction->r_result << "\n";
+
 
     ++ip;
     switch (instruction->opcode) {
@@ -431,7 +435,7 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
       }
         break;
       case OPCODE::OP_JUMP: {
-        auto offset = instruction->register32.r1;
+        auto offset = instruction->registers16.r1;
         ip += offset;
       }
         break;

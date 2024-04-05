@@ -17,9 +17,9 @@ void sanema::ByteCode::print() {
     auto offset = std::uint64_t(ip - code_data.data());
     auto vmInstruction = read_from_bytecode(ip);
     std::cout << std::format(
-      " {}:{} r_result:{}{}  R1:{}{} R2:{}{}   ", offset, opcode_to_string(vmInstruction.opcode),
+      " {}:{} r_result:{}{}  R1:{}{} R2:{}{}    R32: {}", offset, opcode_to_string(vmInstruction.opcode),
       vmInstruction.r_result, vmInstruction.is_rresult_reference ? "G" : "L", vmInstruction.is_r1_reference ? "G" : "L",
-      vmInstruction.registers16.r1, vmInstruction.is_r2_reference ? "G" : "L", vmInstruction.registers16.r2
+      vmInstruction.registers16.r1, vmInstruction.is_r2_reference ? "G" : "L", vmInstruction.registers16.r2,vmInstruction.register32.r1
                             );
     std::cout << "    |\n";
   }
