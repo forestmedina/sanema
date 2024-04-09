@@ -806,6 +806,26 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
             byte_code.code_data[address_false_jump].registers16.r1 = address_false_branch-address_true_branch;
             byte_code.code_data[address_true_jump_instruction].registers16.r1 = address_end_if-address_false_branch;
           },
+          [&](ReturnStatement &return_statement) {
+            auto current_scope = scope_stack.back();
+            auto current_stack_address = current_scope.scope_address;
+            generate_expression_access(return_statement.expression,
+                                       FunctionParameter::Modifier::VALUE,
+                                       CompleteType{sanema::Boolean{}},
+                                       byte_code,
+                                       current_scope,
+                                       function_bytecode_generators,
+                                       function_call_sustitutions,
+                                       current_stack_address);
+            sanema::VMInstruction instruction_copy_return_address;
+            instruction_copy_return_address.opcode = OPCODE::OP_PUSH_LOCAL_SINT64;
+            instruction_copy_return_address.r_result = 0;
+            instruction_copy_return_address.registers16.r1 = current_stack_address.address;
+            byte_code.write(instruction_copy_return_address);
+            sanema::VMInstruction instruction_return;
+            instruction_return.opcode = OPCODE::OP_RETURN;
+            byte_code.write(instruction_return);
+          },
           [this, &total_variable_space](DeclareVariable &declare_variable) {
             auto &current_scope = scope_stack.back();
             if (current_scope.local_variables.count(declare_variable.identifier) != 0) {

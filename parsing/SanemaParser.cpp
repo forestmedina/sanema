@@ -33,7 +33,7 @@ char read_character = ' ';
 
 
 sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token> &tokens) {
-  using NestedExpression = std::variant<FunctionCall, IfStatement>;
+  using NestedExpression = std::variant<FunctionCall, IfStatement,ReturnStatement>;
   struct Context {
     BlockOfCode current_block{};
 
@@ -62,6 +62,8 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
         current_context.instruction = DefineStruct{};
       } else if (token.token == if_word) {
         current_context.instruction = IfStatement{};
+      }else if (token.token == return_word) {
+        current_context.instruction = ReturnStatement{};
       } else if (token.token == code_block_begin) {
         stack_context();
       } else if (token.token == code_block_end || token.token == if_else_word || token.token == if_ending_word) {
@@ -98,6 +100,15 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
                       break;
 
                     case IfStatement::IfStatementState::EXPRESSION:
+                      break;
+                  }
+                },
+                [&](ReturnStatement &return_statement) {
+//                  std::cout << "block ffinished define function\n";
+                  switch (return_statement.state){
+                    case ReturnStatement::ReturnStatementState::EXPRESSION:
+                      current_context.current_block.instructions.emplace_back(return_statement);
+                      current_context.instruction = {};
                       break;
                   }
                 },
@@ -156,6 +167,31 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
                         current_context.instruction = new_function_call;
                       } else {
                         if_statement.expression = VariableEvaluation{token.token};
+                      }
+
+                    }
+                  }
+                  break;
+              }
+
+            },[&](ReturnStatement &return_statement) {
+              switch (return_statement.state) {
+                case ReturnStatement::ReturnStatementState::EXPRESSION:
+                  if (is_literal(token.token)) {
+                    return_statement.expression = get_literal_from_string(token.token);
+                  } else {
+                    auto next_token_it = std::next(token_it);
+                    if (next_token_it != tokens.end()) {
+                      auto &next_token = *next_token_it;
+                      if (next_token.token == "(") {
+                        current_context.function_call_stack.emplace(return_statement);
+                        auto new_function_call = FunctionCall{};
+                        new_function_call.identifier = token.token;
+                        current_context.instruction = new_function_call;
+                      } else if(is_literal(token.token)) {
+                        return_statement.expression = get_literal_from_string(token.token);
+                      }else{
+                        return_statement.expression = VariableEvaluation{token.token};
                       }
 
                     }
@@ -251,6 +287,12 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
                               current_context.instruction = previous_if_statement;
                               stack_context();
                             },
+                            [&function_call, &current_context, &stack_context](ReturnStatement &previous_return_statement) {
+                             previous_return_statement.expression = function_call;
+                             current_context.function_call_stack.pop();
+                             current_context.instruction = previous_return_statement;
+                             stack_context();
+                           },
                             [&function_call, &current_context](FunctionCall &previous_function_call) {
                               current_context.function_call_stack.pop();
                               previous_function_call.arguments.emplace_back(FunctionArgument{function_call});

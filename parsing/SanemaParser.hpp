@@ -51,6 +51,7 @@ namespace sanema {
     std::string if_then_word = "then";
     std::string if_else_word = "else";
     std::string if_ending_word = "end";
+    std::string return_word = "return";
     std::set<std::string> reserved_words{variable_declaring_word, function_declaring_word, struct_declaring_word};
     std::set<char> separators = {' ', '\t'};
     std::set<char> function_delimiters = {'(', ')'};
