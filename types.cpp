@@ -37,8 +37,8 @@ sanema::Field *sanema::UserDefined::get_field(std::string const& identifier) {
   return nullptr;
 }
 
-std::optional<sanema::CompleteType> sanema::parse_type(const std::string &string) {
-  std::map<std::string, CompleteType> type_map{
+std::optional<sanema::IncompleteType> sanema::parse_type(const std::string &string) {
+  std::map<std::string, IncompleteType> type_map{
     {"int8",   Integer{8}},
     {"int16",  Integer{16}},
     {"int32",  Integer{32}},
@@ -56,7 +56,7 @@ std::optional<sanema::CompleteType> sanema::parse_type(const std::string &string
   if (type_map.count(string) > 0) {
     return type_map.at(string);
   }
-  return UserDefined{string};
+  return UnidentifiedType{string};
 }
 
 std::uint64_t sanema::get_type_size(sanema::CompleteType const &type) {
@@ -80,11 +80,7 @@ std::uint64_t sanema::get_type_size(sanema::CompleteType const &type) {
                  return 0;
                },
                [](UserDefined const &user_defined) -> std::uint64_t {
-                std::uint64_t total_size=0;
-                 for(auto& field:user_defined.fields){
-                   total_size+=get_type_size(field.type.value());
-                 }
-                 return total_size;
+                 return user_defined.size;
                }
               );
 }

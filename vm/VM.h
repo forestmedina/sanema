@@ -45,7 +45,7 @@ namespace sanema {
       if (operand_stack_pointer == nullptr) return {};
       return *((T *) operand_stack_pointer);
     }
-
+    void* get_stack_pointer();
 
     template<typename T>
     [[nodiscard]] T get_external_function_parameter() {
@@ -231,17 +231,17 @@ namespace sanema {
 
 
   template<typename T>
-  T get_function_parameter_from_vm(VM &vm, sanema::FunctionParameter::Modifier modifier) {
+  T get_function_parameter_from_vm(VM &vm, sanema::FunctionParameterCompleted::Modifier modifier) {
     T final_value;
     switch (modifier) {
-      case sanema::FunctionParameter::Modifier::VALUE: {
+      case sanema::FunctionParameterCompleted::Modifier::VALUE: {
         auto value = vm.get_external_function_parameter<T>();
 
         final_value = static_cast<T>(value);
       }
         break;
-      case sanema::FunctionParameter::Modifier::MUTABLE:
-      case sanema::FunctionParameter::Modifier::CONST:
+      case sanema::FunctionParameterCompleted::Modifier::MUTABLE:
+      case sanema::FunctionParameterCompleted::Modifier::CONST:
         auto pointer = vm.get_external_function_parameter<T*>();;
         final_value = *(pointer);
         break;
@@ -251,11 +251,11 @@ namespace sanema {
 
   template<>
   std::string
-  get_function_parameter_from_vm<std::string>(VM &vm, sanema::FunctionParameter::Modifier modifier);
+  get_function_parameter_from_vm<std::string>(VM &vm, sanema::FunctionParameterCompleted::Modifier modifier);
 
   template<>
   std::string const &get_function_parameter_from_vm<std::string const &>(VM &vm,
-                                                                         sanema::FunctionParameter::Modifier modifier);
+                                                                         sanema::FunctionParameterCompleted::Modifier modifier);
 
 
 

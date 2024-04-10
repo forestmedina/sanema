@@ -112,6 +112,10 @@ void sanema::SanemaScriptSystemImpl::get_return_value(bool &value, std::uint32_t
   value = vm.get_value_stack<bool>().value_or(value);
 }
 
+void* sanema::SanemaScriptSystemImpl::get_return_pointer(std::uint32_t vm_index) {
+  return vms[vm_index].get_stack_pointer();
+}
+
 sanema::BindingCollection &sanema::SanemaScriptSystemImpl::get_binding_collection() {
   return binding_collection;
 }
@@ -153,7 +157,7 @@ void sanema::SanemaScriptSystemImpl::replace_script(sanema::ScriptID id, std::is
   script_collection[id.id] = ScriptEntry{id, std::move(compiler.byte_code)};
 }
 
-std::optional<sanema::FunctionID> sanema::SanemaScriptSystemImpl::get_function_id(ScriptID id,sanema::DefineFunction &define_function) {
+std::optional<sanema::FunctionID> sanema::SanemaScriptSystemImpl::get_function_id(ScriptID id,sanema::FunctionDefinitionCompleted &define_function) {
   auto function = get_script(id).bytecode.function_collection.find_function(define_function);
   if (function.has_value()) {
     return function->id;

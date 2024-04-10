@@ -42,6 +42,11 @@ void sanema::VM::add_external_argument(const sanema::Argument &arg) {
           next_argument_address += offset;
         });
 }
+
+void* sanema::VM::get_stack_pointer() {
+  return static_cast<void*>(operand_stack_pointer);
+}
+
 void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_collection,IPType initial_ip) {
   IPType ip = initial_ip;
 
@@ -467,9 +472,28 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
         }
       }
         break;
+      case OPCODE::OP_COPY_MEMORY: {
+        auto from = instruction->registers16.r1;
+        auto size = instruction->registers16.r2;
+        auto to = instruction->r_result;
+        memcpy(operand_stack_pointer + to,
+                operand_stack_pointer + from,
+                size
+                );
+      }
+        break;
       case OPCODE::OP_RETURN: {
         should_continue = call_stack.size() > 1;
         call_stack.pop_back();
+        auto from = instruction->registers16.r1;
+        auto size = instruction->registers16.r2;
+        auto to = instruction->r_result;
+        memcpy(operand_stack_pointer + to,
+                operand_stack_pointer + from,
+                size
+                );
+
+
         if (should_continue) {
           ip = call_stack.back().ip;
           operand_stack_pointer = call_stack.back().get_begin_address();
@@ -557,7 +581,7 @@ void sanema::VM::run(const sanema::ByteCode &byte_code, sanema::BindingCollectio
 
 template<>
 std::string sanema::get_function_parameter_from_vm<std::string>(VM &vm,
-                                                                sanema::FunctionParameter::Modifier modifier) {
+                                                                sanema::FunctionParameterCompleted::Modifier modifier) {
   auto reference = get_function_parameter_from_vm<StringReference>(vm,
                                                                    modifier);
   return vm.get_string(reference);
@@ -565,7 +589,7 @@ std::string sanema::get_function_parameter_from_vm<std::string>(VM &vm,
 
 template<>
 std::string const &sanema::get_function_parameter_from_vm<std::string const &>(VM &vm,
-                                                                               sanema::FunctionParameter::Modifier modifier) {
+                                                                               sanema::FunctionParameterCompleted::Modifier modifier) {
   auto reference = get_function_parameter_from_vm<StringReference>(vm,
                                                                    modifier);
   return vm.get_string(reference);

@@ -21,9 +21,9 @@ namespace sanema {
 
     virtual std::uint64_t size() = 0;
     virtual void register_type_definition(TypeCollection& type_collection,std::uint64_t id)=0;
-    template<typename Type, typename Member>
-    TypeBindingPointer* with_field(std::string identifier,Member Type::*field_member){
-      add_field(identifier,bind_field(identifier,field_member));
+      template <typename T>
+     TypeBindingPointer* with_field(std::string identifier,size_t offset){
+      add_field(identifier,bind_field<T>(identifier,offset));
       return this;
     }
     virtual ~TypeBindingPointer()=default;
@@ -48,16 +48,17 @@ namespace sanema {
       user_defined.external_id=id;
       unsigned int field_id=0;
       for(auto& field_binding:fields){
-        Field field_definition{field_binding.name,field_binding.field_pointer->get_type(),field_id};
+        Field field_definition{field_binding.name,field_binding.field_type->get_type(),field_binding.offset};
         user_defined.fields.emplace_back(field_definition);
         ++field_id;
       }
+      user_defined.size=sizeof(T);
       type_collection.add_type(user_defined);
 
     }
 
     void *get_field_address(void* object_ptr,std::uint64_t id) override {
-      return fields[id].field_pointer->get_address(object_ptr);
+      return (((char*)object_ptr)+fields[id].offset);
     }
 
     std::uint64_t size() override {

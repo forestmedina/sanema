@@ -27,8 +27,13 @@ namespace sanema {
     void run_script(sanema::ScriptID id, std::uint32_t vm_index);
     void add_argument(sanema::ScriptID id, const sanema::Argument &args, std::uint32_t vm_index);
     void setup_run(sanema::ScriptID id, FunctionID &define_function, std::uint32_t vm_index);
-    std::optional<FunctionID> get_function_id(ScriptID id, DefineFunction& define_function);
+    std::optional<FunctionID> get_function_id(ScriptID id, FunctionDefinitionCompleted& define_function);
     void execute_run_function(sanema::ScriptID id, std::uint32_t vm_index);
+    template <typename  T>
+    void get_return_native_type(T &value, std::uint32_t vm_index) {
+      auto& vm=vms.at(vm_index);
+      value = vm.get_value_stack<T>().value_or(value);
+    };
     void get_return_value(std::int8_t &value, std::uint32_t vm_index);
     void get_return_value(std::int16_t &value, std::uint32_t vm_index);
     void get_return_value(std::int32_t &value, std::uint32_t vm_index);
@@ -41,6 +46,7 @@ namespace sanema {
     void get_return_value(float &value, std::uint32_t vm_index);
     void get_return_value(double &value, std::uint32_t vm_index);
     void get_return_value(bool &value, std::uint32_t vm_index);
+    void* get_return_pointer( std::uint32_t vm_index);
 
     BindingCollection  &get_binding_collection() ;
 
@@ -64,6 +70,10 @@ namespace sanema {
 
     size_t current_id = 0;
   };
+
+  // template<typename T>
+  // void SanemaScriptSystemImpl::get_return_native_type(T& value, std::uint32_t vm_index) {
+  // }
 }
 
 #endif //SANEMA_SANEMASCRIPTSYSTEMIMPL_H

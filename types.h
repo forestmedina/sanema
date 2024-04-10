@@ -89,13 +89,16 @@ namespace sanema {
   };
 
   struct Field;
-
+ struct UnidentifiedType {
+   TypeIdentifier type_id;
+  };
   struct UserDefined {
     UserDefined(TypeIdentifier typeId);
 
     TypeIdentifier type_id;
     std::vector<Field> fields;
     std::optional<std::uint64_t>  external_id;
+    std::uint64_t size;
     Field* get_field(std::string const& identifier);
     bool operator==(const UserDefined &rhs) const;
 
@@ -105,6 +108,7 @@ namespace sanema {
 
 
   using CompleteType = std::variant<Integer, Float, Double, String, Boolean, UserDefined, Void>;
+  using IncompleteType = std::variant<Integer, Float, Double, String, Boolean, UnidentifiedType, Void>;
 
   enum class TypeCategory {
     PRIMITIVE,
@@ -116,7 +120,7 @@ namespace sanema {
 
   bool is_second_type_compatible(CompleteType &type_1, CompleteType type_2);
 
-  std::optional<sanema::CompleteType> parse_type(std::string const &string);
+  std::optional<sanema::IncompleteType> parse_type(std::string const &string);
 
 
 

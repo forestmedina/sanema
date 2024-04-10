@@ -19,8 +19,6 @@ add_library(sanema
         compiler/ByteCodeCompiler.h
         parsing/SanemaParser.cpp
         parsing/SanemaParser.hpp
-        parsing/ValidationStage.cpp
-        parsing/ValidationStage.h
         vm/ByteCode.cpp
         vm/ByteCode.h
         vm/ContextFrame.cpp
@@ -110,6 +108,8 @@ add_executable(sanema_tests test/test.cpp
         test/benchmarks.cpp
         test/execute_function_from_native.cpp
         test/chained_operators.cpp
+        test/type_binding.cpp
+        test/type_binding.cpp
 )
 target_link_libraries(sanema_tests PRIVATE Catch2::Catch2WithMain)
 target_link_libraries (sanema_tests PRIVATE sanema)

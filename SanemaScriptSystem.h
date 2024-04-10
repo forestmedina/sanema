@@ -11,6 +11,8 @@
 #include <binding/BindingCollection.h>
 #include <interfacing/Argument.h>
 #include <filesystem>
+#include <SanemaScriptSystemImpl.h>
+
 namespace sanema {
   class SanemaScriptSystemImpl;
   class SanemaScriptSystem {
@@ -23,9 +25,9 @@ namespace sanema {
     void run_script(ScriptID id,std::uint32_t vm_index);
 
   template <class T>
-  void emplace_parameter(DefineFunction& function) {
+  void emplace_parameter(FunctionDefinitionCompleted& function) {
     auto modifier=get_parameter_modifier<T>();
-    FunctionParameter parameter{"",modifier,type_from_cpptype<std::remove_cvref_t<T>>()};
+    FunctionParameterCompleted parameter{"",modifier,type_from_cpptype<std::remove_cvref_t<T>>()};
     function.parameters.emplace_back(parameter);
   }
     template<typename T,class ...ARGs>
@@ -45,23 +47,29 @@ namespace sanema {
 
     template<typename T,class ...ARGs>
     std::optional<FunctionID> get_function_id(ScriptID id,std::string const &function_name,ARGs&&... args){
-      DefineFunction function;
+      FunctionDefinitionCompleted function;
       function.identifier=function_name;
       function.type= type_from_cpptype<T>();
       (emplace_parameter<ARGs>(function),...);
       return get_function_id(id,function);
     }
 
-   std::optional<FunctionID>  get_function_id(ScriptID id,DefineFunction& define_function);
+   std::optional<FunctionID>  get_function_id(ScriptID id,FunctionDefinitionCompleted& define_function);
 
 
     template<typename T,class ...ARGs>
-    T run_function(ScriptID id,FunctionID function_id,std::uint32_t vm_index,ARGs&&... args){
+    T run_function(ScriptID id,FunctionID function_id,std::uint32_t vm_index,ARGs&&... args) {
       setup_run(id,function_id,vm_index);
       (add_argument(id,Argument{"",std::forward<ARGs>(args)},vm_index),...);
       execute_run_function(id, vm_index);
       T return_value;
-      get_return_value(return_value,vm_index);
+      if constexpr (std::is_same<T,std::string>()) {
+        get_return_value(return_value,vm_index);
+      }else {
+        void* pointer=impl->get_return_pointer(vm_index);
+        return_value=*(T*)pointer;
+      }
+
       return return_value;
     }
     template<class ...ARGs>
@@ -73,6 +81,10 @@ namespace sanema {
         execute_run_function(id,0);
       }
     }
+    // template <typename T>
+    // void get_return_native_type(T& value,std::uint32_t vm_index){
+    //   impl->get_return_native_type(value,vm_index);
+    // }
 
     void get_return_value(std::int8_t& ,std::uint32_t vm_index);
     void get_return_value(std::int16_t& ,std::uint32_t vm_index);

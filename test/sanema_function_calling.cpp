@@ -147,3 +147,25 @@ TEST_CASE("return function call result",
   REQUIRE(result.has_value());
   REQUIRE(result.value() == 10);
 }
+
+TEST_CASE("native reference modification",
+          "functions") {
+  sanema::SanemaParser parser;
+  sanema::ByteCodeCompiler compiler;
+  std::string code(R"--(
+
+
+    function return_function int64
+        mut value int64
+    begin
+       set value add(value 5);
+      return 0;
+    end;
+
+
+)--");
+
+  std::int64_t value = 5;
+  auto result = run_function_and_get_stack_value<std::int64_t>(code, "return_function", value);
+  REQUIRE(value == 10);
+}
