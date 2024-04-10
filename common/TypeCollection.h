@@ -14,6 +14,7 @@ namespace sanema {
   class TypeCollection {
   public:
     std::optional<UserDefined> find_type(CompleteType const& type );
+    std::optional<UserDefined> find_type(UnidentifiedType const& type );
 
     sanema::TypeID add_type(UserDefined define_struct);
 

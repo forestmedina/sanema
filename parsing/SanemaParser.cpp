@@ -63,6 +63,7 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
       } else if (token.token == if_word) {
         current_context.instruction = IfStatement{};
       }else if (token.token == return_word) {
+        std::cout<<" return statement parse begin:\n";
         current_context.instruction = ReturnStatement{};
       } else if (token.token == code_block_begin) {
         stack_context();
@@ -107,8 +108,9 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
 //                  std::cout << "block ffinished define function\n";
                   switch (return_statement.state){
                     case ReturnStatement::ReturnStatementState::EXPRESSION:
-                      current_context.current_block.instructions.emplace_back(return_statement);
-                      current_context.instruction = {};
+                      // std::cout<<" finishing return statement:\n";
+                      // current_context.current_block.instructions.emplace_back(return_statement);
+                      // current_context.instruction = {};
                       break;
                   }
                 },
@@ -128,17 +130,17 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
             [&](DefineStruct &define_struct) {
               switch (define_struct.state) {
                 case DefineStruct::IDENTIFIER:
-                  define_struct.user_type = UserDefined(TypeIdentifier(token.token));
+                  define_struct.type_id=TypeIdentifier(token.token);
                   define_struct.state = DefineStruct::FIELD_IDENTIFIER;
                   break;
                 case DefineStruct::FIELD_TYPE:
 
-                  define_struct.user_type->fields.back().type = parse_type(token.token);
+                  define_struct.fields.back().type = parse_type(token.token);
                   define_struct.state = DefineStruct::FIELD_COMPLETE;
                   break;
                 case DefineStruct::FIELD_IDENTIFIER:
-                  define_struct.user_type->fields.emplace_back();
-                  define_struct.user_type->fields.back().identifier = token.token;
+                  define_struct.fields.emplace_back();
+                  define_struct.fields.back().identifier = token.token;
                   define_struct.state = DefineStruct::FIELD_TYPE;
                   break;
                 case DefineStruct::FIELD_COMPLETE:
@@ -177,8 +179,14 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
             },[&](ReturnStatement &return_statement) {
               switch (return_statement.state) {
                 case ReturnStatement::ReturnStatementState::EXPRESSION:
-                  if (is_literal(token.token)) {
+                  if(token.token==";"){
+                    current_context.current_block.instructions.emplace_back(current_context.instruction.value());
+                    current_context.instruction = {};
+                  }else  if (is_literal(token.token)) {
+                    std::cout<<" return statement parsing literal"<<token.token<<"\n";
                     return_statement.expression = get_literal_from_string(token.token);
+                    current_context.current_block.instructions.emplace_back(current_context.instruction.value());
+                    current_context.instruction = {};
                   } else {
                     auto next_token_it = std::next(token_it);
                     if (next_token_it != tokens.end()) {
@@ -188,10 +196,10 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
                         auto new_function_call = FunctionCall{};
                         new_function_call.identifier = token.token;
                         current_context.instruction = new_function_call;
-                      } else if(is_literal(token.token)) {
-                        return_statement.expression = get_literal_from_string(token.token);
                       }else{
                         return_statement.expression = VariableEvaluation{token.token};
+                        current_context.current_block.instructions.emplace_back(current_context.instruction.value());
+                        current_context.instruction = {};
                       }
 
                     }
@@ -291,7 +299,6 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
                              previous_return_statement.expression = function_call;
                              current_context.function_call_stack.pop();
                              current_context.instruction = previous_return_statement;
-                             stack_context();
                            },
                             [&function_call, &current_context](FunctionCall &previous_function_call) {
                               current_context.function_call_stack.pop();

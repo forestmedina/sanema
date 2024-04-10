@@ -4,5 +4,5 @@
 
 #include "FieldBinding.h"
 
-sanema::FieldBinding::FieldBinding(std::string const &name, std::unique_ptr<FieldPointer>  field_pointer)
-  : name(name), field_pointer{std::move(field_pointer)} {}
+sanema::FieldBinding::FieldBinding(std::string const &name, size_t  offset,std::unique_ptr<FieldType> field_type)
+  : name(name), offset{offset},field_type{std::move(field_type)} {}

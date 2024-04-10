@@ -13,7 +13,15 @@
 
 namespace sanema {
 
-
+  struct FieldType {
+    virtual CompleteType get_type() = 0;
+  };
+  template <typename T>
+  struct FieldTypeGeneric : FieldType {
+    CompleteType get_type() override {
+      return type_from_cpptype<T>();
+    }
+  };
   struct FieldPointer {
     virtual void set(void *, Value &&) {
 
@@ -64,27 +72,31 @@ namespace sanema {
     return std::make_unique<FieldPointerGeneric<ClassType, FieldType>>
       (field_pointer);
   }
-
   class FieldBinding {
   public:
-    FieldBinding(std::string const &name, std::unique_ptr<FieldPointer> field_pointer);
+    FieldBinding(std::string const &name, size_t offset,std::unique_ptr<FieldType> field_type);
 
     FieldBinding(FieldBinding &&other) {
       std::swap(name,
                 other.name);
-      std::swap(field_pointer,
-                other.field_pointer);
+      std::swap(offset,
+                other.offset);
+      std::swap(field_type,
+                other.field_type);
     };
 
     FieldBinding &operator=(FieldBinding &&other) {
       std::swap(name,
                 other.name);
-      std::swap(field_pointer,
-                other.field_pointer);
+      std::swap(offset,
+                other.offset);
+      std::swap(field_type,
+                other.field_type);
       return *this;
     };
     std::string name;
-    std::unique_ptr<FieldPointer> field_pointer;
+    size_t offset{0};
+    std::unique_ptr<FieldType> field_type{nullptr};
   };
 
   template<typename ClassType, typename FieldType>
@@ -92,9 +104,9 @@ namespace sanema {
     return type_from_cpptype<FieldType>();
   }
 
-  template<typename Type, typename Member>
-  FieldBinding bind_field(std::string name, Member Type::* field_pointer) {
-    return FieldBinding{name, build_generic_field_pointer(field_pointer)};
+  template <typename T>
+   FieldBinding  bind_field(std::string name, size_t offset) {
+    return FieldBinding{name, offset,std::make_unique<FieldTypeGeneric<T>>()};
   }
 }
 

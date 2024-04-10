@@ -12,7 +12,7 @@
 #include <interfacing/Argument.h>
 #include <filesystem>
 #include <SanemaScriptSystemImpl.h>
-
+#include <type_traits>
 namespace sanema {
   class SanemaScriptSystemImpl;
   class SanemaScriptSystem {
@@ -105,7 +105,8 @@ namespace sanema {
         get_binding_collection().add_function_binding(identifier,f);
       }
       template<class T>
-      TypeBindingPointer* add_type(std::string const &identifier){
+      TypeBindingPointer* add_pod_type(std::string const &identifier){
+       static_assert( std::is_pod_v<T> ,"type must be a pod type");
         return get_binding_collection().add_type_binding<T>(identifier);
       }
     SanemaScriptSystem(unsigned int number_of_vms,unsigned int mb_per_vm);

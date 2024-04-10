@@ -11,10 +11,17 @@
 #include <vector>
 
 namespace sanema {
+  struct IncompleteField {
+    std::string identifier;
+    std::optional<IncompleteType> type{};
+    std::uint64_t offset;
+  };
   struct DefineStruct {
     DefineStruct();
-
-    std::optional<UserDefined> user_type{};
+    TypeIdentifier type_id{""};
+    // std::optional<std::uint64_t>  external_id;
+    // std::uint64_t size;
+    std::vector<IncompleteField> fields{};
     enum DefineStructState {
       IDENTIFIER,
       FIELD_TYPE,
@@ -46,7 +53,7 @@ namespace sanema {
     DeclareVariable();
 
     std::string identifier{};
-    CompleteType type_identifier{};
+    IncompleteType type_identifier{};
     std::optional<Literal> value;
     enum class DeclareVariableState {
       TYPE,
@@ -78,9 +85,9 @@ namespace sanema {
 
   struct DefineFunction {
     std::string identifier;
-    CompleteType type;
+    IncompleteType type;
     BlockOfCode body;
-    std::vector<FunctionParameter> parameters;
+    std::vector<FunctionParameterIncomplete> parameters;
     std::uint64_t address{0};
     std::uint64_t id;
     std::optional<std::uint64_t> external_id{};
@@ -94,11 +101,22 @@ namespace sanema {
       FUNCTION_BODY
     } state{IDENTIFIER};
 
-    bool is_compatible(DefineFunction &other);
+  };
+  struct FunctionDefinitionCompleted {
+    std::string identifier;
+    CompleteType type;
+    BlockOfCode body;
+    std::vector<FunctionParameterCompleted> parameters;
+    std::uint64_t address{0};
+    std::uint64_t id;
+    std::optional<std::uint64_t> external_id{};
+    bool is_operator{false};
 
-    bool operator==(const DefineFunction &rhs) const;
+    bool is_compatible(FunctionDefinitionCompleted &other);
 
-    bool operator!=(const DefineFunction &rhs) const;
+    bool operator==(const FunctionDefinitionCompleted &rhs) const;
+
+    bool operator!=(const FunctionDefinitionCompleted &rhs) const;
   };
 
   using Instruction = std::variant<DefineStruct, DeclareVariable, DefineFunction, FunctionCall, BlockOfCode, IfStatement,ReturnStatement>;

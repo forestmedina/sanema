@@ -19,7 +19,7 @@ namespace sanema {
 
     std::string token;
     long line_number{0};
-    int column_number{0};
+    long column_number{0};
   };
 
   struct ParsingError {

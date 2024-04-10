@@ -5,7 +5,10 @@
 #include "FunctionCollection.h"
 #include <algorithm>
 
-std::optional<sanema::DefineFunction> sanema::FunctionCollection::find_function(sanema::DefineFunction&function) const{
+sanema::FunctionOverloads::FunctionOverloads() {
+}
+
+std::optional<sanema::FunctionDefinitionCompleted> sanema::FunctionCollection::find_function(sanema::FunctionDefinitionCompleted&function) const{
   if (functions_per_name_and_type.count(function.identifier) == 0) {
     return {};
   }
@@ -22,7 +25,7 @@ std::optional<sanema::DefineFunction> sanema::FunctionCollection::find_function(
   return {};
 }
 
-sanema::FunctionID sanema::FunctionCollection::add_function(sanema::DefineFunction&function) {
+sanema::FunctionID sanema::FunctionCollection::add_function(sanema::FunctionDefinitionCompleted& function) {
   if (functions_per_name_and_type.count(function.identifier) == 0) {
     functions_per_name_and_type[function.identifier] = FunctionOverloads{};
   }
@@ -38,13 +41,13 @@ std::uint64_t sanema::FunctionCollection::next_id() {
   return current_function_id;
 }
 
-sanema::DefineFunction const* sanema::FunctionCollection::get_function_by_id(sanema::FunctionID id) const {
+sanema::FunctionDefinitionCompleted const* sanema::FunctionCollection::get_function_by_id(sanema::FunctionID id) const {
   if (function_collection.contains(id)) {
     return &function_collection.at(id);
   }
   return nullptr;
 }
-sanema::DefineFunction* sanema::FunctionCollection::get_function_by_id(sanema::FunctionID id)  {
+sanema::FunctionDefinitionCompleted* sanema::FunctionCollection::get_function_by_id(sanema::FunctionID id)  {
   if (function_collection.contains(id)) {
     return &function_collection.at(id);
   }

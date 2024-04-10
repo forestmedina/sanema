@@ -5,7 +5,7 @@
 #include <util/lambda_visitor.hpp>
 
 void
-sanema::generate_equal(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
+sanema::generate_equal(sanema::ByteCode &byte_code, std::optional<sanema::FunctionDefinitionCompleted> const &function_definition,
                        std::vector<sanema::local_register_t> registers, local_register_t return_register) {
   OPCODE opcode = match(function_definition->parameters[0].type.value(),
                         [](sanema::Integer const &integer) {
@@ -43,7 +43,7 @@ sanema::generate_equal(sanema::ByteCode &byte_code, std::optional<sanema::Define
 }
 
 void
-sanema::generate_less(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
+sanema::generate_less(sanema::ByteCode &byte_code, std::optional<sanema::FunctionDefinitionCompleted> const &function_definition,
                       std::vector<sanema::local_register_t> registers, local_register_t return_register) {
   OPCODE opcode = match(function_definition->parameters[0].type.value(),
                         [](sanema::Integer const &integer) {
@@ -80,7 +80,7 @@ sanema::generate_less(sanema::ByteCode &byte_code, std::optional<sanema::DefineF
 }
 
 void
-sanema::generate_greater(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
+sanema::generate_greater(sanema::ByteCode &byte_code, std::optional<sanema::FunctionDefinitionCompleted> const &function_definition,
                          std::vector<sanema::local_register_t> registers, local_register_t return_register) {
   OPCODE opcode = match(function_definition->parameters[0].type.value(),
                         [](sanema::Integer const &integer) {
@@ -116,7 +116,7 @@ sanema::generate_greater(sanema::ByteCode &byte_code, std::optional<sanema::Defi
     byte_code.write(instruction);
 }
 
-void sanema::generate_add(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
+void sanema::generate_add(sanema::ByteCode &byte_code, std::optional<sanema::FunctionDefinitionCompleted> const &function_definition,
                           std::vector<sanema::local_register_t> registers, local_register_t return_register) {
   OPCODE opcode = match(function_definition.value().type,
                         [](sanema::Integer const &integer) {
@@ -153,7 +153,7 @@ void sanema::generate_add(sanema::ByteCode &byte_code, std::optional<sanema::Def
 }
 
 void
-sanema::generate_subtract(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
+sanema::generate_subtract(sanema::ByteCode &byte_code, std::optional<sanema::FunctionDefinitionCompleted> const &function_definition,
                           std::vector<sanema::local_register_t> registers, local_register_t return_register) {
   OPCODE opcode = match(function_definition.value().type,
                         [](sanema::Integer const &integer) {
@@ -190,7 +190,7 @@ sanema::generate_subtract(sanema::ByteCode &byte_code, std::optional<sanema::Def
 }
 
 void
-sanema::generate_multiply(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
+sanema::generate_multiply(sanema::ByteCode &byte_code, std::optional<sanema::FunctionDefinitionCompleted> const &function_definition,
                           std::vector<sanema::local_register_t> registers, local_register_t return_register) {
   OPCODE opcode = match(function_definition.value().type,
                         [](sanema::Integer const &integer) {
@@ -227,7 +227,7 @@ sanema::generate_multiply(sanema::ByteCode &byte_code, std::optional<sanema::Def
 }
 
 void
-sanema::generate_divide(sanema::ByteCode &byte_code, std::optional<sanema::DefineFunction> const &function_definition,
+sanema::generate_divide(sanema::ByteCode &byte_code, std::optional<sanema::FunctionDefinitionCompleted> const &function_definition,
                         std::vector<sanema::local_register_t> registers, local_register_t return_register) {
   OPCODE opcode = match(function_definition.value().type,
                         [](sanema::Integer const &integer) {

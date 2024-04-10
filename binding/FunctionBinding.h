@@ -28,8 +28,8 @@ namespace sanema {
   };
 
   template <typename T>
-  FunctionParameter::Modifier get_parameter_modifier(){
-     auto modifier=std::is_reference_v<T>? (std::is_const_v<std::remove_reference_t<T>>?FunctionParameter::Modifier::CONST:FunctionParameter::Modifier::MUTABLE ):FunctionParameter::Modifier::VALUE;
+  FunctionParameterCompleted::Modifier get_parameter_modifier(){
+     auto modifier=std::is_reference_v<T>? (std::is_const_v<std::remove_reference_t<T>>?FunctionParameterCompleted::Modifier::CONST:FunctionParameterCompleted::Modifier::MUTABLE ):FunctionParameterCompleted::Modifier::VALUE;
     return modifier;
   }
 
@@ -40,7 +40,7 @@ namespace sanema {
   template<typename RET_TYPE,typename FTYPE, typename ...ARGS, std::size_t... Ns>
   std::enable_if_t<std::negation_v<std::is_void<RET_TYPE>>>
     call_function_impl(VM& vm,FTYPE function_pointer, std::index_sequence<Ns...> is) {
-      auto ignore=get_function_parameter_from_vm<RET_TYPE>(vm,FunctionParameter::Modifier::VALUE);//this is done to move the address to the first parameter
+      auto ignore=get_function_parameter_from_vm<RET_TYPE>(vm,FunctionParameterCompleted::Modifier::VALUE);//this is done to move the address to the first parameter
 //      std::cout<<" parameter : ";
 //      ((std::cout <<get_function_parameter_from_vm<ARGS>(vm,get_parameter_modifier<ARGS>())<< Ns << ' '),...);
 //      std::cout<<"\n ";
@@ -61,14 +61,14 @@ namespace sanema {
 
 
 template <class T>
-  void emplace_parameter(DefineFunction& function) {
+  void emplace_parameter(FunctionDefinitionCompleted& function) {
     auto modifier=get_parameter_modifier<T>();
-    FunctionParameter parameter{"",modifier,type_from_cpptype<std::remove_cvref_t<T>>()};
+    FunctionParameterCompleted parameter{"",modifier,type_from_cpptype<std::remove_cvref_t<T>>()};
     function.parameters.emplace_back(parameter);
   }
   template<typename FTYPE, typename RET_TYPE,typename ...ARGS, std::size_t... Ns>
   void register_function_definition_impl(std::string const& identifier,std::uint64_t id,FunctionCollection &collection,FTYPE function_pointer, std::index_sequence<Ns...>) {
-    DefineFunction function;
+    FunctionDefinitionCompleted function;
     function.identifier=identifier;
     auto value=type_from_cpptype<std::remove_cvref_t<RET_TYPE>>();
     function.type= value;

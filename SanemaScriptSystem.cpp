@@ -98,7 +98,7 @@ void sanema::SanemaScriptSystem::replace_script(sanema::ScriptID script_id, std:
 impl->replace_script(script_id,stream);
 }
 
-std::optional<sanema::FunctionID> sanema::SanemaScriptSystem::get_function_id(ScriptID id,sanema::DefineFunction &define_function) {
+std::optional<sanema::FunctionID> sanema::SanemaScriptSystem::get_function_id(ScriptID id,sanema::FunctionDefinitionCompleted &define_function) {
   return impl->get_function_id(id,define_function);
 }
 

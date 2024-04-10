@@ -9,7 +9,20 @@
 #include "types.h"
 namespace sanema
 {
-  struct   FunctionParameter
+  struct   FunctionParameterIncomplete
+  {
+    std::string identifier{};
+    enum class  Modifier{
+      VALUE,
+      MUTABLE,
+      CONST
+    };
+    Modifier modifier;
+    std::optional<IncompleteType>  type{};
+
+  };
+
+  struct   FunctionParameterCompleted
   {
     std::string identifier{};
     enum class  Modifier{
@@ -19,19 +32,20 @@ namespace sanema
     };
     Modifier modifier;
     std::optional<CompleteType>  type{};
-    bool is_compatible(FunctionParameter& other);
-    bool operator==(const FunctionParameter &rhs) const;
+    bool is_compatible(FunctionParameterCompleted& other);
+    bool operator==(const FunctionParameterCompleted &rhs) const;
 
-    bool operator!=(const FunctionParameter &rhs) const;
+    bool operator!=(const FunctionParameterCompleted &rhs) const;
+
   };
 
   struct Function
   {
     std::string identifier;
-    std::vector<FunctionParameter> parameter;
+    std::vector<FunctionParameterIncomplete> parameter;
   };
-  FunctionParameter::Modifier  parse_modifier(std::string modifier);
-  std::string serialize_modifier(FunctionParameter::Modifier modifier);
+  FunctionParameterIncomplete::Modifier  parse_modifier(std::string modifier);
+  std::string serialize_modifier(FunctionParameterIncomplete::Modifier modifier);
 
 }
 

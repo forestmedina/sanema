@@ -12,12 +12,12 @@ void add_built_in_arithmetic_functions(sanema::FunctionCollection &functions) {
                                           sanema::Integer(64), sanema::Float{}, sanema::Double{}};
   for (auto const&function_name: function_names) {
     for (auto &type: arithmetic_types) {
-      sanema::DefineFunction function_operation{
+      sanema::FunctionDefinitionCompleted function_operation{
           function_name,
           type, {},
           {
-            sanema::FunctionParameter{"a", sanema::FunctionParameter::Modifier::VALUE, type},
-            sanema::FunctionParameter{"b", sanema::FunctionParameter::Modifier::VALUE, type}
+            sanema::FunctionParameterCompleted{"a", sanema::FunctionParameterCompleted::Modifier::VALUE, type},
+            sanema::FunctionParameterCompleted{"b", sanema::FunctionParameterCompleted::Modifier::VALUE, type}
           },
         };
       function_operation.is_operator=true;
@@ -28,12 +28,12 @@ void add_built_in_arithmetic_functions(sanema::FunctionCollection &functions) {
   std::vector<sanema::CompleteType> const primitive_types{sanema::Integer(8), sanema::Integer(16), sanema::Integer(32),
                                           sanema::Integer(64), sanema::Float{}, sanema::Double{},sanema::String{},sanema::Boolean{}};
   for (auto &type: primitive_types) {
-    sanema::DefineFunction function_set{
+    sanema::FunctionDefinitionCompleted function_set{
           "set",
-          type, {},
+          sanema::Void{}, {},
           {
-            sanema::FunctionParameter{"a", sanema::FunctionParameter::Modifier::MUTABLE, type},
-            sanema::FunctionParameter{"b", sanema::FunctionParameter::Modifier::VALUE, type}
+            sanema::FunctionParameterCompleted{"a", sanema::FunctionParameterCompleted::Modifier::MUTABLE, type},
+            sanema::FunctionParameterCompleted{"b", sanema::FunctionParameterCompleted::Modifier::VALUE, type}
           },
         };
     function_set.is_operator=true;
@@ -47,12 +47,12 @@ void add_built_in_boolean_functions(sanema::FunctionCollection &functions) {
                                                      sanema::Integer(64), sanema::Float{}, sanema::Double{}};
   for (auto const &function_name: function_names) {
     for (auto &type: arithmetic_types) {
-      sanema::DefineFunction function_operation{
+      sanema::FunctionDefinitionCompleted function_operation{
         function_name,
         sanema::Boolean{}, {},
         {
-          sanema::FunctionParameter{"a", sanema::FunctionParameter::Modifier::VALUE, type},
-          sanema::FunctionParameter{"b", sanema::FunctionParameter::Modifier::VALUE, type}
+          sanema::FunctionParameterCompleted{"a", sanema::FunctionParameterCompleted::Modifier::VALUE, type},
+          sanema::FunctionParameterCompleted{"b", sanema::FunctionParameterCompleted::Modifier::VALUE, type}
         },
       };
       function_operation.is_operator = true;
@@ -74,22 +74,7 @@ void add_built_in_string_functions(sanema::FunctionCollection &functions,sanema:
   binding_collection.add_function_binding("print", (void(*)(float))sanema::print);
 
 }
-void add_built_in_return(sanema::FunctionCollection &functions,sanema::BindingCollection& binding_collection){
-  std::vector<sanema::CompleteType> types{sanema::Integer(8), sanema::Integer(16), sanema::Integer(32),
-                                          sanema::Integer(64), sanema::Float{}, sanema::Double{},sanema::Boolean{},sanema::String{}};
-    for (auto &type: types) {
-      sanema::DefineFunction function_operation{
-          "return",
-          type, {},
-          {
-            sanema::FunctionParameter{"a", sanema::FunctionParameter::Modifier::VALUE, type}
-          },
-        };
-       function_operation.is_operator=true;
-       functions.add_function(function_operation);
 
-    }
-}
 float mod_float(float x , float y){
   return x - y * floor(x / y);
 }
@@ -137,7 +122,6 @@ void sanema::add_built_in_functions(sanema::FunctionCollection &functions,Bindin
   add_built_in_arithmetic_functions(functions);
   add_built_in_boolean_functions(functions);
   add_built_in_string_functions(functions,binding_collection);
-  add_built_in_return(functions,binding_collection);
   add_built_in_mod(functions,binding_collection);
   add_built_in_rounding(functions, binding_collection);
   add_built_in_sqrt(functions,binding_collection);
