@@ -266,8 +266,8 @@ std::tuple<std::int64_t,sanema::ByteCodeCompiler::VariableEntry> get_local_varia
         // if (!is_external) {
           if (field != nullptr) {
             type = field->type.value();
-            std::cout<<"generating variable access for "<<field_identifier<<" of type "<<sanema::type_to_string(type)<<"\n";
-            std::cout<<"offset: "<<field->offset<<"\n";
+            // std::cout<<"generating variable access for "<<field_identifier<<" of type "<<sanema::type_to_string(type)<<"\n";
+            // std::cout<<"offset: "<<field->offset<<"\n";
             address += boost::numeric_cast<std::int64_t>(field->offset);
           }
 
@@ -759,7 +759,7 @@ std::optional<sanema::FunctionDefinitionCompleted> generate_function_call(
     byte_code.write(instruction);;
   } else {
     sanema::VMInstruction instruction;
-    std::cout<<"generating calling function :"<<function_call.identifier<<"\n";
+    // std::cout<<"generating calling function :"<<function_call.identifier<<"\n";
     instruction.opcode = OPCODE::OP_CALL;
     instruction.r_result = call_offset_address.address;
     auto address = byte_code.write(instruction);;
@@ -852,7 +852,7 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
             byte_code.code_data[address_true_jump_instruction].registers16.r1 = address_end_if-address_false_branch;
           },
           [&](ReturnStatement &return_statement) {
-            std::cout<<"generating return\n";
+            //TODO right now returning a value  generate two copies we need to optimize this, we may need to change generate expression access for this
             auto current_scope = scope_stack.back();
             auto current_stack_address = current_scope.scope_address;
             auto return_type=get_expression_type(return_statement.expression,current_scope).value();
@@ -874,7 +874,7 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
             instruction_return.r_result=0;
             instruction_return.registers16.r1=current_stack_address.address;
             instruction_return.registers16.r2=size;
-            std::cout<<"return size: "<<size<<"\n";
+            // std::cout<<"return size: "<<size<<"\n";
             instruction_return.opcode = OPCODE::OP_RETURN;
             byte_code.write(instruction_return);
           },
@@ -884,7 +884,6 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
               throw std::runtime_error("variable " + declare_variable.identifier + " already defined");
             }
 
-            std::cout<<"generating variable: "<<declare_variable.identifier<<" "<<total_variable_space<<"\n";
             auto final_type=query_final_type(declare_variable.type_identifier,current_scope.types);
             current_scope.reserve_space_for_type(final_type);
 
