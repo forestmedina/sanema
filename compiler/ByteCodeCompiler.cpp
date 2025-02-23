@@ -817,6 +817,9 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
               scope.types.add_type(user_defined);
             }
           },
+          [this](ForStatement &define_struct) {
+
+          },
           [&](IfStatement &if_statement) {
             auto current_scope = scope_stack.back();
             auto current_stack_address = current_scope.scope_address;

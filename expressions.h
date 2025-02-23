@@ -76,12 +76,17 @@ namespace sanema {
       FALSE_PATH
     } state{IfStatementState::EXPRESSION};
   };
-  struct ReturnStatement {
+  struct ForStatement {
+    std::string identifier{};
+    Expression expression;
+  };
+    struct ReturnStatement {
     Expression expression;
     enum class ReturnStatementState {
       EXPRESSION
     } state{ReturnStatementState::EXPRESSION};
   };
+
 
   struct DefineFunction {
     std::string identifier;
@@ -119,7 +124,7 @@ namespace sanema {
     bool operator!=(const FunctionDefinitionCompleted &rhs) const;
   };
 
-  using Instruction = std::variant<DefineStruct, DeclareVariable, DefineFunction, FunctionCall, BlockOfCode, IfStatement,ReturnStatement>;
+  using Instruction = std::variant<DefineStruct, DeclareVariable, DefineFunction, FunctionCall, BlockOfCode, IfStatement,ReturnStatement,ForStatement>;
 
   struct BlockInstruction {
     explicit BlockInstruction(const Instruction &instruction_sum);

@@ -62,6 +62,8 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
         current_context.instruction = DefineStruct{};
       } else if (token.token == if_word) {
         current_context.instruction = IfStatement{};
+      }else if (token.token == for_loop_word){
+        current_context.instruction=ForStatement{};
       }else if (token.token == return_word) {
         std::cout<<" return statement parse begin:\n";
         current_context.instruction = ReturnStatement{};
@@ -152,6 +154,8 @@ sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token>
                   }
                   break;
               }
+            }, [&](ForStatement &define_struct) {
+
             },
             [&](IfStatement &if_statement) {
               switch (if_statement.state) {
