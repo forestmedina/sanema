@@ -106,7 +106,7 @@ namespace sanema {
       }
       template<class T>
       TypeBindingPointer* add_pod_type(std::string const &identifier){
-       static_assert( std::is_pod_v<T> ,"type must be a pod type");
+       static_assert( std::is_standard_layout_v<T> ,"type must be a pod type");
         return get_binding_collection().add_type_binding<T>(identifier);
       }
     SanemaScriptSystem(unsigned int number_of_vms,unsigned int mb_per_vm);
