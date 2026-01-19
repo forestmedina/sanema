@@ -104,4 +104,20 @@ set number1 add (number1 10d);
 
 }
 
+TEST_CASE("repeat loop",
+          "[parser]") {
 
+std::string code(R"--(
+var counter int64;
+set counter 0;
+repeat i 10
+    set counter add (counter 1);
+end
+set counter counter;
+)--");
+  auto result=run_and_get_stack_value<std::int64_t >(code);
+
+  REQUIRE(result.has_value());
+  REQUIRE(result.value()==10);
+
+}
