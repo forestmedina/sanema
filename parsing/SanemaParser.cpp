@@ -14,11 +14,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 
-enum class ParserState {
-  DefininVariable,
-  DefiningFunction,
 
-} parser_state;
 enum class VariableParsingState {
   ParsingIdentifier,
   ParsingType
@@ -29,7 +25,7 @@ struct StateNone {
 };
 
 
-char read_character = ' ';
+
 
 
 sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token> &tokens) {
@@ -348,6 +344,7 @@ std::vector<sanema::Token> sanema::SanemaParser::tokenize(std::istream &text) {
   long column_number = 0;
   bool reading_string = false;
   bool scaping_character = false;
+  char read_character = ' ';
   while (text.get(read_character)) {
     if (!reading_string) {
       if (delimiters.count(read_character) > 0) {
