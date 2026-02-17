@@ -143,51 +143,27 @@ int main(int argc, char *argv[]) {
     bool return_value;
     scriptSystem.get_return_value(return_value,0);
     std::cout<<"result:"<<(return_value?"true":"false")<<"\n";
-//    asIScriptEngine *engine = asCreateScriptEngine();
-//    const char *fibonacciScript =
-//      "int fibonacci(int n) {"
-//      "    if (n <= 1) return n;"
-//      "    return fibonacci(n - 1) + fibonacci(n - 2);"
-//      "}";
-//
-//    asIScriptModule *module = engine->GetModule("FibModule",
-//                                                asGM_ALWAYS_CREATE);
-//    module->AddScriptSection("fibScript",
-//                             fibonacciScript);
-//    module->Build();
-//    asIScriptFunction *func = module->GetFunctionByDecl("int fibonacci(int)");
-//    asIScriptContext *context = engine->CreateContext();
-//    context->Prepare(func);
-//    context->SetArgDWord(0,
-//                         std::int64_t(35)); // Change the parameter here for different Fibonacci numbers
-//    std::cout << "\n started angel\n";
-//    first = clock.now();
-//    context->Execute();
-//    second = clock.now();
-//    std::cout << "\n duration:" << std::chrono::duration_cast<std::chrono::milliseconds>(second - first) << "\n";
-//
-//     lua_State* L = luaL_newstate();
-//    luaL_openlibs(L);
-//
-//    const char* fibonacciLuaScript =
-//    "function fibonacci(n) "
-//    "    if n <= 1 then return n end "
-//    "    return fibonacci(n - 1) + fibonacci(n - 2) "
-//    "end";
-//    // Load the Fibonacci script into Lua
-//    luaL_dostring(L, fibonacciLuaScript);
-// std::cout << "\n started lua\n";
-//    first = clock.now();
-//     luaL_loadstring(L, "result = fibonacci(35)"); // Change the parameter here for different Fibonacci numbers
-//    lua_pcall(L, 0, 0, 0);
-//    second = clock.now();
-//    std::cout << "\n duration:" << std::chrono::duration_cast<std::chrono::milliseconds>(second - first) << "\n";
-//    // Start measuring time
-//    first =clock.now();
-//    auto value=fib(35);
-//    second =clock.now();
-//    std::cout<<"\n cpp duration:"<<std::chrono::duration_cast<std::chrono::milliseconds>(second-first)<<"\n";
-//    std::cout<<value<<"\n";
+
+      sanema::SanemaParser parser;
+  sanema::ByteCodeCompiler compiler;
+  std::string code(R"--(
+
+
+    function return_function int64
+        mut value int64
+    begin
+       set value add(value 5);
+      return 0;
+    end;
+
+
+)--");
+
+  sanema::SanemaScriptSystem script_system{1,100};
+  auto script_id=script_system.add_script(code);
+  int64_t  value=5;
+
+  script_system.run_function<int64_t >(script_id,"return_function",0,value);
   } catch (std::runtime_error &e) {
     std::cout << e.what() << "\n";
   }

@@ -36,7 +36,7 @@ sanema::IPType  sanema::VM::setup_run(const sanema::ByteCode &byte_code, sanema:
 }
 void sanema::VM::add_external_argument(const sanema::Argument &arg) {
   match(arg.value,
-        [this](auto value) {
+        [this,&arg](auto value) {
           auto offset=sizeof (value);
           *((decltype(value)*)next_argument_address)=value;
           next_argument_address += offset;

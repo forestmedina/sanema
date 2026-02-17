@@ -4,336 +4,277 @@
 
 #include "SanemaParser.hpp"
 #include <set>
-#include <format>
 #include <algorithm>
 #include "expressions.h"
-#include "util/lambda_visitor.hpp"
 #include <iostream>
 #include <istream>
-#include <stack>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 
-
-enum class VariableParsingState {
-  ParsingIdentifier,
-  ParsingType
-};
-
-
-struct StateNone {
-};
-
-
-
-
-
 sanema::BlockOfCode sanema::SanemaParser::parse(const std::vector<sanema::Token> &tokens) {
-  using NestedExpression = std::variant<FunctionCall, IfStatement,ReturnStatement>;
-  struct Context {
-    BlockOfCode current_block{};
+  auto current = tokens.begin();
+  auto end = tokens.end();
+  return parse_block(current, end);
+}
 
-    std::optional<Instruction> instruction;
-    std::stack<NestedExpression> function_call_stack{};
-  };
-  std::stack<Context> context_stack;
-  Context current_context;
+sanema::BlockOfCode sanema::SanemaParser::parse_block(std::vector<Token>::const_iterator &current, const std::vector<Token>::const_iterator &end) {
+  BlockOfCode block;
+  while (current != end) {
+    if (current->token == code_block_end || current->token == if_else_word || current->token == if_ending_word) {
+      break;
+    }
+    auto instruction = parse_instruction(current, end);
+    if (instruction.has_value()) {
+      block.instructions.emplace_back(instruction.value());
+    }
+  }
+  return block;
+}
 
-  auto stack_context = [&current_context, &context_stack]() {
-    context_stack.emplace(current_context);
-    current_context = {};
-  };
-  for (auto token_it = tokens.begin(); token_it != tokens.end(); token_it++) {
-    auto token = *token_it;
-    auto next_token_it = (token_it + 1);
-    std::optional<sanema::Token> next_token =
-      next_token_it != tokens.end() ? std::optional<sanema::Token>{*next_token_it} : std::optional<sanema::Token>{};
-    if (!current_context.instruction.has_value()) {
+std::optional<sanema::Instruction> sanema::SanemaParser::parse_instruction(std::vector<Token>::const_iterator &current, const std::vector<Token>::const_iterator &end) {
+  if (current == end) return {};
 
-      if (token.token == variable_declaring_word) {
-        current_context.instruction = DeclareVariable{};
-      } else if (token.token == function_declaring_word) {
-        current_context.instruction = DefineFunction{};
-      } else if (token.token == struct_declaring_word) {
-        current_context.instruction = DefineStruct{};
-      } else if (token.token == if_word) {
-        current_context.instruction = IfStatement{};
-      }else if (token.token == for_loop_word){
-        current_context.instruction=ForStatement{};
-      }else if (token.token == return_word) {
-        std::cout<<" return statement parse begin:\n";
-        current_context.instruction = ReturnStatement{};
-      } else if (token.token == code_block_begin) {
-        stack_context();
-      } else if (token.token == code_block_end || token.token == if_else_word || token.token == if_ending_word) {
-        auto aux_context = current_context;
-        current_context = context_stack.top();
-        context_stack.pop();
-
-        if (current_context.instruction.has_value()) {
-          match(current_context.instruction.value(),
-                [&](DefineFunction &define_function) {
-//                  std::cout << "block ffinished define function\n";
-                  define_function.body = aux_context.current_block;
-                  current_context.current_block.instructions.emplace_back(define_function);
-                  current_context.instruction = {};
-                },
-                [&](IfStatement &if_statement) {
-//                  std::cout << "block ffinished define function\n";
-                  switch (if_statement.state) {
-                    case IfStatement::IfStatementState::TRUE_PATH:
-                      if_statement.true_path = aux_context.current_block;
-                      if (token.token == if_else_word) {
-                        if_statement.state = IfStatement::IfStatementState::FALSE_PATH;
-                        stack_context();
-                      } else {
-                        if_statement.false_path = BlockOfCode();
-                        current_context.current_block.instructions.emplace_back(if_statement);
-                        current_context.instruction = {};
-                      }
-                      break;
-                    case IfStatement::IfStatementState::FALSE_PATH:
-                      if_statement.false_path = aux_context.current_block;
-                      current_context.current_block.instructions.emplace_back(if_statement);
-                      current_context.instruction = {};
-                      break;
-
-                    case IfStatement::IfStatementState::EXPRESSION:
-                      break;
-                  }
-                },
-                [&](ReturnStatement &return_statement) {
-//                  std::cout << "block ffinished define function\n";
-                  switch (return_statement.state){
-                    case ReturnStatement::ReturnStatementState::EXPRESSION:
-                      // std::cout<<" finishing return statement:\n";
-                      // current_context.current_block.instructions.emplace_back(return_statement);
-                      // current_context.instruction = {};
-                      break;
-                  }
-                },
-                [&](auto &ignore) {
-                  std::cout << "block ffinished ignore\n";
-                  current_context.current_block.instructions.emplace_back(aux_context.current_block);
-                }
-               );
-        } else {
-          current_context.current_block.instructions.emplace_back(aux_context.current_block);
-        }
-      } else if (!is_delimiter(token.token)) {
-        current_context.instruction = FunctionCall{token.token};
-      }
+  if (current->token == variable_declaring_word) {
+    return parse_variable_declaration(current, end);
+  } else if (current->token == function_declaring_word) {
+    return parse_function_definition(current, end);
+  } else if (current->token == struct_declaring_word) {
+    return parse_struct_definition(current, end);
+  } else if (current->token == if_word) {
+    return parse_if_statement(current, end);
+  } else if (current->token == for_loop_word) {
+    return parse_for_statement(current, end);
+  } else if (current->token == return_word) {
+    return parse_return_statement(current, end);
+  } else if (current->token == code_block_begin) {
+    current++; // consume 'begin'
+    auto block = parse_block(current, end);
+    if (current != end && current->token == code_block_end) {
+      current++; // consume 'end'
+    }
+    return block;
+  } else if (!is_delimiter(current->token)) {
+    std::string identifier = current->token;
+    current++;
+    if (current != end && current->token == "(") {
+      return parse_function_call(identifier, current, end);
     } else {
-      match(current_context.instruction.value(),
-            [&](DefineStruct &define_struct) {
-              switch (define_struct.state) {
-                case DefineStruct::IDENTIFIER:
-                  define_struct.type_id=TypeIdentifier(token.token);
-                  define_struct.state = DefineStruct::FIELD_IDENTIFIER;
-                  break;
-                case DefineStruct::FIELD_TYPE:
-
-                  define_struct.fields.back().type = parse_type(token.token);
-                  define_struct.state = DefineStruct::FIELD_COMPLETE;
-                  break;
-                case DefineStruct::FIELD_IDENTIFIER:
-                  define_struct.fields.emplace_back();
-                  define_struct.fields.back().identifier = token.token;
-                  define_struct.state = DefineStruct::FIELD_TYPE;
-                  break;
-                case DefineStruct::FIELD_COMPLETE:
-                  if (token.token == ",") {
-                    define_struct.state = DefineStruct::FIELD_IDENTIFIER;
-                  } else if (token.token == ";") {
-                    current_context.current_block.instructions.emplace_back(current_context.instruction.value());
-                    current_context.instruction = {};
-                  }
-                  break;
-              }
-            }, [&](ForStatement &define_struct) {
-
-            },
-            [&](IfStatement &if_statement) {
-              switch (if_statement.state) {
-                case IfStatement::IfStatementState::EXPRESSION:
-                  if (is_literal(token.token)) {
-                    if_statement.expression = get_literal_from_string(token.token);
-                  } else {
-                    auto next_token_it = std::next(token_it);
-                    if (next_token_it != tokens.end()) {
-                      auto &next_token = *next_token_it;
-                      if (next_token.token == "(") {
-                        current_context.function_call_stack.emplace(if_statement);
-                        auto new_function_call = FunctionCall{};
-                        new_function_call.identifier = token.token;
-                        current_context.instruction = new_function_call;
-                      } else {
-                        if_statement.expression = VariableEvaluation{token.token};
-                      }
-
-                    }
-                  }
-                  break;
-              }
-
-            },[&](ReturnStatement &return_statement) {
-              switch (return_statement.state) {
-                case ReturnStatement::ReturnStatementState::EXPRESSION:
-                  if(token.token==";"){
-                    current_context.current_block.instructions.emplace_back(current_context.instruction.value());
-                    current_context.instruction = {};
-                  }else  if (is_literal(token.token)) {
-                    std::cout<<" return statement parsing literal"<<token.token<<"\n";
-                    return_statement.expression = get_literal_from_string(token.token);
-                    current_context.current_block.instructions.emplace_back(current_context.instruction.value());
-                    current_context.instruction = {};
-                  } else {
-                    auto next_token_it = std::next(token_it);
-                    if (next_token_it != tokens.end()) {
-                      auto &next_token = *next_token_it;
-                      if (next_token.token == "(") {
-                        current_context.function_call_stack.emplace(return_statement);
-                        auto new_function_call = FunctionCall{};
-                        new_function_call.identifier = token.token;
-                        current_context.instruction = new_function_call;
-                      }else{
-                        return_statement.expression = VariableEvaluation{token.token};
-                        current_context.current_block.instructions.emplace_back(current_context.instruction.value());
-                        current_context.instruction = {};
-                      }
-
-                    }
-                  }
-                  break;
-              }
-
-            },
-            [&](DefineFunction &define_function) {
-              switch (define_function.state) {
-                case DefineFunction::IDENTIFIER: {
-                  define_function.identifier = token.token;
-//                  std::cout << "Function identifier: " << token.token << "\n";
-                  define_function.state = DefineFunction::FUNCTION_TYPE;
-
-                }
-                  break;
-                case DefineFunction::FUNCTION_TYPE: {
-                  define_function.type = parse_type(token.token).value();
-                  define_function.state = DefineFunction::PARAMETER_MODIFIER;
-
-                }
-                  break;
-                case DefineFunction::PARAMETER_MODIFIER: {
-//                  std::cout << "function modifier token -" << token.token << "-\n";
-                  if (token.token == std::string("") + code_block_begin) {
-//                    std::cout << "stacking block for function body\n";
-                    define_function.state = DefineFunction::FUNCTION_BODY;
-                    stack_context();
-                  } else {
-                    define_function.parameters.emplace_back();
-                    define_function.parameters.back().modifier = parse_modifier(token.token);
-                    define_function.state = DefineFunction::PARAMETER_IDENTIFIER;
-                  }
-
-                }
-                  break;
-                case DefineFunction::PARAMETER_IDENTIFIER: {
-                  define_function.parameters.back().identifier = token.token;
-                  define_function.state = DefineFunction::PARAMETER_TYPE;
-                }
-                  break;
-                case DefineFunction::PARAMETER_TYPE: {
-//                  std::cout << "Function parameter type: " << token.token << "\n";
-                  define_function.parameters.back().type = parse_type(token.token);
-                  define_function.state = DefineFunction::PARAMETER_MODIFIER;
-                }
-                  break;
-
-              }
-            },
-            [&](BlockOfCode &block_of_code) {
-
-
-            },
-            [&](DeclareVariable &declare_variable) {
-              switch (declare_variable.state) {
-                case DeclareVariable::DeclareVariableState::TYPE:
-                  declare_variable.type_identifier = parse_type(token.token).value();
-                  declare_variable.state = DeclareVariable::DeclareVariableState::COMPLETE;
-                  break;
-                case DeclareVariable::DeclareVariableState::IDENTIFIER:
-                  declare_variable.identifier = token.token;
-                  declare_variable.state = DeclareVariable::DeclareVariableState::TYPE;
-                  break;
-                case DeclareVariable::DeclareVariableState::COMPLETE:
-                  if (token.token == ";") {
-                    current_context.current_block.instructions.emplace_back(current_context.instruction.value());
-                    current_context.instruction = {};
-                  }
-                  break;
-              }
-            },
-            [&](FunctionCall &function_call) {
-              switch (function_call.state) {
-                case FunctionCall::ARGUMENT_EXPRESION:
-                  if (is_literal(token.token)) {
-                    function_call.arguments.emplace_back(FunctionArgument{get_literal_from_string(token.token)});
-                  } else if (token.token == "(") {
-                    //ignore it
-                  } else if (token.token == ")" || token.token == ";") {
-                    if (current_context.function_call_stack.empty()) {
-                      current_context.current_block.instructions.emplace_back(function_call);
-                      current_context.instruction = {};
-                    } else {
-//                      std::cout << "unstacking function\n";
-                      auto previous_instruction = current_context.function_call_stack.top();
-                      match(previous_instruction,
-                            [&function_call, &current_context, &stack_context](IfStatement &previous_if_statement) {
-                              previous_if_statement.expression = function_call;
-                               current_context.function_call_stack.pop();
-                              previous_if_statement.state = IfStatement::IfStatementState::TRUE_PATH;
-                              current_context.instruction = previous_if_statement;
-                              stack_context();
-                            },
-                            [&function_call, &current_context, &stack_context](ReturnStatement &previous_return_statement) {
-                             previous_return_statement.expression = function_call;
-                             current_context.function_call_stack.pop();
-                             current_context.instruction = previous_return_statement;
-                           },
-                            [&function_call, &current_context](FunctionCall &previous_function_call) {
-                              current_context.function_call_stack.pop();
-                              previous_function_call.arguments.emplace_back(FunctionArgument{function_call});
-                              current_context.instruction = previous_function_call;
-                            }
-                           );
-
-
-                    }
-                  } else {
-                    auto next_token_it = std::next(token_it);
-                    if (next_token_it != tokens.end()) {
-                      auto &next_token = *next_token_it;
-                      if (next_token.token == "(") {
-//                        std::cout << "stacking function" << function_call.identifier << "\n";
-                        current_context.function_call_stack.emplace(function_call);
-                        auto new_function_call = FunctionCall{};
-                        new_function_call.identifier = token.token;
-                        current_context.instruction = new_function_call;
-                      } else {
-                        function_call.arguments.emplace_back(FunctionArgument{VariableEvaluation{token.token}});
-                      }
-
-                    }
-                  }
-                  break;
-              }
-            }
-           );
+       // Backtrack to let parse_function_call handle the identifier
+       current--;
+       return parse_function_call(current->token, current, end);
     }
   }
 
-  return current_context.current_block;
+  current++; // Skip unknown or delimiter
+  return {};
 }
+
+sanema::DeclareVariable sanema::SanemaParser::parse_variable_declaration(std::vector<Token>::const_iterator &current, const std::vector<Token>::const_iterator &end) {
+  DeclareVariable declare_variable;
+  current++; // consume 'var'
+
+  if (current != end) {
+    declare_variable.identifier = current->token;
+    current++;
+  }
+
+  if (current != end) {
+    declare_variable.type_identifier = parse_type(current->token).value();
+    current++;
+  }
+
+  if (current != end && current->token == ";") {
+    current++;
+  }
+
+  return declare_variable;
+}
+
+sanema::DefineFunction sanema::SanemaParser::parse_function_definition(std::vector<Token>::const_iterator &current, const std::vector<Token>::const_iterator &end) {
+  DefineFunction define_function;
+  current++; // consume 'function'
+
+  if (current != end) {
+    define_function.identifier = current->token;
+    current++;
+  }
+
+  if (current != end) {
+    define_function.type = parse_type(current->token).value();
+    current++;
+  }
+
+  while (current != end && current->token != std::string("") + code_block_begin) {
+      // Parse parameters
+      FunctionParameterIncomplete param;
+      param.modifier = parse_modifier(current->token);
+      current++;
+
+      if (current != end) {
+          param.identifier = current->token;
+          current++;
+      }
+
+      if (current != end) {
+          param.type = parse_type(current->token);
+          current++;
+      }
+      define_function.parameters.push_back(param);
+  }
+
+  if (current != end && current->token == std::string("") + code_block_begin) {
+    current++; // consume 'begin'
+    define_function.body = parse_block(current, end);
+    if (current != end && current->token == code_block_end) {
+      current++; // consume 'end'
+    }
+  }
+
+  return define_function;
+}
+
+sanema::DefineStruct sanema::SanemaParser::parse_struct_definition(std::vector<Token>::const_iterator &current, const std::vector<Token>::const_iterator &end) {
+  DefineStruct define_struct;
+  current++; // consume 'struct'
+
+  if (current != end) {
+    define_struct.type_id = TypeIdentifier(current->token);
+    current++;
+  }
+
+  while (current != end && current->token != ";") {
+      IncompleteField field;
+      if (current != end) {
+          field.identifier = current->token;
+          current++;
+      }
+      if (current != end) {
+          field.type = parse_type(current->token);
+          current++;
+      }
+      define_struct.fields.push_back(field);
+
+      if (current != end && current->token == ",") {
+          current++;
+      }
+  }
+
+  if (current != end && current->token == ";") {
+      current++;
+  }
+
+  return define_struct;
+}
+
+sanema::IfStatement sanema::SanemaParser::parse_if_statement(std::vector<Token>::const_iterator &current, const std::vector<Token>::const_iterator &end) {
+  IfStatement if_statement;
+  current++; // consume 'if'
+
+  if_statement.expression = parse_expression(current, end);
+
+  if (current != end && current->token == code_block_begin) {
+      current++; // consume 'begin'
+      if_statement.true_path = parse_block(current, end);
+
+      if (current != end) {
+          if (current->token == if_else_word) {
+              current++; // consume 'else'
+              // Check if else is followed by begin or implicit block
+              if (current != end && current->token == code_block_begin) {
+                   current++; // consume 'begin'
+                   if_statement.false_path = parse_block(current, end);
+                   if (current != end && current->token == if_ending_word) {
+                       current++; // consume 'end'
+                   }
+              } else {
+                  if_statement.false_path = parse_block(current, end);
+                   if (current != end && current->token == if_ending_word) {
+                       current++; // consume 'end'
+                   }
+              }
+          } else if (current->token == if_ending_word) {
+              current++; // consume 'end'
+          } else if (current->token == code_block_end) {
+              current++; // consume 'end'
+          }
+      }
+  }
+
+  return if_statement;
+}
+
+sanema::ReturnStatement sanema::SanemaParser::parse_return_statement(std::vector<Token>::const_iterator &current, const std::vector<Token>::const_iterator &end) {
+    ReturnStatement return_statement;
+    current++; // consume 'return'
+
+    if (current != end && current->token == ";") {
+        current++;
+        return return_statement;
+    }
+
+    return_statement.expression = parse_expression(current, end);
+
+    if (current != end && current->token == ";") {
+        current++;
+    }
+    return return_statement;
+}
+
+sanema::ForStatement sanema::SanemaParser::parse_for_statement(std::vector<Token>::const_iterator &current, const std::vector<Token>::const_iterator &end) {
+    ForStatement for_statement;
+    current++; // consume 'for'
+    return for_statement;
+}
+
+sanema::FunctionCall sanema::SanemaParser::parse_function_call(std::string identifier, std::vector<Token>::const_iterator &current, const std::vector<Token>::const_iterator &end) {
+    FunctionCall function_call;
+    function_call.identifier = identifier;
+
+    if (current != end && current->token == identifier) {
+        current++;
+    }
+
+    if (current != end && current->token == "(") {
+        current++; // consume '('
+    }
+
+    while (current != end) {
+        if (current->token == ")" || current->token == ";") {
+            current++;
+            break;
+        }
+
+        if (current->token == ",") {
+            current++;
+            continue;
+        }
+
+        function_call.arguments.emplace_back(FunctionArgument{parse_expression(current, end)});
+    }
+
+    return function_call;
+}
+
+sanema::Expression sanema::SanemaParser::parse_expression(std::vector<Token>::const_iterator &current, const std::vector<Token>::const_iterator &end) {
+    if (current == end) return VariableEvaluation{""};
+
+    if (is_literal(current->token)) {
+        auto literal = get_literal_from_string(current->token);
+        current++;
+        return literal;
+    }
+
+    std::string identifier = current->token;
+    current++;
+
+    if (current != end && current->token == "(") {
+        current--;
+        return parse_function_call(identifier, current, end);
+    }
+
+    return VariableEvaluation{identifier};
+}
+
 
 std::vector<sanema::Token> sanema::SanemaParser::tokenize(std::istream &text) {
 

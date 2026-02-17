@@ -32,19 +32,26 @@ namespace sanema {
   }
     template<typename T,class ...ARGs>
     T run_function(ScriptID id,std::string const &function_name,std::uint32_t vm_index,ARGs&&... args){
-       auto function_id=get_function_id<T>(id,function_name,std::forward<ARGs>(args)...).value();
+       auto function_id=get_function_id<T>(id,function_name,std::forward<ARGs>(args)...);
       if(function_id) {
-        setup_run(id, function_id,vm_index);
+        setup_run(id, *function_id,vm_index);
         (add_argument(id, Argument{"", std::forward<ARGs>(args)}, vm_index), ...);
         execute_run_function(id, vm_index);
         T return_value;
         get_return_value(return_value,vm_index);
          return return_value;
+      }else{
+        std::print(std::cout,"function {} not found\n",function_name);
       }
       return T{};
 
     }
-
+template<typename... ARGs>
+void print_args(ARGs&&... args) {
+    int index = 0;
+    // Fold expression that increments index and prints each value
+    ((std::cout << "Arg[" << index++ << "]: " << args << "\n"), ...);
+}
     template<typename T,class ...ARGs>
     std::optional<FunctionID> get_function_id(ScriptID id,std::string const &function_name,ARGs&&... args){
       FunctionDefinitionCompleted function;
