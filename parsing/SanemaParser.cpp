@@ -222,7 +222,23 @@ sanema::ReturnStatement sanema::SanemaParser::parse_return_statement(std::vector
 
 sanema::ForStatement sanema::SanemaParser::parse_for_statement(std::vector<Token>::const_iterator &current, const std::vector<Token>::const_iterator &end) {
     ForStatement for_statement;
-    current++; // consume 'for'
+    current++; // consume 'repeat'
+
+    if (current != end) {
+        for_statement.identifier = current->token;
+        current++;
+    }
+
+    if (current != end) {
+        for_statement.expression = parse_expression(current, end);
+    }
+
+    for_statement.body = parse_block(current, end);
+
+    if (current != end && current->token == code_block_end) {
+        current++; // consume 'end'
+    }
+
     return for_statement;
 }
 

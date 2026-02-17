@@ -818,6 +818,7 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
             }
           },
           [this](ForStatement &for_statement) {
+
           },
           [&](IfStatement &if_statement) {
             auto current_scope = scope_stack.back();

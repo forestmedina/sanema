@@ -79,6 +79,7 @@ namespace sanema {
   struct ForStatement {
     std::string identifier{};
     Expression expression;
+    BlockOfCode body;
   };
     struct ReturnStatement {
     Expression expression;
