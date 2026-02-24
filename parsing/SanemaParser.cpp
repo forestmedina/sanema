@@ -172,8 +172,7 @@ sanema::IfStatement sanema::SanemaParser::parse_if_statement(std::vector<Token>:
 
   if_statement.expression = parse_expression(current, end);
 
-  if (current != end && current->token == code_block_begin) {
-      current++; // consume 'begin'
+  if (current != end ) {
       if_statement.true_path = parse_block(current, end);
 
       if (current != end) {
