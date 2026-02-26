@@ -12,6 +12,13 @@ sanema::DefineStruct::DefineStruct() {}
 
 sanema::DeclareVariable::DeclareVariable() {}
 
+sanema::DeclareVariable::DeclareVariable( const std::string &identifier,const sanema::IncompleteType &typeIdentifier)
+  : type_identifier(typeIdentifier), identifier(identifier) {}
+
+sanema::DeclareVariable::DeclareVariable(
+  const std::string &identifier, const sanema::IncompleteType &typeIdentifier, const std::optional<Expression> &value
+) : identifier(identifier), type_identifier(typeIdentifier), value(value) {}
+
 sanema::BlockInstruction::BlockInstruction(const sanema::Instruction &instruction_sum)
   : instruction_sum(instruction_sum) {}
 

@@ -166,7 +166,7 @@ T convert_number_literal(sanema::Literal literal) {
 }
 
 void generate_push_temp_variable(sanema::ByteCode &byte_code,
-                                 sanema::Literal &literal,
+                                 sanema::Literal literal,
                                  sanema::ByteCodeCompiler::Scope &scope,
                                  sanema::ByteCodeCompiler::GeneratorsMap &generator_map,
                                  sanema::CompleteType const &type,
@@ -817,8 +817,113 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
               scope.types.add_type(user_defined);
             }
           },
-          [this](ForStatement &for_statement) {
+          [this, &built_in_functions, &external_types](ForStatement &for_statement) {
+            auto &current_scope = scope_stack.back();
+            auto initial_scope_address = current_scope.scope_address; // Save current stack pointer
+            auto limit_for_address = current_scope.scope_address; // Save current stack pointer
 
+            // 1. Evaluate the loop count expression (e.g., '10')
+            // The result will be pushed to current_scope.scope_address
+            generate_expression_access(for_statement.expression,
+                                       FunctionParameterIncomplete::Modifier::VALUE,
+                                       CompleteType{sanema::Integer{64}}, // Assuming loop count is a 64-bit integer
+                                       byte_code,
+                                       current_scope,
+                                       function_bytecode_generators,
+                                       function_call_sustitutions,
+                                       current_scope.scope_address);
+
+
+
+
+
+
+            // 2. Declare and initialize the loop index variable (e.g., 'i')
+            if (current_scope.local_variables.count(for_statement.identifier) != 0) {
+                throw std::runtime_error("Loop index variable " + for_statement.identifier + " already defined");
+            }
+
+            sanema::local_register_t loop_index_reg = current_scope.scope_address;
+            current_scope.local_variables.emplace(for_statement.identifier,
+                                                  VariableEntry{DeclareVariable(for_statement.identifier, Integer{64}), loop_index_reg.address});
+            current_scope.reserve_space_for_type(CompleteType{sanema::Integer{64}});
+
+            //Set index variable to 0
+              sanema::FunctionCall set_call_limit;
+            set_call_limit.identifier = "set";
+            set_call_limit.arguments.emplace_back(FunctionArgument{VariableEvaluation{for_statement.identifier}}); // Placeholder for destination
+            set_call_limit.arguments.emplace_back(FunctionArgument{LiteralSInt64{0}}); // Placeholder for source
+            generate_operator_call(byte_code,set_call_limit,current_scope,function_bytecode_generators,function_call_sustitutions,current_scope.scope_address.address);
+
+
+            // 3. Loop structure
+            std::uint64_t loop_start_address = byte_code.get_current_address();
+
+
+
+
+            // Generate 'less' operation (index < limit)
+            sanema::VMInstruction less_instruction;
+            less_instruction.opcode = OPCODE::OP_LESS_SINT64;
+            less_instruction.r_result = current_scope.scope_address.address; // Result (boolean)
+            less_instruction.registers16.r1 = loop_index_reg.address; // First operand (loop_index)
+            less_instruction.registers16.r2 = limit_for_address.address; // Second operand (loop_limit)
+            byte_code.write(less_instruction);
+            current_scope.reserve_space_for_type(CompleteType{sanema::Boolean{}});
+            sanema::local_register_t condition_result_reg = current_scope.scope_address;
+
+            // Jump if condition false
+            VMInstruction jump_if_false;
+            jump_if_false.opcode = OPCODE::OP_JUMP_IF_FALSE;
+            jump_if_false.registers16.r2 = condition_result_reg.address; // Condition result
+            std::uint64_t address_jump_to_end = byte_code.write(jump_if_false); // Placeholder for jump target
+            current_scope.scope_address.address -= get_type_size(CompleteType{sanema::Boolean{}}); // Pop boolean result
+            current_scope.scope_address.address -= get_type_size(CompleteType{sanema::Integer{64}}); // Pop limit_on_stack
+            current_scope.scope_address.address -= get_type_size(CompleteType{sanema::Integer{64}}); // Pop index_on_stack
+
+            auto for_body_address=byte_code.get_current_address();
+            // Generate loop body
+            generate_block(for_statement.body, built_in_functions, external_types);
+
+
+            // Push 1 (constant)
+            sanema::local_register_t one_literal_temp = current_scope.scope_address;
+            current_scope.reserve_space_for_type(CompleteType{sanema::Integer{64}});
+            generate_push_temp_variable(byte_code,
+                                        sanema::LiteralSInt64{1},
+                                        current_scope,
+                                        function_bytecode_generators,
+                                        CompleteType{sanema::Integer{64}},
+                                        one_literal_temp);
+
+            // Generate 'add' operation (index + 1)
+            sanema::VMInstruction add_instruction;
+            add_instruction.opcode = OPCODE::OP_ADD_SINT64;
+            add_instruction.r_result = loop_index_reg.address ; // Result of addition
+            add_instruction.registers16.r1 = loop_index_reg.address; // First operand (loop_index)
+            add_instruction.registers16.r2 = one_literal_temp.address; // Second operand (1)
+            byte_code.write(add_instruction);
+            current_scope.reserve_space_for_type(CompleteType{sanema::Integer{64}});
+            sanema::local_register_t new_index_value_temp = current_scope.scope_address;
+
+            // Unconditional jump back to loop start
+            auto address_jump_to_begin=byte_code.get_current_address();
+            VMInstruction jump_to_start;
+            jump_to_start.opcode = OPCODE::OP_JUMP;
+            jump_to_start.registers16.r1 = loop_start_address; // Jump target
+            byte_code.write(jump_to_start);
+
+            // Loop end address
+            std::uint64_t loop_end_address = byte_code.get_current_address();
+
+            // Patch the jump_if_false instruction
+            byte_code.code_data[address_jump_to_end].registers16.r1 = loop_end_address-address_jump_to_end;
+            byte_code.code_data[address_jump_to_begin].registers16.r1 = for_body_address-address_jump_to_begin;
+
+            // Restore scope address (pop loop_limit_reg and loop_index_reg)
+            current_scope.scope_address = initial_scope_address;
+            // Remove loop index variable from scope
+            current_scope.local_variables.erase(for_statement.identifier);
           },
           [&](IfStatement &if_statement) {
             auto current_scope = scope_stack.back();
@@ -888,13 +993,13 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
             }
 
             auto final_type=query_final_type(declare_variable.type_identifier,current_scope.types);
-            current_scope.reserve_space_for_type(final_type);
+
 
 
             if (is_user_defined(final_type)) {
               //TODO we need to call the constructor here but for now we will initialize each field with
               //their default value
-
+                current_scope.reserve_space_for_type(final_type);
 
                 auto user_defined_type=std::get<UserDefined>(final_type);
               //TODO urgent VariableEntry should have the final type
@@ -917,18 +1022,25 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
                 // }
 
             } else {
-              current_scope.local_variables.emplace(declare_variable.identifier,
-                                                 VariableEntry{declare_variable, total_variable_space});
-              total_variable_space += get_type_size(final_type);
-//              FunctionCall function_call;
-//              function_call.identifier = "set";
-//              function_call.arguments.emplace_back(VariableEvaluation{declare_variable.identifier});
-//              function_call.arguments.emplace_back(get_default_literal_for_type(declare_variable.type_identifier));
-//              generate_function_call(byte_code,
-//                                     function_call,
-//                                     current_scope,
-//                                     function_bytecode_generators,
-//                                     function_call_sustitutions);
+              if (declare_variable.value.has_value()) {
+                  auto value_address = current_scope.scope_address.address;
+                  generate_expression_access(declare_variable.value.value(),
+                                             FunctionParameterIncomplete::Modifier::VALUE,
+                                             final_type,
+                                             byte_code,
+                                             current_scope,
+                                             function_bytecode_generators,
+                                             function_call_sustitutions,
+                                             current_scope.scope_address);
+                  current_scope.local_variables.emplace(declare_variable.identifier,
+                                                     VariableEntry{declare_variable, value_address});
+                  total_variable_space = current_scope.scope_address.address;
+              } else {
+                  current_scope.reserve_space_for_type(final_type);
+                  current_scope.local_variables.emplace(declare_variable.identifier,
+                                                     VariableEntry{declare_variable, total_variable_space});
+                  total_variable_space += get_type_size(final_type);
+              }
             }
           },
           [this](DefineFunction &function) {

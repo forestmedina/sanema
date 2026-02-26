@@ -83,6 +83,10 @@ sanema::DeclareVariable sanema::SanemaParser::parse_variable_declaration(std::ve
     current++;
   }
 
+  if (current != end && current->token != ";") {
+      declare_variable.value = parse_expression(current, end);
+  }
+
   if (current != end && current->token == ";") {
     current++;
   }

@@ -121,3 +121,17 @@ set counter counter;
   REQUIRE(result.value()==10);
 
 }
+
+TEST_CASE("variable initialization",
+          "[parser]") {
+
+std::string code(R"--(
+var number1 int64 10;
+var number2 int64 15;
+set number1 add (number1 number2);
+)--");
+  auto result=run_and_get_stack_value<std::uint64_t >(code);
+  REQUIRE(result.has_value());
+  REQUIRE(result.value()==25);
+
+}

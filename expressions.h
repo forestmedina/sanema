@@ -52,9 +52,15 @@ namespace sanema {
   struct DeclareVariable {
     DeclareVariable();
 
+    DeclareVariable(const std::string &identifier,const IncompleteType &typeIdentifier);
+
+    DeclareVariable(
+      const std::string &identifier, const IncompleteType &typeIdentifier, const std::optional<Expression> &value
+    );
+
     std::string identifier{};
     IncompleteType type_identifier{};
-    std::optional<Literal> value;
+    std::optional<Expression> value{};
     enum class DeclareVariableState {
       TYPE,
       IDENTIFIER,

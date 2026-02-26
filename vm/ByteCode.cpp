@@ -12,6 +12,12 @@ std::uint64_t sanema::ByteCode::get_current_address() {
 
 void sanema::ByteCode::print() {
   BYTECodeIPType ip = code_data.data();
+  std::cout<<"Constants: \n";
+  std::cout<<"========== \n";
+  int i=0;
+  for(auto& constant:const_pool){
+    std::cout<<"  "<<i<<" = "<< static_cast<uint64_t>(constant)<<"\n";
+  }
   std::cout << "byte code size =" << code_data.size() << "\n";
   while (ip < code_data.data() + code_data.size()) {
     auto offset = std::uint64_t(ip - code_data.data());
