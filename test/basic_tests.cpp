@@ -111,14 +111,18 @@ std::string code(R"--(
 var counter int64;
 set counter 0;
 repeat i 10
-    set counter add (counter 1);
+  set counter add(counter i);
 end
 set counter counter;
 )--");
   auto result=run_and_get_stack_value<std::int64_t >(code);
+  auto counter=0;
+  for(int i=0;i<10;i++){
+    counter+=i;
+  }
 
   REQUIRE(result.has_value());
-  REQUIRE(result.value()==10);
+  REQUIRE(result.value()==counter);
 
 }
 

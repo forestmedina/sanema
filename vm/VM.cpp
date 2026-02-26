@@ -444,6 +444,11 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
         ip += offset;
       }
         break;
+      case OPCODE::OP_JUMP_BACK: {
+        auto offset = instruction->registers16.r1;
+        ip -= offset;
+      }
+        break;
       case OPCODE::OP_CALL_EXTERNAL_FUNCTION: {
         auto function_id = instruction->register32.r1;
         auto &function = binding_collection.get_function_by_id(function_id);

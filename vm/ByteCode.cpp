@@ -17,6 +17,7 @@ void sanema::ByteCode::print() {
   int i=0;
   for(auto& constant:const_pool){
     std::cout<<"  "<<i<<" = "<< static_cast<uint64_t>(constant)<<"\n";
+    i++;
   }
   std::cout << "byte code size =" << code_data.size() << "\n";
   while (ip < code_data.data() + code_data.size()) {

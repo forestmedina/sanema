@@ -844,10 +844,11 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
             }
 
             sanema::local_register_t loop_index_reg = current_scope.scope_address;
+            std::cout<<"address before for variable="<<current_scope.scope_address.address<<"\n";
             current_scope.local_variables.emplace(for_statement.identifier,
                                                   VariableEntry{DeclareVariable(for_statement.identifier, Integer{64}), loop_index_reg.address});
             current_scope.reserve_space_for_type(CompleteType{sanema::Integer{64}});
-
+            std::cout<<"address after for variable="<<current_scope.scope_address.address<<"\n";
             //Set index variable to 0
               sanema::FunctionCall set_call_limit;
             set_call_limit.identifier = "set";
@@ -861,40 +862,39 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
 
 
 
+            sanema::local_register_t condition_result_reg = current_scope.scope_address;
 
             // Generate 'less' operation (index < limit)
             sanema::VMInstruction less_instruction;
             less_instruction.opcode = OPCODE::OP_LESS_SINT64;
-            less_instruction.r_result = current_scope.scope_address.address; // Result (boolean)
+            less_instruction.r_result = condition_result_reg.address; // Result (boolean)
             less_instruction.registers16.r1 = loop_index_reg.address; // First operand (loop_index)
             less_instruction.registers16.r2 = limit_for_address.address; // Second operand (loop_limit)
             byte_code.write(less_instruction);
             current_scope.reserve_space_for_type(CompleteType{sanema::Boolean{}});
-            sanema::local_register_t condition_result_reg = current_scope.scope_address;
 
+           std::cout<<"address after less comp="<<current_scope.scope_address.address<<"\n";
             // Jump if condition false
             VMInstruction jump_if_false;
             jump_if_false.opcode = OPCODE::OP_JUMP_IF_FALSE;
-            jump_if_false.registers16.r2 = condition_result_reg.address; // Condition result
+            jump_if_false.registers16.r2 = condition_result_reg.address;
             std::uint64_t address_jump_to_end = byte_code.write(jump_if_false); // Placeholder for jump target
-            current_scope.scope_address.address -= get_type_size(CompleteType{sanema::Boolean{}}); // Pop boolean result
-            current_scope.scope_address.address -= get_type_size(CompleteType{sanema::Integer{64}}); // Pop limit_on_stack
-            current_scope.scope_address.address -= get_type_size(CompleteType{sanema::Integer{64}}); // Pop index_on_stack
 
             auto for_body_address=byte_code.get_current_address();
             // Generate loop body
-            generate_block(for_statement.body, built_in_functions, external_types);
-
+            auto block_variable_offset=generate_block(for_statement.body, built_in_functions, external_types);
+           current_scope.scope_address.address+=block_variable_offset;
 
             // Push 1 (constant)
-            sanema::local_register_t one_literal_temp = current_scope.scope_address;
-            current_scope.reserve_space_for_type(CompleteType{sanema::Integer{64}});
+            auto one_literal_temp = current_scope.scope_address;
+
             generate_push_temp_variable(byte_code,
                                         sanema::LiteralSInt64{1},
                                         current_scope,
                                         function_bytecode_generators,
                                         CompleteType{sanema::Integer{64}},
                                         one_literal_temp);
+            current_scope.reserve_space_for_type(CompleteType{sanema::Integer{64}});
 
             // Generate 'add' operation (index + 1)
             sanema::VMInstruction add_instruction;
@@ -902,6 +902,7 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
             add_instruction.r_result = loop_index_reg.address ; // Result of addition
             add_instruction.registers16.r1 = loop_index_reg.address; // First operand (loop_index)
             add_instruction.registers16.r2 = one_literal_temp.address; // Second operand (1)
+            std::print(std::cout," generating add Rresult {} r1 {} ,r2 {}\n",loop_index_reg.address, add_instruction.registers16.r1, add_instruction.registers16.r2 );
             byte_code.write(add_instruction);
             current_scope.reserve_space_for_type(CompleteType{sanema::Integer{64}});
             sanema::local_register_t new_index_value_temp = current_scope.scope_address;
@@ -909,8 +910,8 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
             // Unconditional jump back to loop start
             auto address_jump_to_begin=byte_code.get_current_address();
             VMInstruction jump_to_start;
-            jump_to_start.opcode = OPCODE::OP_JUMP;
-            jump_to_start.registers16.r1 = loop_start_address; // Jump target
+            jump_to_start.opcode = OPCODE::OP_JUMP_BACK;
+            jump_to_start.registers16.r1 = 0; // Jump target
             byte_code.write(jump_to_start);
 
             // Loop end address
@@ -918,7 +919,7 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
 
             // Patch the jump_if_false instruction
             byte_code.code_data[address_jump_to_end].registers16.r1 = loop_end_address-address_jump_to_end;
-            byte_code.code_data[address_jump_to_begin].registers16.r1 = for_body_address-address_jump_to_begin;
+            byte_code.code_data[address_jump_to_begin].registers16.r1 = (address_jump_to_begin + 1) - loop_start_address;
 
             // Restore scope address (pop loop_limit_reg and loop_index_reg)
             current_scope.scope_address = initial_scope_address;
