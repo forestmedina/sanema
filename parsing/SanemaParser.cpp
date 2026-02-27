@@ -46,6 +46,8 @@ std::optional<sanema::Instruction> sanema::SanemaParser::parse_instruction(std::
     return parse_for_statement(current, end);
   } else if (current->token == return_word) {
     return parse_return_statement(current, end);
+  } else if (current->token == yield_word) {
+    return parse_yield_statement(current, end);
   } else if (current->token == code_block_begin) {
     current++; // consume 'begin'
     auto block = parse_block(current, end);
@@ -243,6 +245,15 @@ sanema::ForStatement sanema::SanemaParser::parse_for_statement(std::vector<Token
     }
 
     return for_statement;
+}
+
+sanema::YieldStatement sanema::SanemaParser::parse_yield_statement(std::vector<Token>::const_iterator &current, const std::vector<Token>::const_iterator &end) {
+    YieldStatement yield_statement;
+    current++; // consume 'yield'
+    if (current != end && current->token == ";") {
+        current++;
+    }
+    return yield_statement;
 }
 
 sanema::FunctionCall sanema::SanemaParser::parse_function_call(std::string identifier, std::vector<Token>::const_iterator &current, const std::vector<Token>::const_iterator &end) {

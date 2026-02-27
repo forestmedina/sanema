@@ -46,8 +46,8 @@ namespace sanema {
     ~VM()=default;
 
 
-    void run(ByteCode const &byte_code, BindingCollection &collection,IPType initial_ip);
-    void run(ByteCode const &byte_code, BindingCollection &collection);
+    std::optional<ExecutionState> run(ByteCode const &byte_code, BindingCollection &collection,IPType initial_ip);
+    std::optional<ExecutionState> run(ByteCode const &byte_code, BindingCollection &collection);
     IPType setup_run(ByteCode const &byte_code, BindingCollection &collection,std::optional<FunctionID> define_function);
     void add_external_argument(Argument const &args);
     template<class T>

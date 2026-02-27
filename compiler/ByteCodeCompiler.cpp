@@ -844,11 +844,10 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
             }
 
             sanema::local_register_t loop_index_reg = current_scope.scope_address;
-            std::cout<<"address before for variable="<<current_scope.scope_address.address<<"\n";
             current_scope.local_variables.emplace(for_statement.identifier,
                                                   VariableEntry{DeclareVariable(for_statement.identifier, Integer{64}), loop_index_reg.address});
             current_scope.reserve_space_for_type(CompleteType{sanema::Integer{64}});
-            std::cout<<"address after for variable="<<current_scope.scope_address.address<<"\n";
+
             //Set index variable to 0
               sanema::FunctionCall set_call_limit;
             set_call_limit.identifier = "set";
@@ -986,6 +985,11 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
             // std::cout<<"return size: "<<size<<"\n";
             instruction_return.opcode = OPCODE::OP_RETURN;
             byte_code.write(instruction_return);
+          },
+          [&](YieldStatement &yield_statement) {
+            sanema::VMInstruction instruction;
+            instruction.opcode = OPCODE::OP_YIELD;
+            byte_code.write(instruction);
           },
           [this, &total_variable_space](DeclareVariable &declare_variable) {
             auto &current_scope = scope_stack.back();

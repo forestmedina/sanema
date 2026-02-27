@@ -53,6 +53,7 @@ namespace sanema {
     DefineStruct parse_struct_definition(std::vector<Token>::const_iterator &current, const std::vector<Token>::const_iterator &end);
     ReturnStatement parse_return_statement(std::vector<Token>::const_iterator &current, const std::vector<Token>::const_iterator &end);
     ForStatement parse_for_statement(std::vector<Token>::const_iterator &current, const std::vector<Token>::const_iterator &end);
+    YieldStatement parse_yield_statement(std::vector<Token>::const_iterator &current, const std::vector<Token>::const_iterator &end);
 
     std::string code_block_begin = "begin";
     std::string code_block_end = "end";
@@ -64,7 +65,8 @@ namespace sanema {
     std::string if_ending_word = "end";
     std::string return_word = "return";
     std::string for_loop_word= "repeat";
-    std::set<std::string> reserved_words{variable_declaring_word, function_declaring_word, struct_declaring_word, for_loop_word};
+    std::string yield_word = "yield";
+    std::set<std::string> reserved_words{variable_declaring_word, function_declaring_word, struct_declaring_word, for_loop_word, yield_word};
     std::set<char> separators = {' ', '\t'};
     std::set<char> function_delimiters = {'(', ')'};
     std::set<char> terminators = {';'};

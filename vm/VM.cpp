@@ -57,7 +57,7 @@ void* sanema::VM::get_stack_pointer() {
   return static_cast<void*>(operand_stack_pointer);
 }
 
-void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_collection,IPType initial_ip) {
+std::optional<sanema::ExecutionState> sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_collection,IPType initial_ip) {
   IPType ip = initial_ip;
 
 
@@ -517,9 +517,22 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
           ip = call_stack.back().ip;
           operand_stack_pointer = call_stack.back().get_begin_address();
         } else {
-          return;
+          return std::nullopt;
         }
         break;
+      }
+      case OPCODE::OP_YIELD: {
+          ExecutionState state;
+          state.page_index = call_stack.front().page_index;
+          state.ip = ip;
+          state.call_stack = call_stack;
+          state.operand_stack_pointer_offset = operand_stack_pointer - (operand_stack + (state.page_index * page_size));
+          state.external_function_return_address_offset = external_function_return_address - (operand_stack + (state.page_index * page_size));
+          state.external_function_parameters_addresss_offset = external_function_parameters_addresss - (operand_stack + (state.page_index * page_size));
+          state.next_argument_address_offset = next_argument_address - (operand_stack + (state.page_index * page_size));
+          state.string_stack = string_stack;
+          state.running_byte_code = running_byte_code;
+          return state;
       }
       case OPCODE::OP_PUSH_LOCAL_ADDRESS_AS_GLOBAL: {
         auto local_address = instruction->registers16.r1;
@@ -597,8 +610,8 @@ void sanema::VM::push_string(std::string const &string_value) {
   push_return(reference);
 }
 
-void sanema::VM::run(const sanema::ByteCode &byte_code, sanema::BindingCollection &collection) {
-  run(byte_code, collection, setup_run(byte_code,collection,std::nullopt));
+std::optional<sanema::ExecutionState> sanema::VM::run(const sanema::ByteCode &byte_code, sanema::BindingCollection &collection) {
+  return run(byte_code, collection, setup_run(byte_code,collection,std::nullopt));
 }
 
 
@@ -631,6 +644,6 @@ void sanema::push_function_return_to_vm<std::string const &>(sanema::VM &vm, std
 }
 
 template<>
-void sanema::push_function_return_to_vm<std::string &>(VM &vm, std::string &value) {
+void sanema::push_function_return_to_vm<std::string &>(sanema::VM &vm, std::string &value) {
   vm.push_string(value);
 }

@@ -112,6 +112,7 @@ enum class OPCODE : std::uint32_t {
   OP_JUMP_BACK,
   OP_CALL,
   OP_RETURN,
+  OP_YIELD,
 };
 
 inline std::string opcode_to_string(OPCODE opcode) {
@@ -218,6 +219,7 @@ inline std::string opcode_to_string(OPCODE opcode) {
         SANEMA_OPCODE_TO_STRING(OP_JUMP_BACK),
         SANEMA_OPCODE_TO_STRING(OP_CALL),
         SANEMA_OPCODE_TO_STRING(OP_RETURN),
+        SANEMA_OPCODE_TO_STRING(OP_YIELD),
 
   };
   return mappings[opcode];
