@@ -6,6 +6,8 @@
 #include "opcodes.h"
 #include <types.h>
 #include <binding/BindingCollection.h>
+#include <stdexcept>
+#include <numeric>
 
 //Generate function calls for each operation of the specified type
 #define GENERATE_OPERATION(OP_TYPE, type, OPERATIONENUM, OPERATION_FUNCTION)  case OPCODE::OP_##OPERATIONENUM##OP_TYPE: {OPERATION_FUNCTION<type>();}break;
@@ -13,9 +15,17 @@
 
 sanema::IPType  sanema::VM::setup_run(const sanema::ByteCode &byte_code, sanema::BindingCollection &collection,std::optional<FunctionID> function_id) {
   running_byte_code = &byte_code;
-  operand_stack_pointer = operand_stack;
-  external_function_return_address = operand_stack;
-  external_function_parameters_addresss = operand_stack;
+
+  if (available_pages.empty()) {
+      throw std::runtime_error("Out of memory: No free pages available.");
+  }
+  int page_index = available_pages.back();
+  available_pages.pop_back();
+
+  operand_stack_pointer = operand_stack + (page_index * page_size);
+
+  external_function_return_address = operand_stack_pointer;
+  external_function_parameters_addresss = operand_stack_pointer;
   next_argument_address = operand_stack_pointer ;
   string_stack.clear();
   call_stack.clear();
@@ -30,7 +40,7 @@ sanema::IPType  sanema::VM::setup_run(const sanema::ByteCode &byte_code, sanema:
       ip = byte_code.code_data.data() + function_address;
     }
   }
-  call_stack.emplace_back(operand_stack_pointer);
+  call_stack.emplace_back(operand_stack_pointer, page_index);
   auto end_address = byte_code.code_data.data() + byte_code.code_data.size();
   return ip;
 }
@@ -50,13 +60,11 @@ void* sanema::VM::get_stack_pointer() {
 void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_collection,IPType initial_ip) {
   IPType ip = initial_ip;
 
-  ip_history.reserve(1000);
-  ip_history.clear();
+
   bool should_continue = true;
   for (;;) {
 
     IPType instruction = ip;
-    ip_history.emplace_back(ip);
     // std::cout << "Ip offset: " << (ip - byte_code.code_data.data()) << " ; ";
     // std::cout << "Executing opcode: " << opcode_to_string(instruction->opcode) << "\n";
     // std::cout << "  R32: " << instruction->register32.r1 << "\n";
@@ -489,6 +497,12 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
         break;
       case OPCODE::OP_RETURN: {
         should_continue = call_stack.size() > 1;
+        if (!should_continue) {
+             auto page_index = call_stack.back().page_index;
+             if (page_index != -1) {
+                 available_pages.push_back(page_index);
+             }
+        }
         call_stack.pop_back();
         auto from = instruction->registers16.r1;
         auto size = instruction->registers16.r2;
@@ -546,10 +560,16 @@ void sanema::VM::run(ByteCode const &byte_code, BindingCollection &binding_colle
 }
 
 
-sanema::VM::VM(unsigned int  memory_size_mb) : running_byte_code(nullptr) {
+sanema::VM::VM(unsigned int  memory_size_mb, unsigned int page_size) : running_byte_code(nullptr), page_size(page_size) {
   auto megabytes_to_bytes = [](std::uint64_t size) { return (size * 1024) * 1024; };
-  operand_stack_vector.resize(megabytes_to_bytes(memory_size_mb));
+  auto total_memory = megabytes_to_bytes(memory_size_mb);
+  operand_stack_vector.resize(total_memory);
   operand_stack = operand_stack_vector.data();
+
+  auto num_pages = total_memory / page_size;
+  available_pages.resize(num_pages);
+  std::iota(available_pages.begin(), available_pages.end(), 0);
+
   call_stack.reserve(1000);
 
 }
@@ -611,6 +631,6 @@ void sanema::push_function_return_to_vm<std::string const &>(sanema::VM &vm, std
 }
 
 template<>
-void sanema::push_function_return_to_vm<std::string &>(sanema::VM &vm, std::string &value) {
+void sanema::push_function_return_to_vm<std::string &>(VM &vm, std::string &value) {
   vm.push_string(value);
 }

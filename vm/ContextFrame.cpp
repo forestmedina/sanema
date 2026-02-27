@@ -4,11 +4,10 @@
 
 #include "ContextFrame.h"
 
-sanema::ContextFrame::ContextFrame(uint8_t *begin_address) : begin_address(begin_address){
+sanema::ContextFrame::ContextFrame(uint8_t *begin_address, int page_index) : begin_address(begin_address), page_index(page_index){
 
 }
 
 uint8_t *sanema::ContextFrame::get_begin_address() const {
   return begin_address;
 }
-

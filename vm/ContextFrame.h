@@ -12,7 +12,7 @@ namespace sanema {
   class ContextFrame {
   public:
 
-    explicit ContextFrame(std::uint8_t *begin_address);
+    explicit ContextFrame(std::uint8_t *begin_address, int page_index = -1);
 
     template<class T>
      T read(local_register_t address){
@@ -32,6 +32,7 @@ namespace sanema {
      }
    VMInstruction const * ip;
     [[nodiscard]] uint8_t *get_begin_address() const;
+    int page_index;
 
   private:
     //begin and end are  addresses to a  point the stack. Begin address should be specified in the constructor

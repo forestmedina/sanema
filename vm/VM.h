@@ -16,16 +16,28 @@
 #include <functions.h>
 #include <interfacing/Argument.h>
 #include "OperandType.h"
+#include <vector>
 
 namespace sanema {
   using IPType = VMInstruction const *;
 
+  struct ExecutionState {
+    int page_index;
+    IPType ip;
+    std::vector<ContextFrame> call_stack;
+    std::uint32_t operand_stack_pointer_offset;
+    std::uint32_t external_function_return_address_offset;
+    std::uint32_t external_function_parameters_addresss_offset;
+    std::uint32_t next_argument_address_offset;
+    std::vector<std::string> string_stack;
+    ByteCode const *running_byte_code;
+  };
 
   class BindingCollection;
 
   class VM {
   public:
-    explicit VM(unsigned int memory_size_mb = 5);
+    explicit VM(unsigned int memory_size_mb = 5, unsigned int page_size = 2048);
     VM(VM const&)=delete;
     VM const& operator=(VM const&)=delete;
     VM(VM &&)=default;
@@ -85,6 +97,8 @@ namespace sanema {
     unsigned char *next_argument_address{nullptr};
     std::vector<std::string> string_stack;
     std::vector<IPType> ip_history;
+    unsigned int page_size;
+    std::vector<int> available_pages;
 
     template<class type>
     inline void save_result_register(VMInstruction const *instruction, type value) {
