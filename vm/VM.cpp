@@ -614,7 +614,23 @@ std::optional<sanema::ExecutionState> sanema::VM::run(const sanema::ByteCode &by
   return run(byte_code, collection, setup_run(byte_code,collection,std::nullopt));
 }
 
+std::optional<sanema::ExecutionState> sanema::VM::resume(ExecutionState const &state, BindingCollection &collection) {
+    running_byte_code = state.running_byte_code;
 
+    auto page_start = operand_stack + (state.page_index * page_size);
+    operand_stack_pointer = page_start + state.operand_stack_pointer_offset;
+    external_function_return_address = page_start + state.external_function_return_address_offset;
+    external_function_parameters_addresss = page_start + state.external_function_parameters_addresss_offset;
+    next_argument_address = page_start + state.next_argument_address_offset;
+
+    call_stack = state.call_stack;
+    string_stack = state.string_stack;
+
+    // Ensure page is marked as used (it should be)
+    // We don't need to do anything with available_pages because we didn't release it.
+
+    return run(*running_byte_code, collection, state.ip);
+}
 
 
 template<>

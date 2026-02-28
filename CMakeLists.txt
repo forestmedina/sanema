@@ -110,6 +110,7 @@ add_executable(sanema_tests test/test.cpp
         test/chained_operators.cpp
         test/type_binding.cpp
         test/branching_tests.cpp
+        test/yield_tests.cpp
 )
 target_link_libraries(sanema_tests PRIVATE Catch2::Catch2WithMain)
 target_link_libraries (sanema_tests PRIVATE sanema)
