@@ -986,7 +986,7 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
             instruction_return.opcode = OPCODE::OP_RETURN;
             byte_code.write(instruction_return);
           },
-          [&](YieldStatement &yield_statement) {
+          [this](YieldStatement &yield_statement) {
             sanema::VMInstruction instruction;
             instruction.opcode = OPCODE::OP_YIELD;
             byte_code.write(instruction);

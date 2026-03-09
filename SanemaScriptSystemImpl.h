@@ -12,6 +12,7 @@
 #include <vm/VM.h>
 #include <ScriptID.h>
 #include <ScriptEntry.h>
+#include <filesystem>
 #include <interfacing/Argument.h>
 #include <common/FunctionCollection.h>
 namespace sanema {
@@ -23,6 +24,7 @@ namespace sanema {
     void replace_script(ScriptID id,std::string const&string);
     void replace_script(ScriptID id,std::istream &stream);
     ScriptID add_script(std::istream &stream);
+    ScriptID get_script_id(std::filesystem::path const& path);
 
     void run_script(sanema::ScriptID id, std::uint32_t vm_index);
     void add_argument(sanema::ScriptID id, const sanema::Argument &args, std::uint32_t vm_index);
@@ -65,6 +67,7 @@ namespace sanema {
 
 
     std::unordered_map<size_t, ScriptEntry> script_collection;
+    std::unordered_map<std::string, ScriptID> path_script_ids;
 
     size_t next_id();
     ScriptEntry & get_script(ScriptID id);

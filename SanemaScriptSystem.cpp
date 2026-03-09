@@ -110,3 +110,7 @@ std::optional<sanema::FunctionID> sanema::SanemaScriptSystem::get_function_id(Sc
   return impl->get_function_id(id,define_function);
 }
 
+sanema::ScriptID sanema::SanemaScriptSystem::get_script_id(std::filesystem::path const& path) {
+  return impl->get_script_id(path);
+}
+

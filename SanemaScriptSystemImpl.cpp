@@ -4,6 +4,7 @@
 
 #include "SanemaScriptSystemImpl.h"
 #include <sstream>
+#include <fstream>
 #include <built-in/strings/strings.h>
 #include <binding/FunctionBinding.h>
 #include <built-in/built_in_functions.h>
@@ -175,4 +176,16 @@ std::optional<sanema::ExecutionState> sanema::SanemaScriptSystemImpl::run_script
 std::optional<sanema::ExecutionState> sanema::SanemaScriptSystemImpl::resume_script(ExecutionState const& state, std::uint32_t vm_index) {
   auto& vm = vms.at(vm_index);
   return vm.resume(state, binding_collection);
+}
+
+sanema::ScriptID sanema::SanemaScriptSystemImpl::get_script_id(std::filesystem::path const& path) {
+  auto key = path.string();
+  auto it = path_script_ids.find(key);
+  if (it != path_script_ids.end()) {
+    return it->second;
+  }
+  std::ifstream stream(path);
+  auto id = add_script(stream);
+  path_script_ids[key] = id;
+  return id;
 }

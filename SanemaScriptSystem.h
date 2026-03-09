@@ -22,6 +22,7 @@ namespace sanema {
     void replace_script(ScriptID script_id,std::string  const& string);
     void replace_script(ScriptID script_id,std::istream & stream);
     ScriptID add_script(std::istream & stream);
+    ScriptID get_script_id(std::filesystem::path const& path);
 
     void run_script(ScriptID id,std::uint32_t vm_index);
     std::optional<ExecutionState> run_script_yielding(ScriptID id, std::uint32_t vm_index);

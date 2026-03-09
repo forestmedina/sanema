@@ -32,6 +32,7 @@ namespace sanema
     };
     Modifier modifier;
     std::optional<CompleteType>  type{};
+    bool is_reference{false};
     bool is_compatible(FunctionParameterCompleted& other);
     bool operator==(const FunctionParameterCompleted &rhs) const;
 

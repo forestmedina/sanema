@@ -31,5 +31,6 @@ bool sanema::FunctionParameterCompleted::operator!=(const sanema::FunctionParame
 
 bool sanema::FunctionParameterCompleted::is_compatible(sanema::FunctionParameterCompleted &other) {
   if(!type.has_value()||!other.type.has_value()) return false;
+  if (is_reference != other.is_reference) return false;
   return is_second_type_compatible(type.value(), other.type.value());
 }

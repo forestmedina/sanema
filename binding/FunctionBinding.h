@@ -29,7 +29,7 @@ namespace sanema {
 
   template <typename T>
   FunctionParameterCompleted::Modifier get_parameter_modifier(){
-     auto modifier=std::is_reference_v<T>? (std::is_const_v<std::remove_reference_t<T>>?FunctionParameterCompleted::Modifier::CONST:FunctionParameterCompleted::Modifier::MUTABLE ):FunctionParameterCompleted::Modifier::VALUE;
+     auto modifier=std::is_pointer_v<T>? (std::is_const_v<std::remove_pointer_t<T>>?FunctionParameterCompleted::Modifier::CONST:FunctionParameterCompleted::Modifier::MUTABLE ):FunctionParameterCompleted::Modifier::VALUE;
     return modifier;
   }
 
@@ -63,7 +63,7 @@ namespace sanema {
 template <class T>
   void emplace_parameter(FunctionDefinitionCompleted& function) {
     auto modifier=get_parameter_modifier<T>();
-    FunctionParameterCompleted parameter{"",modifier,type_from_cpptype<std::remove_cvref_t<T>>()};
+    FunctionParameterCompleted parameter{"",modifier,type_from_cpptype<std::remove_pointer_t<std::remove_cvref_t<T>>>()};
     function.parameters.emplace_back(parameter);
   }
   template<typename FTYPE, typename RET_TYPE,typename ...ARGS, std::size_t... Ns>
