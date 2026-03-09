@@ -165,3 +165,14 @@ std::optional<sanema::FunctionID> sanema::SanemaScriptSystemImpl::get_function_i
   }
   return std::nullopt;
 }
+
+std::optional<sanema::ExecutionState> sanema::SanemaScriptSystemImpl::run_script_yielding(ScriptID id, std::uint32_t vm_index) {
+  auto& vm = vms.at(vm_index);
+  auto& script = get_script(id);
+  return vm.run(script.bytecode, binding_collection);
+}
+
+std::optional<sanema::ExecutionState> sanema::SanemaScriptSystemImpl::resume_script(ExecutionState const& state, std::uint32_t vm_index) {
+  auto& vm = vms.at(vm_index);
+  return vm.resume(state, binding_collection);
+}

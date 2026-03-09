@@ -28,6 +28,9 @@ namespace sanema {
     void add_argument(sanema::ScriptID id, const sanema::Argument &args, std::uint32_t vm_index);
     void setup_run(sanema::ScriptID id, FunctionID &define_function, std::uint32_t vm_index);
     std::optional<FunctionID> get_function_id(ScriptID id, FunctionDefinitionCompleted& define_function);
+
+    std::optional<ExecutionState> run_script_yielding(ScriptID id, std::uint32_t vm_index);
+    std::optional<ExecutionState> resume_script(ExecutionState const& state, std::uint32_t vm_index);
     void execute_run_function(sanema::ScriptID id, std::uint32_t vm_index);
     template <typename  T>
     void get_return_native_type(T &value, std::uint32_t vm_index) {

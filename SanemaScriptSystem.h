@@ -12,6 +12,7 @@
 #include <interfacing/Argument.h>
 #include <filesystem>
 #include <SanemaScriptSystemImpl.h>
+#include <vm/VM.h>
 #include <type_traits>
 namespace sanema {
   class SanemaScriptSystemImpl;
@@ -23,6 +24,8 @@ namespace sanema {
     ScriptID add_script(std::istream & stream);
 
     void run_script(ScriptID id,std::uint32_t vm_index);
+    std::optional<ExecutionState> run_script_yielding(ScriptID id, std::uint32_t vm_index);
+    std::optional<ExecutionState> resume_script(ExecutionState const& state, std::uint32_t vm_index);
 
   template <class T>
   void emplace_parameter(FunctionDefinitionCompleted& function) {

@@ -18,6 +18,14 @@ void sanema::SanemaScriptSystem::run_script(sanema::ScriptID id,std::uint32_t vm
   impl->run_script(id, vm_index);
 }
 
+std::optional<sanema::ExecutionState> sanema::SanemaScriptSystem::run_script_yielding(sanema::ScriptID id, std::uint32_t vm_index) {
+  return impl->run_script_yielding(id, vm_index);
+}
+
+std::optional<sanema::ExecutionState> sanema::SanemaScriptSystem::resume_script(sanema::ExecutionState const& state, std::uint32_t vm_index) {
+  return impl->resume_script(state, vm_index);
+}
+
 sanema::SanemaScriptSystem::~SanemaScriptSystem() {
 
 }
