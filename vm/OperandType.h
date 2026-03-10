@@ -78,13 +78,13 @@ namespace sanema {
     explicit inline  operator local_register_t() const { return address; }
 
     // Conversion operator for int8_t
-    explicit inline  operator std::int8_t() const { return boost::numeric_cast<std::int8_t>(sint64_v); }
+    explicit inline  operator std::int8_t() const { return static_cast<std::int8_t>(sint64_v); }
 
     // Conversion operator for int16_t
-    explicit inline  operator std::int16_t() const { return boost::numeric_cast<std::int16_t>(sint64_v); }
+    explicit inline  operator std::int16_t() const { return static_cast<std::int16_t>(sint64_v); }
 
     // Conversion operator for int32_t
-    explicit inline  operator std::int32_t() const { return boost::numeric_cast<std::int32_t>(sint64_v); }
+    explicit inline  operator std::int32_t() const { return static_cast<std::int32_t>(sint64_v); }
 
     // Conversion operator for int64_t
     explicit inline  operator std::int64_t() const { return sint64_v; }

@@ -14,6 +14,7 @@
 #include <variant>
 #include <utility>
 #include "common/FunctionCollection.h"
+#include "binding/IYieldableFunction.h"
 #include <iostream>
 namespace sanema {
 
@@ -97,6 +98,38 @@ template <class T>
      ~FunctionCaller() override = default;
 
     FUNC_PTR function_pointer;
+    std::string identifier;
+  };
+
+  template<typename RET_TYPE, typename ...ARGS>
+  struct YieldableCaller : public FunctionPointer {
+    using Factory = std::function<std::unique_ptr<IYieldableFunction>(ARGS...)>;
+
+    YieldableCaller(std::string identifier, Factory factory)
+      : identifier(std::move(identifier)), factory(std::move(factory)) {}
+
+    void call(VM &vm) override {
+      auto ignore = get_function_parameter_from_vm<RET_TYPE>(vm, FunctionParameterCompleted::Modifier::VALUE);
+      std::tuple<ARGS...> params{
+        get_function_parameter_from_vm<ARGS>(vm, get_parameter_modifier<ARGS>())...
+      };
+      auto instance = std::apply(factory, std::move(params));
+      vm.register_yieldable(std::move(instance));
+    }
+
+    void register_function_definition(FunctionCollection &collection, std::uint64_t id) override {
+      FunctionDefinitionCompleted function;
+      function.identifier = identifier;
+      function.type = type_from_cpptype<std::remove_cvref_t<RET_TYPE>>();
+      function.external_id = id;
+      function.is_yieldable = true;
+      (emplace_parameter<ARGS>(function), ...);
+      collection.add_function(function);
+    }
+
+    ~YieldableCaller() override = default;
+
+    Factory factory;
     std::string identifier;
   };
 

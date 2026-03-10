@@ -17,6 +17,9 @@
 #include <interfacing/Argument.h>
 #include "OperandType.h"
 #include <vector>
+#include <unordered_map>
+#include <memory>
+#include <binding/IYieldableFunction.h>
 
 namespace sanema {
   using IPType = VMInstruction const *;
@@ -31,6 +34,7 @@ namespace sanema {
     std::uint32_t next_argument_address_offset;
     std::vector<std::string> string_stack;
     ByteCode const *running_byte_code;
+    std::unordered_map<std::uint32_t, std::shared_ptr<IYieldableFunction>> active_yieldables;
   };
 
   class BindingCollection;
@@ -87,6 +91,9 @@ namespace sanema {
 
     }
 
+    void register_yieldable(std::unique_ptr<IYieldableFunction> instance);
+    void set_pending_call_site(std::uint32_t offset) { pending_call_site = offset; }
+
     std::vector<sanema::ContextFrame> call_stack;
     ByteCode const *running_byte_code;
   private:
@@ -100,6 +107,8 @@ namespace sanema {
     std::vector<IPType> ip_history;
     unsigned int page_size;
     std::vector<int> available_pages;
+    std::uint32_t pending_call_site{0};
+    std::unordered_map<std::uint32_t, std::shared_ptr<IYieldableFunction>> active_yieldables;
 
     template<class type>
     inline void save_result_register(VMInstruction const *instruction, type value) {

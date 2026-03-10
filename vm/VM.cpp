@@ -532,7 +532,47 @@ std::optional<sanema::ExecutionState> sanema::VM::run(ByteCode const &byte_code,
           state.next_argument_address_offset = next_argument_address - (operand_stack + (state.page_index * page_size));
           state.string_stack = string_stack;
           state.running_byte_code = running_byte_code;
+          state.active_yieldables = active_yieldables;
           return state;
+      }
+      case OPCODE::OP_CALL_YIELDABLE_FUNCTION: {
+          auto function_id = instruction->register32.r1;
+          auto call_site_key = static_cast<std::uint32_t>(instruction - byte_code.code_data.data());
+
+          auto it = active_yieldables.find(call_site_key);
+          if (it == active_yieldables.end()) {
+              // First invocation: extract args and create the instance
+              auto &function = binding_collection.get_function_by_id(function_id);
+              external_function_return_address = operand_stack_pointer + instruction->r_result;
+              external_function_parameters_addresss = operand_stack_pointer + instruction->r_result;
+              pending_call_site = call_site_key;
+              function.call(*this);
+              it = active_yieldables.find(call_site_key);
+          }
+
+          if (it != active_yieldables.end()) {
+              auto &instance = it->second;
+              instance->tick();
+              if (instance->finished()) {
+                  instance->write_return(*this);
+                  active_yieldables.erase(it);
+                  // ip already advanced — continue execution
+              } else {
+                  // Suspend: save state pointing back at this instruction so it re-runs on resume
+                  ExecutionState state;
+                  state.page_index = call_stack.front().page_index;
+                  state.ip = instruction;  // re-execute OP_CALL_YIELDABLE_FUNCTION on next resume
+                  state.call_stack = call_stack;
+                  state.operand_stack_pointer_offset = operand_stack_pointer - (operand_stack + (state.page_index * page_size));
+                  state.external_function_return_address_offset = external_function_return_address - (operand_stack + (state.page_index * page_size));
+                  state.external_function_parameters_addresss_offset = external_function_parameters_addresss - (operand_stack + (state.page_index * page_size));
+                  state.next_argument_address_offset = next_argument_address - (operand_stack + (state.page_index * page_size));
+                  state.string_stack = string_stack;
+                  state.running_byte_code = running_byte_code;
+                  state.active_yieldables = active_yieldables;
+                  return state;
+              }
+          }
       }
       case OPCODE::OP_PUSH_LOCAL_ADDRESS_AS_GLOBAL: {
         auto local_address = instruction->registers16.r1;
@@ -625,11 +665,13 @@ std::optional<sanema::ExecutionState> sanema::VM::resume(ExecutionState const &s
 
     call_stack = state.call_stack;
     string_stack = state.string_stack;
-
-    // Ensure page is marked as used (it should be)
-    // We don't need to do anything with available_pages because we didn't release it.
+    active_yieldables = state.active_yieldables;
 
     return run(*running_byte_code, collection, state.ip);
+}
+
+void sanema::VM::register_yieldable(std::unique_ptr<IYieldableFunction> instance) {
+    active_yieldables[pending_call_site] = std::move(instance);
 }
 
 

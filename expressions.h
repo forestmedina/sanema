@@ -126,6 +126,7 @@ namespace sanema {
     std::uint64_t id;
     std::optional<std::uint64_t> external_id{};
     bool is_operator{false};
+    bool is_yieldable{false};
 
     bool is_compatible(FunctionDefinitionCompleted &other);
 

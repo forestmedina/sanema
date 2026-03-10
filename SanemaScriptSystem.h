@@ -115,6 +115,13 @@ void print_args(ARGs&&... args) {
       void add_function(std::string const &identifier, F f){
         get_binding_collection().add_function_binding(identifier,f);
       }
+
+    template<typename RET, typename ...ARGS>
+    void add_yieldable_function(std::string const &identifier,
+                                typename sanema::YieldableCaller<RET, ARGS...>::Factory factory) {
+      get_binding_collection().add_yieldable_function<RET, ARGS...>(identifier, std::move(factory));
+    }
+
       template<class T>
       TypeBindingPointer* add_pod_type(std::string const &identifier){
        static_assert( std::is_standard_layout_v<T> ,"type must be a pod type");

@@ -753,7 +753,11 @@ std::optional<sanema::FunctionDefinitionCompleted> generate_function_call(
   context_frame_aux.scope_address=rollback_address;
   if (final_function_definition->external_id) {
     sanema::VMInstruction instruction;
-    instruction.opcode = OPCODE::OP_CALL_EXTERNAL_FUNCTION;
+    if (final_function_definition->is_yieldable) {
+      instruction.opcode = OPCODE::OP_CALL_YIELDABLE_FUNCTION;
+    } else {
+      instruction.opcode = OPCODE::OP_CALL_EXTERNAL_FUNCTION;
+    }
     instruction.register32.r1 = final_function_definition->external_id.value();
     instruction.r_result = call_offset_address.address;
     byte_code.write(instruction);;

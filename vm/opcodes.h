@@ -113,6 +113,7 @@ enum class OPCODE : std::uint32_t {
   OP_CALL,
   OP_RETURN,
   OP_YIELD,
+  OP_CALL_YIELDABLE_FUNCTION,
 };
 
 inline std::string opcode_to_string(OPCODE opcode) {
@@ -220,6 +221,7 @@ inline std::string opcode_to_string(OPCODE opcode) {
         SANEMA_OPCODE_TO_STRING(OP_CALL),
         SANEMA_OPCODE_TO_STRING(OP_RETURN),
         SANEMA_OPCODE_TO_STRING(OP_YIELD),
+        SANEMA_OPCODE_TO_STRING(OP_CALL_YIELDABLE_FUNCTION),
 
   };
   return mappings[opcode];
