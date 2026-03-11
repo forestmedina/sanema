@@ -921,7 +921,7 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
             std::uint64_t loop_end_address = byte_code.get_current_address();
 
             // Patch the jump_if_false instruction
-            byte_code.code_data[address_jump_to_end].registers16.r1 = loop_end_address-address_jump_to_end;
+            byte_code.code_data[address_jump_to_end].registers16.r1 = loop_end_address-address_jump_to_end - 1;
             byte_code.code_data[address_jump_to_begin].registers16.r1 = (address_jump_to_begin + 1) - loop_start_address;
 
             // Restore scope address (pop loop_limit_reg and loop_index_reg)
