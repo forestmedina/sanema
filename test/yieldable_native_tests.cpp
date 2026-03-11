@@ -26,6 +26,7 @@ compile(std::string const &code,
 
   if (setup) setup(bindings);
 
+  bindings.register_bindings(functions, types);
   compiler.process(block, functions, types);
   return {std::move(compiler.byte_code), std::move(bindings)};
 }
@@ -98,7 +99,7 @@ TEST_CASE("Yieldable: multi-tick suspends for exactly N frames", "[yieldable]") 
   auto [bc, bindings] = compile(code, [](sanema::BindingCollection &b) {
     b.add_yieldable_function<std::int64_t>(
       "wait_n",
-      []() -> std::unique_ptr<sanema::IYieldableFunction> {
+      [N]() -> std::unique_ptr<sanema::IYieldableFunction> {
         return std::make_unique<CountdownYieldable>(N, 7);
       });
   });

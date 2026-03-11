@@ -573,6 +573,7 @@ std::optional<sanema::ExecutionState> sanema::VM::run(ByteCode const &byte_code,
                   return state;
               }
           }
+          break;
       }
       case OPCODE::OP_PUSH_LOCAL_ADDRESS_AS_GLOBAL: {
         auto local_address = instruction->registers16.r1;
