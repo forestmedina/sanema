@@ -75,6 +75,9 @@ std::optional<sanema::ExecutionState> sanema::VM::run(ByteCode const &byte_code,
 
     ++ip;
     switch (instruction->opcode) {
+      case OPCODE::OP_NOP: {
+      }
+        break;
       case OPCODE::OP_RESERVE_STACK_SPACE: {
         //   TODO we may need to implement this, so we can check that the stack does not growth out of bound
 

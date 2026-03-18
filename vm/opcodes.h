@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <string>
 enum class OPCODE : std::uint32_t {
+  OP_NOP,
   OP_TRUE,
   OP_FALSE,
   OP_RESERVE_STACK_SPACE,
@@ -119,6 +120,7 @@ enum class OPCODE : std::uint32_t {
 inline std::string opcode_to_string(OPCODE opcode) {
 #define SANEMA_OPCODE_TO_STRING(x) {OPCODE::x,#x}
   std::unordered_map<OPCODE, std::string> mappings{
+        SANEMA_OPCODE_TO_STRING(OP_NOP),
         SANEMA_OPCODE_TO_STRING(OP_TRUE),
         SANEMA_OPCODE_TO_STRING(OP_FALSE),
 

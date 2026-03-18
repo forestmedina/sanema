@@ -82,7 +82,9 @@ add_library(sanema
         interfacing/Argument.h
         optimizer/OptimizationPass.h
         optimizer/Optimizer.cpp
-        optimizer/Optimizer.h)
+        optimizer/Optimizer.h
+        optimizer/ConstantFoldingPass.cpp
+        optimizer/ConstantFoldingPass.h)
 
 target_include_directories(sanema PUBLIC  "./")
 
