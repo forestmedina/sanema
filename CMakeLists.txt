@@ -88,7 +88,9 @@ add_library(sanema
         optimizer/DeadCodeEliminationPass.cpp
         optimizer/DeadCodeEliminationPass.h
         optimizer/RedundantCopyEliminationPass.cpp
-        optimizer/RedundantCopyEliminationPass.h)
+        optimizer/RedundantCopyEliminationPass.h
+        optimizer/PeepholeOptimizationPass.cpp
+        optimizer/PeepholeOptimizationPass.h)
 
 target_include_directories(sanema PUBLIC  "./")
 
