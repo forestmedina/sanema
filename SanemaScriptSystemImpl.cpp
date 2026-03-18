@@ -10,6 +10,7 @@
 #include <built-in/built_in_functions.h>
 #include <optimizer/ConstantFoldingPass.h>
 #include <optimizer/DeadCodeEliminationPass.h>
+#include <optimizer/RedundantCopyEliminationPass.h>
 
 sanema::ScriptID sanema::SanemaScriptSystemImpl::add_script(std::string const &string) {
   std::stringstream string_stream(string);
@@ -47,6 +48,7 @@ sanema::SanemaScriptSystemImpl::SanemaScriptSystemImpl(unsigned int number_of_vm
   }
   optimizer.add_pass(std::make_unique<ConstantFoldingPass>());
   optimizer.add_pass(std::make_unique<DeadCodeEliminationPass>());
+  optimizer.add_pass(std::make_unique<RedundantCopyEliminationPass>());
 }
 
 void sanema::SanemaScriptSystemImpl::get_return_value(std::int8_t &value, std::uint32_t vm_index) {
