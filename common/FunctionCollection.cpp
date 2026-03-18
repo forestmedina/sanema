@@ -53,3 +53,10 @@ sanema::FunctionDefinitionCompleted* sanema::FunctionCollection::get_function_by
   }
   return nullptr;
 }
+
+void sanema::FunctionCollection::for_each_function(
+    std::function<void(FunctionID, FunctionDefinitionCompleted const&)> const& callback) const {
+  for (auto const& [id, func] : function_collection) {
+    callback(id, func);
+  }
+}

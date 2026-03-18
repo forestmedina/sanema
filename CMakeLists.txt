@@ -92,7 +92,9 @@ add_library(sanema
         optimizer/PeepholeOptimizationPass.cpp
         optimizer/PeepholeOptimizationPass.h
         optimizer/ConstantPropagationPass.cpp
-        optimizer/ConstantPropagationPass.h)
+        optimizer/ConstantPropagationPass.h
+        optimizer/TailCallOptimizationPass.cpp
+        optimizer/TailCallOptimizationPass.h)
 
 target_include_directories(sanema PUBLIC  "./")
 

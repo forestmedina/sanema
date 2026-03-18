@@ -6,6 +6,7 @@
 #define SANEMA_FUNCTIONCOLLECTION_H
 
 #include <unordered_map>
+#include <functional>
 #include "expressions.h"
 
 namespace sanema {
@@ -25,6 +26,9 @@ namespace sanema {
     sanema::FunctionID add_function(sanema::FunctionDefinitionCompleted& function);
     sanema::FunctionDefinitionCompleted const*  get_function_by_id(FunctionID id) const;
     sanema::FunctionDefinitionCompleted *  get_function_by_id(FunctionID id) ;
+
+    void for_each_function(std::function<void(FunctionID, FunctionDefinitionCompleted const&)> const& callback) const;
+
   private:
     std::unordered_map<std::string, FunctionOverloads> functions_per_name_and_type;
     std::unordered_map<FunctionID, FunctionDefinitionCompleted> function_collection;
