@@ -84,7 +84,9 @@ add_library(sanema
         optimizer/Optimizer.cpp
         optimizer/Optimizer.h
         optimizer/ConstantFoldingPass.cpp
-        optimizer/ConstantFoldingPass.h)
+        optimizer/ConstantFoldingPass.h
+        optimizer/DeadCodeEliminationPass.cpp
+        optimizer/DeadCodeEliminationPass.h)
 
 target_include_directories(sanema PUBLIC  "./")
 
