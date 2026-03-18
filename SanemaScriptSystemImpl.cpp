@@ -121,6 +121,10 @@ sanema::BindingCollection &sanema::SanemaScriptSystemImpl::get_binding_collectio
   return binding_collection;
 }
 
+sanema::Optimizer& sanema::SanemaScriptSystemImpl::get_optimizer() {
+  return optimizer;
+}
+
 void sanema::SanemaScriptSystemImpl::add_argument(
   sanema::ScriptID id, const sanema::Argument &args, std::uint32_t vm_index) {
   auto& vm=vms.at(vm_index);
@@ -151,6 +155,7 @@ void sanema::SanemaScriptSystemImpl::replace_script(sanema::ScriptID id, std::is
   compiler.process(block_of_code,
                    general_functions,
                    external_types);
+  optimizer.optimize(compiler.byte_code);
   std::cout << "BYTECODE BEGIN*******************************\n\n";
   compiler.byte_code.print();
   std::cout << "\n\nBYTECODE END*******************************\n\n";

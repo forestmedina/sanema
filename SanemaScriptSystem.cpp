@@ -86,6 +86,10 @@ sanema::BindingCollection &sanema::SanemaScriptSystem::get_binding_collection() 
   return impl->get_binding_collection();
 }
 
+sanema::Optimizer& sanema::SanemaScriptSystem::get_optimizer() {
+  return impl->get_optimizer();
+}
+
 void sanema::SanemaScriptSystem::add_argument(sanema::ScriptID id, const sanema::Argument &args,std::uint32_t vm_index) {
   impl->add_argument(id, args, vm_index);
 }

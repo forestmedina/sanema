@@ -15,6 +15,7 @@
 #include <filesystem>
 #include <interfacing/Argument.h>
 #include <common/FunctionCollection.h>
+#include <optimizer/Optimizer.h>
 namespace sanema {
   class SanemaScriptSystemImpl {
   public:
@@ -54,11 +55,13 @@ namespace sanema {
     void* get_return_pointer( std::uint32_t vm_index);
 
     BindingCollection  &get_binding_collection() ;
+    Optimizer& get_optimizer();
 
 
   private:
     SanemaParser parser;
     ByteCodeCompiler compiler;
+    Optimizer optimizer;
     std::vector<VM> vms;
 
     BindingCollection binding_collection;

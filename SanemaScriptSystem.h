@@ -13,6 +13,7 @@
 #include <filesystem>
 #include <SanemaScriptSystemImpl.h>
 #include <vm/VM.h>
+#include <optimizer/Optimizer.h>
 #include <type_traits>
 namespace sanema {
   class SanemaScriptSystemImpl;
@@ -127,6 +128,7 @@ void print_args(ARGs&&... args) {
        static_assert( std::is_standard_layout_v<T> ,"type must be a pod type");
         return get_binding_collection().add_type_binding<T>(identifier);
       }
+    Optimizer& get_optimizer();
     SanemaScriptSystem(unsigned int number_of_vms,unsigned int mb_per_vm);
     virtual ~SanemaScriptSystem();
 

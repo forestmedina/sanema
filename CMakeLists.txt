@@ -79,7 +79,10 @@ add_library(sanema
         vm/VMInstruction.h
         vm/VMInstruction.h
         interfacing/Argument.cpp
-        interfacing/Argument.h)
+        interfacing/Argument.h
+        optimizer/OptimizationPass.h
+        optimizer/Optimizer.cpp
+        optimizer/Optimizer.h)
 
 target_include_directories(sanema PUBLIC  "./")
 
