@@ -34,6 +34,7 @@ namespace sanema {
     std::uint32_t next_argument_address_offset;
     std::vector<std::string> string_stack;
     ByteCode const *running_byte_code;
+    std::shared_ptr<ByteCode const> bytecode_lifetime_handle;
     std::unordered_map<std::uint32_t, std::shared_ptr<IYieldableFunction>> active_yieldables;
   };
 
@@ -52,6 +53,7 @@ namespace sanema {
 
     std::optional<ExecutionState> run(ByteCode const &byte_code, BindingCollection &collection,IPType initial_ip);
     std::optional<ExecutionState> run(ByteCode const &byte_code, BindingCollection &collection);
+    std::optional<ExecutionState> run(ByteCode const &byte_code, BindingCollection &collection, std::shared_ptr<ByteCode const> bytecode_handle);
     std::optional<ExecutionState> resume(ExecutionState const &state, BindingCollection &collection);
     IPType setup_run(ByteCode const &byte_code, BindingCollection &collection,std::optional<FunctionID> define_function);
     void add_external_argument(Argument const &args);
@@ -109,6 +111,7 @@ namespace sanema {
     std::vector<int> available_pages;
     std::uint32_t pending_call_site{0};
     std::unordered_map<std::uint32_t, std::shared_ptr<IYieldableFunction>> active_yieldables;
+    std::shared_ptr<ByteCode const> bytecode_lifetime_handle;
 
     template<class type>
     inline void save_result_register(VMInstruction const *instruction, type value) {

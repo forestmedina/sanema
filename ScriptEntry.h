@@ -7,6 +7,7 @@
 
 #include <ScriptID.h>
 #include <compiler/ByteCodeCompiler.h>
+#include <memory>
 
 namespace sanema {
   struct ScriptEntry {
@@ -15,7 +16,7 @@ namespace sanema {
     ScriptEntry();
 
     ScriptID id{0};
-    ByteCode bytecode{};
+    std::shared_ptr<ByteCode> bytecode;
   };
 }
 

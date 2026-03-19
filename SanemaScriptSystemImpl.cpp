@@ -29,7 +29,7 @@ sanema::ScriptID sanema::SanemaScriptSystemImpl::add_script(std::istream &stream
 void sanema::SanemaScriptSystemImpl::run_script(sanema::ScriptID id, std::uint32_t vm_index) {
 auto& vm=vms.at(vm_index);
   auto &script = get_script(id);
-  vm.run(script.bytecode,
+  vm.run(*script.bytecode,
          binding_collection);
 }
 
@@ -145,13 +145,13 @@ void sanema::SanemaScriptSystemImpl::add_argument(
 void sanema::SanemaScriptSystemImpl::execute_run_function(sanema::ScriptID id, std::uint32_t vm_index) {
   auto& vm=vms.at(vm_index);
   auto &script = get_script(id);
-  vm.run(script.bytecode,binding_collection,initial_ip);
+  vm.run(*script.bytecode,binding_collection,initial_ip);
 }
 
 void sanema::SanemaScriptSystemImpl::setup_run(sanema::ScriptID id, FunctionID &fuction_id, std::uint32_t vm_index) {
   auto &script = get_script(id);
   auto& vm=vms.at(vm_index);
-  initial_ip= vm.setup_run(script.bytecode, binding_collection,fuction_id);
+  initial_ip= vm.setup_run(*script.bytecode, binding_collection,fuction_id);
 }
 
 void sanema::SanemaScriptSystemImpl::replace_script(sanema::ScriptID id, std::string const&string) {
@@ -173,10 +173,11 @@ void sanema::SanemaScriptSystemImpl::replace_script(sanema::ScriptID id, std::is
   std::cout<<std::flush;
 
   script_collection[id.id] = ScriptEntry{id, std::move(compiler.byte_code)};
+  compiler.byte_code = ByteCode{};
 }
 
 std::optional<sanema::FunctionID> sanema::SanemaScriptSystemImpl::get_function_id(ScriptID id,sanema::FunctionDefinitionCompleted &define_function) {
-  auto function = get_script(id).bytecode.function_collection.find_function(define_function);
+  auto function = get_script(id).bytecode->function_collection.find_function(define_function);
   if (function.has_value()) {
     return function->id;
   }
@@ -186,7 +187,7 @@ std::optional<sanema::FunctionID> sanema::SanemaScriptSystemImpl::get_function_i
 std::optional<sanema::ExecutionState> sanema::SanemaScriptSystemImpl::run_script_yielding(ScriptID id, std::uint32_t vm_index) {
   auto& vm = vms.at(vm_index);
   auto& script = get_script(id);
-  return vm.run(script.bytecode, binding_collection);
+  return vm.run(*script.bytecode, binding_collection, script.bytecode);
 }
 
 std::optional<sanema::ExecutionState> sanema::SanemaScriptSystemImpl::resume_script(ExecutionState const& state, std::uint32_t vm_index) {

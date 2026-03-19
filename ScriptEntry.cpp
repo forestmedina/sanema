@@ -4,7 +4,7 @@
 
 #include "ScriptEntry.h"
 
-sanema::ScriptEntry::ScriptEntry(ScriptID id,  ByteCode bytecode)
-  : id(id), bytecode(std::move(bytecode)) {}
+sanema::ScriptEntry::ScriptEntry(ScriptID id, ByteCode bytecode)
+  : id(id), bytecode(std::make_shared<ByteCode>(std::move(bytecode))) {}
 
-sanema::ScriptEntry::ScriptEntry() {}
+sanema::ScriptEntry::ScriptEntry() : bytecode(std::make_shared<ByteCode>()) {}

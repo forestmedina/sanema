@@ -572,6 +572,7 @@ std::optional<sanema::ExecutionState> sanema::VM::run(ByteCode const &byte_code,
                   state.next_argument_address_offset = next_argument_address - (operand_stack + (state.page_index * page_size));
                   state.string_stack = string_stack;
                   state.running_byte_code = running_byte_code;
+                  state.bytecode_lifetime_handle = bytecode_lifetime_handle;
                   state.active_yieldables = active_yieldables;
                   return state;
               }
@@ -655,10 +656,17 @@ void sanema::VM::push_string(std::string const &string_value) {
 }
 
 std::optional<sanema::ExecutionState> sanema::VM::run(const sanema::ByteCode &byte_code, sanema::BindingCollection &collection) {
+  bytecode_lifetime_handle.reset();
+  return run(byte_code, collection, setup_run(byte_code,collection,std::nullopt));
+}
+
+std::optional<sanema::ExecutionState> sanema::VM::run(const sanema::ByteCode &byte_code, sanema::BindingCollection &collection, std::shared_ptr<ByteCode const> bytecode_handle) {
+  bytecode_lifetime_handle = std::move(bytecode_handle);
   return run(byte_code, collection, setup_run(byte_code,collection,std::nullopt));
 }
 
 std::optional<sanema::ExecutionState> sanema::VM::resume(ExecutionState const &state, BindingCollection &collection) {
+    bytecode_lifetime_handle = state.bytecode_lifetime_handle;
     running_byte_code = state.running_byte_code;
 
     auto page_start = operand_stack + (state.page_index * page_size);
