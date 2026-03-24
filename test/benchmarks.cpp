@@ -222,7 +222,7 @@ TEST_CASE("Fibonacci optimized vs unoptimized","[!benchmark]") {
   REQUIRE(fib_id_unopt.has_value());
   REQUIRE(fib_id_opt.has_value());
 
-  BENCHMARK("Fibonacci iterative 20 - unoptimized") {
+  BENCHMARK("") {
     return system_unopt.run_function<std::int64_t>(script_unopt, *fib_id_unopt, 0, std::int64_t{20});
   };
 

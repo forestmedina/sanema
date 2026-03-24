@@ -32,7 +32,7 @@ namespace sanema {
   template <class T>
   void emplace_parameter(FunctionDefinitionCompleted& function) {
     auto modifier=get_parameter_modifier<T>();
-    FunctionParameterCompleted parameter{"",modifier,type_from_cpptype<std::remove_cvref_t<T>>()};
+    FunctionParameterCompleted parameter{"",modifier,type_from_cpptype<std::remove_pointer_t<std::remove_cvref_t<T>>>()};
     function.parameters.emplace_back(parameter);
   }
     template<typename T,class ...ARGs>
