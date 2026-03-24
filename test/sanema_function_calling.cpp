@@ -159,15 +159,14 @@ TEST_CASE("native reference modification",
         mut value int64
     begin
        set value add(value 5);
-      return 0;
+      return value;
     end;
 
 
 )--");
 
   std::int64_t value = 5;
-  //TODO: when the a mut parameter is passed we should pass the address but we are passing the value
-  //this need to be fixed I am forcing a fail so it does not crash
+
   auto result = run_function_and_get_stack_value<std::int64_t>(code, "return_function", &value);
   REQUIRE(value== 10);
 
