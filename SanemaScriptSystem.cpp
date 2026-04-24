@@ -90,6 +90,10 @@ sanema::Optimizer& sanema::SanemaScriptSystem::get_optimizer() {
   return impl->get_optimizer();
 }
 
+sanema::FunctionCollection const& sanema::SanemaScriptSystem::get_function_collection() const {
+  return impl->get_function_collection();
+}
+
 void sanema::SanemaScriptSystem::add_argument(sanema::ScriptID id, const sanema::Argument &args,std::uint32_t vm_index) {
   impl->add_argument(id, args, vm_index);
 }

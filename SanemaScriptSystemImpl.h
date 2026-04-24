@@ -55,6 +55,7 @@ namespace sanema {
     void* get_return_pointer( std::uint32_t vm_index);
 
     BindingCollection  &get_binding_collection() ;
+    FunctionCollection const& get_function_collection() const;
     Optimizer& get_optimizer();
 
 

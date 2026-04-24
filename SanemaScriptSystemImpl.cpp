@@ -132,6 +132,10 @@ sanema::BindingCollection &sanema::SanemaScriptSystemImpl::get_binding_collectio
   return binding_collection;
 }
 
+sanema::FunctionCollection const& sanema::SanemaScriptSystemImpl::get_function_collection() const {
+  return general_functions;
+}
+
 sanema::Optimizer& sanema::SanemaScriptSystemImpl::get_optimizer() {
   return optimizer;
 }

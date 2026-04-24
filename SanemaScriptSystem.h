@@ -129,6 +129,7 @@ void print_args(ARGs&&... args) {
         return get_binding_collection().add_type_binding<T>(identifier);
       }
     Optimizer& get_optimizer();
+    FunctionCollection const& get_function_collection() const;
     SanemaScriptSystem(unsigned int number_of_vms,unsigned int mb_per_vm);
     virtual ~SanemaScriptSystem();
 
