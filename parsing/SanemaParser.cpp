@@ -349,7 +349,7 @@ std::vector<sanema::Token> sanema::SanemaParser::tokenize(std::istream &text) {
         //ignore
       } else {
         if (!token.has_value()) {
-          token = Token{"", (int) line_number + 1, column_number};
+          token = Token{"", (int) line_number + 1, (int) column_number};
         }
         token->token += read_character;
       }
