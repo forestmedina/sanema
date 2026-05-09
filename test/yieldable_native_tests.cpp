@@ -96,7 +96,7 @@ TEST_CASE("Yieldable: multi-tick suspends for exactly N frames", "[yieldable]") 
   )";
 
   constexpr int N = 3;
-  auto [bc, bindings] = compile(code, [](sanema::BindingCollection &b) {
+  auto [bc, bindings] = compile(code, [N](sanema::BindingCollection &b) {
     b.add_yieldable_function<std::int64_t>(
       "wait_n",
       [N]() -> std::unique_ptr<sanema::IYieldableFunction> {
