@@ -27,6 +27,13 @@ namespace sanema {
       unregistered_functions.emplace_back(std::make_unique<decltype(caller)>(std::move(caller)));
     }
 
+    template<typename RET, typename ...ARGS>
+    void add_actor_yieldable_function(std::string const &identifier,
+                                      typename YieldableCaller<RET, ARGS...>::ActorFactory factory) {
+      unregistered_functions.emplace_back(
+          std::make_unique<YieldableCaller<RET, ARGS...>>(identifier, std::move(factory)));
+    }
+
     template<typename T>
     TypeBindingPointer *add_type_binding(std::string const &identifier) {
       TypeBinding<T> type_binding{identifier};

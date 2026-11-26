@@ -18,6 +18,26 @@ void sanema::SanemaScriptSystem::run_script(sanema::ScriptID id,std::uint32_t vm
   impl->run_script(id, vm_index);
 }
 
+bool sanema::SanemaScriptSystem::ScriptExecution::tick(BindingCollection &bindings) {
+  if (!started_) {
+    started_ = true;
+    state_ = vm_.run(*bytecode_, bindings);
+  } else if (state_) {
+    state_ = vm_.resume(*state_, bindings);
+  }
+  return state_.has_value();
+}
+
+std::unique_ptr<sanema::SanemaScriptSystem::ScriptExecution>
+sanema::SanemaScriptSystem::make_execution(std::filesystem::path const& path) {
+  std::lock_guard lock(script_paths_mutex_);
+  return std::make_unique<ScriptExecution>(impl->get_script_bytecode(impl->get_script_id(path)));
+}
+
+bool sanema::SanemaScriptSystem::tick(ScriptExecution &execution) {
+  return execution.tick(get_binding_collection());
+}
+
 std::optional<sanema::ExecutionState> sanema::SanemaScriptSystem::run_script_yielding(sanema::ScriptID id, std::uint32_t vm_index) {
   return impl->run_script_yielding(id, vm_index);
 }
@@ -119,6 +139,7 @@ std::optional<sanema::FunctionID> sanema::SanemaScriptSystem::get_function_id(Sc
 }
 
 sanema::ScriptID sanema::SanemaScriptSystem::get_script_id(std::filesystem::path const& path) {
+  std::lock_guard lock(script_paths_mutex_);
   return impl->get_script_id(path);
 }
 

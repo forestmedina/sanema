@@ -104,16 +104,25 @@ template <class T>
   template<typename RET_TYPE, typename ...ARGS>
   struct YieldableCaller : public FunctionPointer {
     using Factory = std::function<std::unique_ptr<IYieldableFunction>(ARGS...)>;
+    using ActorFactory = std::function<std::unique_ptr<IYieldableFunction>(std::optional<std::int64_t>, ARGS...)>;
 
     YieldableCaller(std::string identifier, Factory factory)
-      : identifier(std::move(identifier)), factory(std::move(factory)) {}
+      : YieldableCaller(std::move(identifier), ActorFactory(
+          [factory = std::move(factory)](std::optional<std::int64_t>, ARGS... args) {
+            return factory(std::forward<ARGS>(args)...);
+          })) {}
+
+    YieldableCaller(std::string identifier, ActorFactory factory)
+      : actor_factory(std::move(factory)), identifier(std::move(identifier)) {}
 
     void call(VM &vm) override {
       auto ignore = get_function_parameter_from_vm<RET_TYPE>(vm, FunctionParameterCompleted::Modifier::VALUE);
       std::tuple<ARGS...> params{
         get_function_parameter_from_vm<ARGS>(vm, get_parameter_modifier<ARGS>())...
       };
-      auto instance = std::apply(factory, std::move(params));
+      auto instance = std::apply([&](ARGS... args) {
+        return actor_factory(vm.current_actor(), std::forward<ARGS>(args)...);
+      }, std::move(params));
       vm.register_yieldable(std::move(instance));
     }
 
@@ -129,7 +138,7 @@ template <class T>
 
     ~YieldableCaller() override = default;
 
-    Factory factory;
+    ActorFactory actor_factory;
     std::string identifier;
   };
 

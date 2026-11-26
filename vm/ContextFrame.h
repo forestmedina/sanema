@@ -6,6 +6,7 @@
 #define NATURE_CONTEXT_FRAME_H
 #include <cassert>
 #include <cstdint>
+#include <vector>
 #include "OperandType.h"
 #include "VMInstruction.h"
 namespace sanema {
@@ -33,6 +34,7 @@ namespace sanema {
    VMInstruction const * ip;
     [[nodiscard]] uint8_t *get_begin_address() const;
     int page_index;
+    std::vector<std::int64_t> actor_scopes;
 
   private:
     //begin and end are  addresses to a  point the stack. Begin address should be specified in the constructor

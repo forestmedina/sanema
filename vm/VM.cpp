@@ -29,6 +29,7 @@ sanema::IPType  sanema::VM::setup_run(const sanema::ByteCode &byte_code, sanema:
   next_argument_address = operand_stack_pointer ;
   string_stack.clear();
   call_stack.clear();
+  active_yieldables.clear();
   IPType ip = byte_code.code_data.data();
   if(function_id.has_value()){
     auto final_function=byte_code.function_collection.get_function_by_id(function_id.value());
@@ -524,6 +525,12 @@ std::optional<sanema::ExecutionState> sanema::VM::run(ByteCode const &byte_code,
         }
         break;
       }
+      case OPCODE::OP_ENTER_ACTOR_SCOPE:
+        call_stack.back().actor_scopes.push_back(read_register<std::int64_t, 1>(instruction));
+        break;
+      case OPCODE::OP_LEAVE_ACTOR_SCOPE:
+        call_stack.back().actor_scopes.pop_back();
+        break;
       case OPCODE::OP_YIELD: {
           ExecutionState state;
           state.page_index = call_stack.front().page_index;
@@ -672,6 +679,13 @@ std::optional<sanema::ExecutionState> sanema::VM::resume(ExecutionState const &s
     active_yieldables = state.active_yieldables;
 
     return run(*running_byte_code, collection, state.ip);
+}
+
+std::optional<std::int64_t> sanema::VM::current_actor() const {
+  for (auto frame = call_stack.rbegin(); frame != call_stack.rend(); ++frame) {
+    if (!frame->actor_scopes.empty()) return frame->actor_scopes.back();
+  }
+  return std::nullopt;
 }
 
 void sanema::VM::register_yieldable(std::unique_ptr<IYieldableFunction> instance) {

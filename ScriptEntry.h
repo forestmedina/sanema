@@ -5,6 +5,7 @@
 #ifndef SANEMA_SCRIPTENTRY_H
 #define SANEMA_SCRIPTENTRY_H
 
+#include <memory>
 #include <ScriptID.h>
 #include <compiler/ByteCodeCompiler.h>
 
@@ -15,7 +16,7 @@ namespace sanema {
     ScriptEntry();
 
     ScriptID id{0};
-    ByteCode bytecode{};
+    std::shared_ptr<ByteCode const> bytecode;
   };
 }
 

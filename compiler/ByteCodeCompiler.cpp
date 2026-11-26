@@ -990,6 +990,27 @@ sanema::ByteCodeCompiler::generate_block(sanema::BlockOfCode &block_of_code, Fun
             instruction_return.opcode = OPCODE::OP_RETURN;
             byte_code.write(instruction_return);
           },
+          [this, &built_in_functions, &external_types, &total_variable_space](AsStatement &statement) {
+            auto &scope = scope_stack.back();
+            auto address = scope.scope_address;
+            CompleteType const actor_type{Integer{64}};
+            if (get_expression_type(statement.actor, scope) != actor_type) {
+              throw std::runtime_error("The actor in an 'as' block must be an int64");
+            }
+            generate_expression_access(statement.actor,
+                                       FunctionParameterIncomplete::Modifier::VALUE,
+                                       actor_type, byte_code, scope,
+                                       function_bytecode_generators, function_call_sustitutions, address);
+            VMInstruction enter;
+            enter.opcode = OPCODE::OP_ENTER_ACTOR_SCOPE;
+            enter.registers16.r1 = address.address;
+            byte_code.write(enter);
+            scope.scope_address = address;
+            total_variable_space = generate_block(statement.body, built_in_functions, external_types);
+            VMInstruction leave;
+            leave.opcode = OPCODE::OP_LEAVE_ACTOR_SCOPE;
+            byte_code.write(leave);
+          },
           [this](YieldStatement &yield_statement) {
             sanema::VMInstruction instruction;
             instruction.opcode = OPCODE::OP_YIELD;

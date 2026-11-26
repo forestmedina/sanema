@@ -46,6 +46,15 @@ std::optional<sanema::Instruction> sanema::SanemaParser::parse_instruction(std::
     return parse_for_statement(current, end);
   } else if (current->token == return_word) {
     return parse_return_statement(current, end);
+  } else if (current->token == "as") {
+    ++current;
+    auto actor = parse_expression(current, end);
+    auto body = parse_block(current, end);
+    if (current == end || current->token != code_block_end) {
+      throw std::runtime_error("Expected 'end' to close actor scope");
+    }
+    ++current;
+    return AsStatement{std::move(actor), std::move(body)};
   } else if (current->token == yield_word) {
     return parse_yield_statement(current, end);
   } else if (current->token == code_block_begin) {

@@ -15,10 +15,28 @@
 #include <vm/VM.h>
 #include <optimizer/Optimizer.h>
 #include <type_traits>
+#include <mutex>
 namespace sanema {
   class SanemaScriptSystemImpl;
   class SanemaScriptSystem {
   public:
+    class ScriptExecution {
+    public:
+      explicit ScriptExecution(std::shared_ptr<ByteCode const> bytecode)
+        : bytecode_(std::move(bytecode)) {}
+
+      bool tick(BindingCollection &bindings);
+
+    private:
+      std::shared_ptr<ByteCode const> bytecode_;
+      VM vm_{1};
+      std::optional<ExecutionState> state_;
+      bool started_{false};
+    };
+
+    std::unique_ptr<ScriptExecution> make_execution(std::filesystem::path const& path);
+    bool tick(ScriptExecution &execution);
+
     ScriptID add_script(std::string  const& string);
     void replace_script(ScriptID script_id,std::string  const& string);
     void replace_script(ScriptID script_id,std::istream & stream);
@@ -123,6 +141,12 @@ void print_args(ARGs&&... args) {
       get_binding_collection().add_yieldable_function<RET, ARGS...>(identifier, std::move(factory));
     }
 
+    template<typename RET, typename ...ARGS>
+    void add_actor_yieldable_function(std::string const &identifier,
+                                      typename sanema::YieldableCaller<RET, ARGS...>::ActorFactory factory) {
+      get_binding_collection().add_actor_yieldable_function<RET, ARGS...>(identifier, std::move(factory));
+    }
+
       template<class T>
       TypeBindingPointer* add_pod_type(std::string const &identifier){
        static_assert( std::is_standard_layout_v<T> ,"type must be a pod type");
@@ -138,6 +162,7 @@ void print_args(ARGs&&... args) {
     void setup_run(ScriptID id,FunctionID function_id,std::uint32_t vm_index);
     void execute_run_function(sanema::ScriptID id, std::uint32_t vm_index);
     BindingCollection  &get_binding_collection() ;
+    std::mutex script_paths_mutex_;
     std::unique_ptr<SanemaScriptSystemImpl> impl{};
 
   };
