@@ -223,3 +223,37 @@ TEST_CASE("Yieldable: two concurrent yieldables with different tick counts", "[y
   state = vm.resume(state.value(), bindings);
   REQUIRE(!state.has_value());
 }
+
+TEST_CASE("Actor scopes survive a yield and restore the enclosing actor", "[yieldable]") {
+  std::vector<std::optional<std::int64_t>> actors;
+  auto [bytecode, bindings] = compile(R"(
+    var ashawi int64 116200000000000002;
+    var nashipe int64 116200000000000001;
+    speak();
+    as ashawi
+      speak();
+      as nashipe
+        speak();
+      end
+      speak();
+    end
+    speak();
+  )", [&](sanema::BindingCollection& collection) {
+    collection.add_actor_yieldable_function<std::int64_t>(
+        "speak", [&](std::optional<std::int64_t> actor) {
+          actors.push_back(actor);
+          return std::make_unique<CountdownYieldable>(2, 0);
+        });
+  });
+
+  sanema::VM vm(1);
+  auto state = vm.run(bytecode, bindings);
+  for (int line = 0; line < 5; ++line) {
+    REQUIRE(state.has_value());
+    state = vm.resume(*state, bindings);
+  }
+  REQUIRE_FALSE(state.has_value());
+  REQUIRE(actors == std::vector<std::optional<std::int64_t>>{
+      std::nullopt, 116200000000000002, 116200000000000001,
+      116200000000000002, std::nullopt});
+}

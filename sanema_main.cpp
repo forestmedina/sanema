@@ -17,7 +17,6 @@
 #include "parsing/SanemaParser.hpp"
 #include "SanemaScriptSystem.h"
 #include <chrono>
-#include <angelscript.h>
 
 void print_type(sanema::CompleteType &type) {
   match(type,

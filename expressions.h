@@ -94,6 +94,11 @@ namespace sanema {
     } state{ReturnStatementState::EXPRESSION};
   };
 
+  struct AsStatement {
+    Expression actor;
+    BlockOfCode body;
+  };
+
   struct YieldStatement {
   };
 
@@ -135,7 +140,7 @@ namespace sanema {
     bool operator!=(const FunctionDefinitionCompleted &rhs) const;
   };
 
-  using Instruction = std::variant<DefineStruct, DeclareVariable, DefineFunction, FunctionCall, BlockOfCode, IfStatement,ReturnStatement,ForStatement, YieldStatement>;
+  using Instruction = std::variant<DefineStruct, DeclareVariable, DefineFunction, FunctionCall, BlockOfCode, IfStatement,ReturnStatement,ForStatement, YieldStatement, AsStatement>;
 
   struct BlockInstruction {
     explicit BlockInstruction(const Instruction &instruction_sum);

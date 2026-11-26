@@ -53,6 +53,11 @@ namespace sanema {
                 return a.entry_address < b.entry_address;
               });
 
+    // Reusing a frame would carry its actor scopes into the next iteration.
+    if (std::ranges::any_of(code, [](auto const& instruction) {
+          return instruction.opcode == OPCODE::OP_ENTER_ACTOR_SCOPE;
+        })) return;
+
     // For each function, find tail-call patterns: OP_CALL(self) followed by OP_RETURN
     // A self-call is an OP_CALL whose register32.r1 (target address) equals the entry
     // address of the function that contains the OP_CALL instruction.

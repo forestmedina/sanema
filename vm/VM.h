@@ -91,6 +91,8 @@ namespace sanema {
 
     }
 
+    std::optional<std::int64_t> current_actor() const;
+
     void register_yieldable(std::unique_ptr<IYieldableFunction> instance);
     void set_pending_call_site(std::uint32_t offset) { pending_call_site = offset; }
 
